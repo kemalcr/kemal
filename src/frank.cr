@@ -13,6 +13,7 @@ end
 at_exit do
   handlers = [] of HTTP::Handler
   handlers << HTTP::LogHandler.new
+  handlers << HTTP::StaticFileHandler.new("./public")
   handlers << $frank_handler
   server = HTTP::Server.new(port, HTTP::Server.build_middleware handlers)
 
