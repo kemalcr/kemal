@@ -13,7 +13,7 @@ class Frank::Handler < HTTP::Handler
         HTTP::Response.new("HTTP/1.1", 500, "Internal Server Error", {"Content-Type" => "text/plain"}, ex.to_s)
       end
     else
-      HTTP::Response.new("HTTP/1.1", 404, "Not Found", {"Content-Type" => "text/plain"}, "Not Found")
+      call_next(request)
     end
   end
 
