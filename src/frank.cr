@@ -15,7 +15,7 @@ at_exit do
   handlers << HTTP::LogHandler.new
   handlers << HTTP::StaticFileHandler.new("./public")
   handlers << $frank_handler
-  server = HTTP::Server.new(port, HTTP::Server.build_middleware handlers)
+  server = HTTP::Server.new(port, handlers)
 
   puts "Listening on http://0.0.0.0:#{port}"
   server.listen
