@@ -19,15 +19,16 @@ class Frank::Handler < HTTP::Handler
     end
   end
 
-  def add_route(path, handler)
-    @routes << Route.new(path, handler)
+  def add_route(method, path, &handler : Frank::Request -> String)
+    @routes << Route.new(method, path, &handler)
   end
 
   def exec_request(request)
     components = request.path.split "/"
     @routes.each do |route|
-      frank_request = route.match(request, components)
-      if frank_request
+      params = route.match(request.method, components)
+      if params
+        frank_request = Request.new(params)
         return route.handler.call(frank_request)
       end
     end

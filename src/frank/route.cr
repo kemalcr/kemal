@@ -1,11 +1,12 @@
 class Frank::Route
   getter handler
 
-  def initialize(path, @handler)
+  def initialize(@method, path, &@handler : Frank::Request -> String)
     @components = path.split "/"
   end
 
-  def match(request, components)
+  def match(method, components)
+    return nil unless method == @method
     return nil unless components.length == @components.length
 
     params = nil
@@ -20,6 +21,6 @@ class Frank::Route
     end
 
     params ||= {} of String => String
-    Request.new(params)
+    params
   end
 end
