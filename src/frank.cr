@@ -1,8 +1,6 @@
 require "option_parser"
 require "./frank/*"
 
-$frank_handler = Frank::Handler.new
-
 at_exit do
   OptionParser.parse! do |opts|
     opts.on("-p ", "--port ", "port") do |opt_port|
@@ -14,7 +12,7 @@ at_exit do
   handlers = [] of HTTP::Handler
   handlers << HTTP::LogHandler.new
   handlers << HTTP::StaticFileHandler.new("./public")
-  handlers << $frank_handler
+  handlers << Frank::Handler::INSTANCE
   server = HTTP::Server.new(config.port, handlers)
 
   server.ssl = config.ssl

@@ -1,6 +1,8 @@
 require "net/http"
 
 class Frank::Handler < HTTP::Handler
+  INSTANCE = new
+
   def initialize
     @routes = [] of Route
   end
