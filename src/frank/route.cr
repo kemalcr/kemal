@@ -1,7 +1,7 @@
 class Frank::Route
   getter handler
 
-  def initialize(@method, path, &@handler : Frank::Request -> String)
+  def initialize(@method, path, &@handler : Frank::Context -> _)
     @components = path.split "/"
   end
 

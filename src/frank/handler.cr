@@ -8,18 +8,11 @@ class Frank::Handler < HTTP::Handler
   end
 
   def call(request)
-    if body = exec_request(request)
-      begin
-        HTTP::Response.new("HTTP/1.1", 200, "OK", {"Content-Type" => "text/plain"}, body)
-      rescue ex
-        HTTP::Response.new("HTTP/1.1", 500, "Internal Server Error", {"Content-Type" => "text/plain"}, ex.to_s)
-      end
-    else
-      call_next(request)
-    end
+    response = exec_request(request)
+    response || call_next(request)
   end
 
-  def add_route(method, path, &handler : Frank::Request -> String)
+  def add_route(method, path, &handler : Frank::Context -> _)
     @routes << Route.new(method, path, &handler)
   end
 
@@ -29,7 +22,14 @@ class Frank::Handler < HTTP::Handler
       params = route.match(request.method, components)
       if params
         frank_request = Request.new(params)
-        return route.handler.call(frank_request)
+        context = Context.new(frank_request)
+        begin
+          body = route.handler.call(context).to_s
+          content_type = context.response?.try(&.content_type) || "text/plain"
+          return HTTP::Response.new("HTTP/1.1", 200, "OK", {"Content-Type" => content_type}, body)
+        rescue ex
+          return HTTP::Response.new("HTTP/1.1", 500, "Internal Server Error", {"Content-Type" => "text/plain"}, ex.to_s)
+        end
       end
     end
     nil
