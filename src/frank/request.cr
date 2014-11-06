@@ -1,6 +1,8 @@
 class Frank::Request
   getter params
 
-  def initialize(@params)
+  def initialize(@request, @params)
   end
+
+  delegate body, @request
 end
