@@ -1,4 +1,4 @@
-require "net/http/**"
+require "http/server"
 
 class Frank::Handler < HTTP::Handler
   INSTANCE = new
