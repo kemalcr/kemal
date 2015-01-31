@@ -11,8 +11,8 @@ at_exit do
   config = Frank.config
   handlers = [] of HTTP::Handler
   handlers << HTTP::LogHandler.new
-  handlers << HTTP::StaticFileHandler.new("./public")
   handlers << Frank::Handler::INSTANCE
+  handlers << HTTP::StaticFileHandler.new("./public")
   server = HTTP::Server.new(config.port, handlers)
 
   server.ssl = config.ssl
