@@ -25,7 +25,7 @@ class Frank::Handler < HTTP::Handler
       if params
         if query = uri.query
           CGI.parse(query) do |key, value|
-            params[key] = value
+            params[key] ||= value
           end
         end
 
