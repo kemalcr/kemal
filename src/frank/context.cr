@@ -11,4 +11,8 @@ class Frank::Context
   def response?
     @response
   end
+
+  def params
+    request.params
+  end
 end
