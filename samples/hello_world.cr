@@ -1,4 +1,4 @@
-require "../libs/kemal"
+require "kemal"
 
 get "/" do
   "Hello World!"
