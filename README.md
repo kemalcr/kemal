@@ -4,6 +4,16 @@
 
 Kemal is under heavy development and currently supports Crystal 0.9.0.
 
+# Super Simple <3
+
+```ruby
+get "/" do
+  "Hello World!"
+end
+```
+
+Go to *http://localhost:3000*
+
 # Installation
 
 Add it to your ```shard.yml```
