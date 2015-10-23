@@ -1,7 +1,7 @@
-class Frank::Route
+class Kemal::Route
   getter handler
 
-  def initialize(@method, path, &@handler : Frank::Context -> _)
+  def initialize(@method, path, &@handler : Kemal::Context -> _)
     @components = path.split "/"
   end
 

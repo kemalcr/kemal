@@ -1,17 +1,17 @@
 require "option_parser"
-require "./frank/*"
+require "./Kemal/*"
 
 at_exit do
   OptionParser.parse! do |opts|
     opts.on("-p ", "--port ", "port") do |opt_port|
-      Frank.config.port = opt_port.to_i
+      Kemal.config.port = opt_port.to_i
     end
   end
 
-  config = Frank.config
+  config = Kemal.config
   handlers = [] of HTTP::Handler
   handlers << HTTP::LogHandler.new
-  handlers << Frank::Handler::INSTANCE
+  handlers << Kemal::Handler::INSTANCE
   handlers << HTTP::StaticFileHandler.new("./public")
   server = HTTP::Server.new(config.port, handlers)
 

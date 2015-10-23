@@ -1,4 +1,4 @@
 require "spec"
-require "../src/frank/*"
+require "../src/kemal/*"
 
-include Frank
+include Kemal

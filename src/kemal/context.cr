@@ -1,4 +1,4 @@
-class Frank::Context
+class Kemal::Context
   getter request
 
   def initialize(@request)

@@ -1,4 +1,4 @@
-require "../src/frank"
+require "../libs/kemal"
 
 get "/" do
   "Hello World!"

@@ -1,3 +1,3 @@
-class Frank::Response
+class Kemal::Response
   property content_type
 end

@@ -1,4 +1,4 @@
-class Frank::Request
+class Kemal::Request
   getter params
 
   def initialize(@request, @params)

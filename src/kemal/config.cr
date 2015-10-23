@@ -1,4 +1,4 @@
-module Frank
+module Kemal
   class Config
     INSTANCE = Config.new
     property ssl

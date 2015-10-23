@@ -1,4 +1,4 @@
-# frank
+# Kemal
 
 This is a proof-of-concept [Sinatra](http://www.sinatrarb.com/) clone for [Crystal](http://www.crystal-lang.org).
 
