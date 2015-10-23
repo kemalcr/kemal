@@ -28,3 +28,7 @@ dependencies:
 ## Status
 
 Basic `get`, `put`, `post` and `head` routes can be matched, and request parameters can be obtained.
+
+## Thanks
+
+Thanks to Manas for their awesome work on [Frank](https://github.com/manastech/frank).
