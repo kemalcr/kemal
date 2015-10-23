@@ -1,5 +1,5 @@
 require "option_parser"
-require "./Kemal/*"
+require "./kemal/*"
 
 at_exit do
   OptionParser.parse! do |opts|
