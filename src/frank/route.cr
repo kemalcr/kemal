@@ -7,7 +7,7 @@ class Frank::Route
 
   def match(method, components)
     return nil unless method == @method
-    return nil unless components.length == @components.length
+    return nil unless components.size == @components.size
 
     params = nil
 
