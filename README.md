@@ -7,6 +7,8 @@ Kemal is under heavy development and currently supports Crystal 0.9.0.
 # Super Simple <3
 
 ```ruby
+require "kemal"
+
 get "/" do
   "Hello World!"
 end
