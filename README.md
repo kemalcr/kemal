@@ -16,6 +16,8 @@ end
 
 Go to *http://localhost:3000*
 
+Check [samples](https://github.com/sdogruyol/kemal/tree/master/samples) for more.
+
 # Installation
 
 Add it to your ```shard.yml```
