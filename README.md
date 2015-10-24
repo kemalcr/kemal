@@ -37,7 +37,7 @@ dependencies:
 
 ## Status
 
-Basic `get`, `put`, `post` and `head` routes can be matched, and request parameters can be obtained.
+Basic `get`, `put`, `post`, `patch`, `delete` and `head` routes can be matched, and request parameters can be obtained.
 
 ## Thanks
 

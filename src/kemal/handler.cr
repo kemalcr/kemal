@@ -17,7 +17,7 @@ class Kemal::Handler < HTTP::Handler
     @routes << Route.new(method, path, &handler)
   end
 
-  def exec_request(request)  
+  def exec_request(request)
     components = request.path.not_nil!.split "/"
     @routes.each do |route|
       params = route.match(request.method, components)
