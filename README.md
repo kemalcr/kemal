@@ -14,6 +14,12 @@ get "/" do
 end
 ```
 
+Build and run!
+
+```
+crystal build --release src/kemal_sample.cr
+./kemal_sample
+```
 Go to *http://localhost:3000*
 
 Check [samples](https://github.com/sdogruyol/kemal/tree/master/samples) for more.
