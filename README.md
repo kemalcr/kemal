@@ -31,7 +31,7 @@ Add it to your ```shard.yml```
 ```yml
 dependencies:
   kemal:
-    github: sdogruyol/kemal
+    github: kemalcr/kemal
     branch: master
 ```
 
