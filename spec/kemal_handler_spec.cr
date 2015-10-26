@@ -21,6 +21,16 @@ describe "Kemal::Handler" do
     response.body.should eq("hello world")
   end
 
+  it "routes request with multiple query strings" do
+    kemal = Kemal::Handler.new
+    kemal.add_route "GET", "/" do |ctx|
+      "hello #{ctx.params["message"]} time #{ctx.params["time"]}"
+    end
+    request = HTTP::Request.new("GET", "/?message=world&time=now")
+    response = kemal.call(request)
+    response.body.should eq("hello world time now")
+  end
+
   it "route parameter has more precedence than query string arguments" do
     kemal = Kemal::Handler.new
     kemal.add_route "GET", "/:message" do |ctx|

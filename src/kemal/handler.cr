@@ -23,10 +23,9 @@ class Kemal::Handler < HTTP::Handler
       params = route.match(request.method, components)
       if params
         if query = request.query
-          split = query.split("=")
-          key = split[0]
-          value = split[1]
-          params[key] ||= value
+          HTTP::Params.parse(query) do |key, value|
+            params[key] ||= value
+	        end
         end
 
         if body = request.body
