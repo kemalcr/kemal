@@ -29,6 +29,12 @@ class Kemal::Handler < HTTP::Handler
           params[key] ||= value
         end
 
+        if body = request.body
+          HTTP::Params.parse(request.body.not_nil!) do |key, value|
+            params[key] ||= value
+          end
+        end
+
         kemal_request = Request.new(request, params)
         context = Context.new(kemal_request)
         begin
