@@ -1,6 +1,7 @@
 # Kemal
 
-[Sinatra](http://www.sinatrarb.com/) clone for [Crystal](http://www.crystal-lang.org).
+Lightning Fast, Super Simple web framework for [Crystal](http://www.crystal-lang.org).
+Inspired by [Sinatra](http://www.sinatrarb.com/)
 
 Kemal is under heavy development and currently supports Crystal 0.9.0.
 
