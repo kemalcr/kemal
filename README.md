@@ -1,3 +1,5 @@
+![Kemal](https://avatars3.githubusercontent.com/u/15321198?v=3&s=200)
+
 # Kemal
 
 Lightning Fast, Super Simple web framework for [Crystal](http://www.crystal-lang.org).
