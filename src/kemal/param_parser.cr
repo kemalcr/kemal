@@ -11,17 +11,13 @@ class Kemal::ParamParser
   end
 
   def parse_request
-    if query = @request.query
-      HTTP::Params.parse(query) do |key, value|
-        @params[key] ||= value
+    {% for part in %w{query body} %}
+      if {{part.id}} = @request.{{part.id}}
+        HTTP::Params.parse({{part.id}}) do |key, value|
+          @params[key] ||= value
+        end
       end
-    end
-
-    if body = @request.body
-      HTTP::Params.parse(body.not_nil!) do |key, value|
-        @params[key] ||= value
-      end
-    end
+    {% end %}
     @params
   end
 
