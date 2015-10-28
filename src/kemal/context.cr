@@ -4,7 +4,7 @@ class Kemal::Context
   getter content_type
 
   def initialize(@request, @params)
-    @content_type = "text/plain"
+    @content_type = "text/html"
   end
 
   def set_content_type(content_type)

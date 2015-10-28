@@ -8,7 +8,7 @@ describe "Context" do
     end
     request = HTTP::Request.new("GET", "/")
     response = kemal.call(request)
-    response.headers["Content-Type"].should eq("text/plain")
+    response.headers["Content-Type"].should eq("text/html")
   end
 
   it "sets content type" do
