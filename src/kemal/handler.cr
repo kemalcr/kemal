@@ -26,7 +26,7 @@ class Kemal::Handler < HTTP::Handler
         context = Context.new(request, params.not_nil!)
         begin
           body = route.handler.call(context).to_s
-          content_type = context.response?.try(&.content_type) || "text/plain"
+          content_type = context.content_type
           return HTTP::Response.ok(content_type, body)
         rescue ex
           return HTTP::Response.error("text/plain", ex.to_s)

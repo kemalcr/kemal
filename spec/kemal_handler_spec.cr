@@ -40,14 +40,4 @@ describe "Kemal::Handler" do
     response = kemal.call(request)
     response.body.should eq("hello world")
   end
-
-  it "sets content type" do
-    kemal = Kemal::Handler.new
-    kemal.add_route "GET", "/" do |env|
-      env.response.content_type = "application/json"
-    end
-    request = HTTP::Request.new("GET", "/")
-    response = kemal.call(request)
-    response.headers["Content-Type"].should eq("application/json")
-  end
 end
