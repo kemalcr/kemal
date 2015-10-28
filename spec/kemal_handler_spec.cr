@@ -54,9 +54,9 @@ describe "Kemal::Handler" do
   it "parses POST body" do
     kemal = Kemal::Handler.new
     kemal.add_route "POST", "/" do |env|
-      name = env.request.params["name"]
-      age = env.request.params["age"]
-      hasan = env.request.params["hasan"]
+      name = env.params["name"]
+      age = env.params["age"]
+      hasan = env.params["hasan"]
       "Hello #{name} #{hasan} #{age}"
     end
     request = HTTP::Request.new("POST", "/?hasan=cemal", body: "name=kemal&age=99")

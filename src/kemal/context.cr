@@ -1,7 +1,8 @@
 class Kemal::Context
   getter request
+  getter params
 
-  def initialize(@request)
+  def initialize(@request, @params)
   end
 
   def response
@@ -10,9 +11,5 @@ class Kemal::Context
 
   def response?
     @response
-  end
-
-  def params
-    request.params
   end
 end

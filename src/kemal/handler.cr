@@ -34,8 +34,7 @@ class Kemal::Handler < HTTP::Handler
           end
         end
 
-        kemal_request = Request.new(request, params)
-        context = Context.new(kemal_request)
+        context = Context.new(request, params)
         begin
           body = route.handler.call(context).to_s
           content_type = context.response?.try(&.content_type) || "text/plain"

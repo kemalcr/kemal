@@ -8,4 +8,8 @@ class Kemal::Logger
       @stream.puts message
     end
   {% end %}
+
+  def exception(e)
+      error "#{e.message}:\n\t#{e.backtrace.join("\n\t")}"
+  end
 end
