@@ -20,21 +20,10 @@ class Kemal::Handler < HTTP::Handler
   def exec_request(request)
     components = request.path.not_nil!.split "/"
     @routes.each do |route|
-      params = route.match(request.method, components)
-      if params
-        if query = request.query
-          HTTP::Params.parse(query) do |key, value|
-            params[key] ||= value
-	        end
-        end
-
-        if body = request.body
-          HTTP::Params.parse(request.body.not_nil!) do |key, value|
-            params[key] ||= value
-          end
-        end
-
-        context = Context.new(request, params)
+      match = route.match?(request)
+      if match
+        params = Kemal::Params.new(route, request).parse
+        context = Context.new(request, params.not_nil!)
         begin
           body = route.handler.call(context).to_s
           content_type = context.response?.try(&.content_type) || "text/plain"

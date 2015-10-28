@@ -1,26 +1,15 @@
 class Kemal::Route
   getter handler
+  getter components
 
   def initialize(@method, path, &@handler : Kemal::Context -> _)
     @components = path.split "/"
   end
 
-  def match(method, components)
-    return nil unless method == @method
+  def match?(request)
+    components = request.path.not_nil!.split "/"
+    return nil unless request.method == @method
     return nil unless components.size == @components.size
-
-    params = nil
-
-    @components.zip(components) do |route_component, req_component|
-      if route_component.starts_with? ':'
-        params ||= {} of String => String
-        params[route_component[1..-1]] = req_component
-      else
-        return nil unless route_component == req_component
-      end
-    end
-
-    params ||= {} of String => String
-    params
+    true
   end
 end

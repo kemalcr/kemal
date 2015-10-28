@@ -1,5 +1,6 @@
 class Kemal::Logger
   LOG_LEVELS = %w(info debug error warn)
+
   def initialize(@stream)
   end
 
@@ -10,6 +11,6 @@ class Kemal::Logger
   {% end %}
 
   def exception(e)
-      error "#{e.message}:\n\t#{e.backtrace.join("\n\t")}"
+    error "#{e.message}:\n\t#{e.backtrace.join("\n\t")}"
   end
 end
