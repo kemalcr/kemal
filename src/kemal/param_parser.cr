@@ -1,4 +1,4 @@
-class Kemal::Params
+class Kemal::ParamParser
   def initialize(@route, @request)
     @route_components = route.components
     @request_components = request.path.not_nil!.split "/"

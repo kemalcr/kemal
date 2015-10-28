@@ -22,7 +22,7 @@ class Kemal::Handler < HTTP::Handler
     @routes.each do |route|
       match = route.match?(request)
       if match
-        params = Kemal::Params.new(route, request).parse
+        params = Kemal::ParamParser.new(route, request).parse
         context = Context.new(request, params.not_nil!)
         begin
           body = route.handler.call(context).to_s
