@@ -1,3 +1,6 @@
+# ParamParser parses the request contents including query_params and body
+# and converts them into a params hash which you can within the environment
+# context.
 class Kemal::ParamParser
   def initialize(@route, @request)
     @route_components = route.components

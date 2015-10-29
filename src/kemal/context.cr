@@ -1,3 +1,5 @@
+# Context is the environment which holds request/response specific
+# information such as params, content_type e.g
 class Kemal::Context
   getter request
   getter params
