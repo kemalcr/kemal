@@ -13,8 +13,8 @@ describe "Kemal::Handler" do
 
   it "routes request with query string" do
     kemal = Kemal::Handler.new
-    kemal.add_route "GET", "/" do |ctx|
-      "hello #{ctx.params["message"]}"
+    kemal.add_route "GET", "/" do |env|
+      "hello #{env.params["message"]}"
     end
     request = HTTP::Request.new("GET", "/?message=world")
     response = kemal.call(request)
@@ -23,8 +23,8 @@ describe "Kemal::Handler" do
 
   it "routes request with multiple query strings" do
     kemal = Kemal::Handler.new
-    kemal.add_route "GET", "/" do |ctx|
-      "hello #{ctx.params["message"]} time #{ctx.params["time"]}"
+    kemal.add_route "GET", "/" do |env|
+      "hello #{env.params["message"]} time #{env.params["time"]}"
     end
     request = HTTP::Request.new("GET", "/?message=world&time=now")
     response = kemal.call(request)
@@ -33,8 +33,8 @@ describe "Kemal::Handler" do
 
   it "route parameter has more precedence than query string arguments" do
     kemal = Kemal::Handler.new
-    kemal.add_route "GET", "/:message" do |ctx|
-      "hello #{ctx.params["message"]}"
+    kemal.add_route "GET", "/:message" do |env|
+      "hello #{env.params["message"]}"
     end
     request = HTTP::Request.new("GET", "/world?message=coco")
     response = kemal.call(request)
