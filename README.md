@@ -24,7 +24,7 @@ crystal build --release src/kemal_sample.cr
 ```
 Go to *http://localhost:3000*
 
-Check [samples](https://github.com/sdogruyol/kemal/tree/master/samples) for more.
+Check [samples](https://github.com/kemalcr/kemal/tree/master/samples) for more.
 
 # Installation
 
