@@ -42,23 +42,23 @@ dependencies:
 In Kemal, a route is an HTTP method paired with a URL-matching pattern. Each route is associated with a block:
 
 ```ruby
-  get '/' do
+  get "/" do
   .. show something ..
   end
 
-  post '/' do
+  post "/" do
   .. create something ..
   end
 
-  put '/' do
+  put "/" do
   .. replace something ..
   end
 
-  patch '/' do
+  patch "/" do
   .. modify something ..
   end
 
-  delete '/' do
+  delete "/" do
   .. annihilate something ..
   end  
 ```
@@ -69,13 +69,13 @@ Accessing the request context (query params, body, headers e.g) is super easy. Y
 
 ```ruby
   # Matches /hello/kemal
-  get '/hello/:name' do |ctx|
+  get "/hello/:name" do |ctx|
     name = ctx.params["name"]
     "Hello back to #{name}"
   end
 
   # Matches /resize?width=200&height=200
-  get '/resize' do |ctx|
+  get "/resize" do |ctx|
     width = ctx.params["width"]
     height = ctx.params["height"]
   end
@@ -86,8 +86,8 @@ Kemal uses *text/html* as the default content type. You can change it via the co
 
 ```ruby
   # Set the content as application/json and return JSON
-  get '/user.json' do |ctx|
-    kemal = {name: 'Kemal', language: 'Crystal'}
+  get "/user.json" do |ctx|
+    kemal = {name: "Kemal", language: "Crystal"}
     ctx.set_content_type "application/json"
     kemal.to_json
   end
