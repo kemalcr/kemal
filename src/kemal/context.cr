@@ -9,6 +9,10 @@ class Kemal::Context
     @content_type = "text/html"
   end
 
+  def headers
+    request.headers
+  end
+
   def set_content_type(content_type)
     @content_type = content_type
   end
