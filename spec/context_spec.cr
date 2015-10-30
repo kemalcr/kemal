@@ -14,7 +14,7 @@ describe "Context" do
   it "sets content type" do
     kemal = Kemal::Handler.new
     kemal.add_route "GET", "/" do |env|
-      env.set_content_type "application/json"
+      env.content_type = "application/json"
     end
     request = HTTP::Request.new("GET", "/")
     response = kemal.call(request)
@@ -37,7 +37,7 @@ describe "Context" do
   it "sets response headers" do
     kemal = Kemal::Handler.new
     kemal.add_route "GET", "/" do |env|
-      env.set_header "Accept-Language", "tr"
+      env.add_header "Accept-Language", "tr"
     end
     request = HTTP::Request.new("GET", "/")
     response = kemal.call(request)

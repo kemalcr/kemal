@@ -10,15 +10,11 @@ class Kemal::Context
     @response = Kemal::Response.new
   end
 
-  def headers
-    @request.headers
-  end
-
   def response_headers
     @response.headers
   end
 
-  def set_header(name, value)
+  def add_header(name, value)
     @response.headers.add name, value
   end
 
@@ -26,9 +22,8 @@ class Kemal::Context
     @response.content_type
   end
 
-  def set_content_type(content_type)
-    @response.content_type = content_type
-  end
-
+  delegate headers, @request
   delegate status_code, @response
+  delegate :"status_code=", @response
+  delegate :"content_type=", @response
 end

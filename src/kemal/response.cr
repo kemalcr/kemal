@@ -4,7 +4,7 @@ class Kemal::Response
   property content_type
 
   def initialize
-    @status_code :: String
+    @status_code = 200
     @content_type = "text/html"
     @headers = HTTP::Headers{"Content-Type": @content_type}
   end
