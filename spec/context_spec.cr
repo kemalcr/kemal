@@ -33,4 +33,14 @@ describe "Context" do
     response = kemal.call(request)
     response.body.should eq "Hello kemal"
   end
+
+  it "sets response headers" do
+    kemal = Kemal::Handler.new
+    kemal.add_route "GET", "/" do |env|
+      env.set_header "Accept-Language", "tr"
+    end
+    request = HTTP::Request.new("GET", "/")
+    response = kemal.call(request)
+    response.headers["Accept-Language"].should eq "tr"
+  end
 end
