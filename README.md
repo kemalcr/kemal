@@ -1,5 +1,6 @@
 <img src="https://avatars3.githubusercontent.com/u/15321198?v=3&s=200" width="100" height="100" />
 # Kemal
+[![Build Status](https://travis-ci.org/kemalcr/kemal.svg?branch=master)](https://travis-ci.org/kemalcr/kemal)
 
 Lightning Fast, Super Simple web framework for [Crystal](http://www.crystal-lang.org).
 Inspired by [Sinatra](http://www.sinatrarb.com/)
@@ -86,7 +87,7 @@ Accessing the environment (query params, body, content_type, headers, status_cod
     env.content_type = "application/json"
     kemal.to_json
   end
-  
+
   # Add headers to your response
   get "/headers" do |env|
     env.add_header "Accept-Language", "tr"
