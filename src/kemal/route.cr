@@ -13,6 +13,11 @@ class Kemal::Route
     components = request.path.not_nil!.split "/"
     return nil unless request.method == @method
     return nil unless components.size == @components.size
+    @components.zip(components) do |route_component, req_component|
+      unless route_component.starts_with? ':'
+        return nil unless route_component == req_component
+      end
+    end
     true
   end
 end
