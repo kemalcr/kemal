@@ -97,9 +97,9 @@ Accessing the environment (query params, body, content_type, headers, status_cod
 
 ## Static Files
 
-Kemal has built-in support for serving your static files. You need to put your static files under your ```src/public``` directory.
+Kemal has built-in support for serving your static files. You need to put your static files under your ```/public``` directory.
 
-E.g: A static file like ```src/public/index.html``` will be served with the matching route ```/index.html```.
+E.g: A static file like ```/public/index.html``` will be served with the matching route ```/index.html```.
 
 ## Thanks
 
