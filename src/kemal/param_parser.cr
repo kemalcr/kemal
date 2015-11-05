@@ -2,6 +2,8 @@
 # and converts them into a params hash which you can within the environment
 # context.
 class Kemal::ParamParser
+  URL_ENCODED_FORM = "application/x-www-form-urlencoded"
+
   def initialize(@route, @request)
     @route_components = route.components
     @request_components = request.path.not_nil!.split "/"
@@ -14,14 +16,25 @@ class Kemal::ParamParser
   end
 
   def parse_request
-    {% for part in %w(query body) %}
-      if {{part.id}} = @request.{{part.id}}
-        HTTP::Params.parse({{part.id}}) do |key, value|
-          @params[key] ||= value
-        end
-      end
-    {% end %}
+    parse_query
+    parse_body
     @params
+  end
+
+  def parse_body
+    return unless @request.headers["Content-Type"]? == URL_ENCODED_FORM
+    parse_part(@request.body)
+  end
+
+  def parse_query
+    parse_part(@request.query)
+  end
+
+  def parse_part(part)
+    return unless part
+    HTTP::Params.parse(part) do |key, value|
+      @params[key] ||= value
+    end
   end
 
   def parse_components
