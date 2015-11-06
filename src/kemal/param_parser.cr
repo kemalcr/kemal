@@ -1,13 +1,19 @@
+require "json"
+
 # ParamParser parses the request contents including query_params and body
 # and converts them into a params hash which you can within the environment
 # context.
+
+alias AllParamTypes = Nil | String | Int64 | Float64 | Bool | Hash(String, JSON::Type) | Array(JSON::Type)
+
 class Kemal::ParamParser
   URL_ENCODED_FORM = "application/x-www-form-urlencoded"
+  APPLICATION_JSON = "application/json"
 
   def initialize(@route, @request)
     @route_components = route.components
     @request_components = request.path.not_nil!.split "/"
-    @params = {} of String => String
+    @params = {} of String => AllParamTypes
   end
 
   def parse
@@ -18,6 +24,7 @@ class Kemal::ParamParser
   def parse_request
     parse_query
     parse_body
+    parse_json
     @params
   end
 
@@ -28,6 +35,15 @@ class Kemal::ParamParser
 
   def parse_query
     parse_part(@request.query)
+  end
+
+  def parse_json
+    return unless @request.headers["Content-Type"]? == APPLICATION_JSON
+    body = @request.body as String
+    json = JSON.parse(body) as Hash
+    json.each do |k, v|
+      @params[k as String] = v as AllParamTypes
+    end
   end
 
   def parse_part(part)

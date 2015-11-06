@@ -30,6 +30,20 @@ describe "ParamParser" do
     params.should eq({"hasan" => "cemal", "name" => "serdar", "age" => "99"})
   end
 
+  it "parses request body" do
+    route = Route.new "POST", "/" { }
+
+    request = HTTP::Request.new(
+      "POST",
+      "/",
+      body: "{\"name\": \"Serdar\"}",
+      headers: HTTP::Headers{"Content-Type": "application/json"},
+    )
+
+    params = Kemal::ParamParser.new(route, request).parse
+    params.should eq({"name": "Serdar"})
+  end
+
   context "when content type is incorrect" do
     it "does not parse request body" do
       route = Route.new "POST", "/" do |env|

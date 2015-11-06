@@ -40,4 +40,66 @@ describe "Kemal::Handler" do
     response = kemal.call(request)
     response.body.should eq("hello world")
   end
+
+  it "parses simple JSON body" do
+    kemal = Kemal::Handler.new
+    kemal.add_route "POST", "/" do |env|
+      name = env.params["name"]
+      age = env.params["age"]
+      "Hello #{name} Age #{age}"
+    end
+
+    json_payload = {"name": "Serdar", "age": 26}
+    request = HTTP::Request.new(
+      "POST",
+      "/",
+      body: json_payload.to_json,
+      headers: HTTP::Headers{"Content-Type": "application/json"},
+    )
+
+    response = kemal.call(request)
+    response.body.should eq("Hello Serdar Age 26")
+  end
+
+  it "parses JSON with string array" do
+    kemal = Kemal::Handler.new
+    kemal.add_route "POST", "/" do |env|
+      skills = env.params["skills"] as Array
+      "Skills #{skills.each.join(',')}"
+    end
+
+    json_payload = {"skills": ["ruby", "crystal"]}
+    request = HTTP::Request.new(
+      "POST",
+      "/",
+      body: json_payload.to_json,
+      headers: HTTP::Headers{"Content-Type": "application/json"},
+    )
+
+    response = kemal.call(request)
+    response.body.should eq("Skills ruby,crystal")
+  end
+
+  it "parses JSON with json object array" do
+    kemal = Kemal::Handler.new
+    kemal.add_route "POST", "/" do |env|
+      skills = env.params["skills"] as Array
+      skills_from_languages = skills.map do |skill|
+        skill = skill as Hash
+        skill["language"]
+      end
+      "Skills #{skills_from_languages.each.join(',')}"
+    end
+
+    json_payload = {"skills": [{"language": "ruby"}, {"language": "crystal"}]}
+    request = HTTP::Request.new(
+      "POST",
+      "/",
+      body: json_payload.to_json,
+      headers: HTTP::Headers{"Content-Type": "application/json"},
+    )
+
+    response = kemal.call(request)
+    response.body.should eq("Skills ruby,crystal")
+  end
 end
