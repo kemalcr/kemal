@@ -81,6 +81,16 @@ Accessing the environment (query params, body, content_type, headers, status_cod
     height = env.params["height"]
   end
 
+  # Easily access JSON payload from the params.
+  # The request content type needs to be application/json
+  # The payload
+  # {"name": "Serdar", "likes": ["Ruby", "Crystal"]}
+  post "/json_params" do |env|
+    name = env.params["name"] as String
+    likes = env.params["likes"] as Array
+    "#{name} likes #{likes.each.join(',')}"
+  end
+
   # Set the content as application/json and return JSON
   get "/user.json" do |env|
     kemal = {name: "Kemal", language: "Crystal"}
