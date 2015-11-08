@@ -17,6 +17,6 @@ at_exit do
 
   server.ssl = config.ssl
 
-  puts "Listening on #{config.scheme}://0.0.0.0:#{config.port}"
+  puts "Kemal is ready to lead at #{config.scheme}://0.0.0.0:#{config.port}"
   server.listen
 end
