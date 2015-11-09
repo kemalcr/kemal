@@ -27,6 +27,16 @@ Go to *http://localhost:3000*
 
 Check [samples](https://github.com/kemalcr/kemal/tree/master/samples) for more.
 
+# Super Fast <3
+
+Numbers speak louder than words.
+
+| Framework | Request Per Second  | Avg. Response Time |
+| :------------ |:---------------:| -----:|
+| Kemal     | 36304 | 10.20ms |
+| Sinatra (Thin)     | 2274        |   43.82ms |
+
+
 # Installation
 
 Add it to your ```shard.yml```
