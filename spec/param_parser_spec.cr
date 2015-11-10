@@ -45,6 +45,34 @@ describe "ParamParser" do
       params.should eq({"name": "Serdar"})
     end
 
+    it "parses request body for array" do
+      route = Route.new "POST", "/" { }
+
+      request = HTTP::Request.new(
+        "POST",
+        "/",
+        body: "[1]",
+        headers: HTTP::Headers{"Content-Type": "application/json"},
+      )
+
+      params = Kemal::ParamParser.new(route, request).parse
+      params.should eq({"_json": [1]})
+    end
+
+    it "parses request body and query params" do
+      route = Route.new "POST", "/" { }
+
+      request = HTTP::Request.new(
+        "POST",
+        "/?foo=bar",
+        body: "[1]",
+        headers: HTTP::Headers{"Content-Type": "application/json"},
+      )
+
+      params = Kemal::ParamParser.new(route, request).parse
+      params.should eq({"foo": "bar", "_json": [1]})
+    end
+
     it "handles no request body" do
       route = Route.new "GET", "/" { }
 
