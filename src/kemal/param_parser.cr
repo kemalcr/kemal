@@ -39,10 +39,16 @@ class Kemal::ParamParser
 
   def parse_json
     return unless @request.body && @request.headers["Content-Type"]? == APPLICATION_JSON
+
     body = @request.body as String
-    json = JSON.parse(body) as Hash
-    json.each do |k, v|
-      @params[k as String] = v as AllParamTypes
+
+    case json = JSON.parse(body)
+    when Hash
+      json.each do |k, v|
+        @params[k as String] = v as AllParamTypes
+      end
+    when Array
+      @params["_json"] = json
     end
   end
 
