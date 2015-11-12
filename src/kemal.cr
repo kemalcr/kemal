@@ -9,11 +9,10 @@ at_exit do
   end
 
   config = Kemal.config
-  handlers = [] of HTTP::Handler
-  handlers << HTTP::LogHandler.new
-  handlers << Kemal::Handler::INSTANCE
-  handlers << HTTP::StaticFileHandler.new("./public")
-  server = HTTP::Server.new(config.port, handlers)
+  config.add_handler HTTP::LogHandler.new
+  config.add_handler Kemal::Handler::INSTANCE
+  config.add_handler HTTP::StaticFileHandler.new("./public")
+  server = HTTP::Server.new(config.port, config.handlers)
 
   server.ssl = config.ssl
 

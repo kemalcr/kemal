@@ -1,6 +1,8 @@
 module Kemal
+
   class Config
     INSTANCE = Config.new
+    HANDLERS = [] of HTTP::Handler
     property ssl
     property port
 
@@ -10,6 +12,14 @@ module Kemal
 
     def scheme
       ssl ? "https" : "http"
+    end
+
+    def handlers
+      HANDLERS
+    end
+
+    def add_handler(handler : HTTP::Handler)
+      HANDLERS << handler
     end
   end
 
