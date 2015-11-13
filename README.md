@@ -115,6 +115,21 @@ Accessing the environment (query params, body, content_type, headers, status_cod
   end
 ```
 
+## Middlewares
+
+You can create your own middlewares by inheriting from ```HTTP::Handler```
+
+```crystal
+class CustomHandler < HTTP::Handler
+  def call(request)
+    puts "Doing some custom stuff here"
+    call_next request
+  end
+end
+
+Kemal.config.add_handler CustomHandler.new
+```
+
 ## Static Files
 
 Kemal has built-in support for serving your static files. You need to put your static files under your ```/public``` directory.
