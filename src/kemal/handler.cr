@@ -9,7 +9,7 @@ class Kemal::Handler < HTTP::Handler
   end
 
   def call(request)
-    response = exec_request(request)
+    response = process_request(request)
     response || call_next(request)
   end
 
@@ -17,8 +17,7 @@ class Kemal::Handler < HTTP::Handler
     @routes << Route.new(method, path, &handler)
   end
 
-  def exec_request(request)
-    components = request.path.not_nil!.split "/"
+  def process_request(request)  
     @routes.each do |route|
       match = route.match?(request)
       if match
