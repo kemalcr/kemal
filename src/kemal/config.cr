@@ -5,6 +5,7 @@ module Kemal
     HANDLERS = [] of HTTP::Handler
     property ssl
     property port
+    property env
 
     def initialize
       @port = 3000
