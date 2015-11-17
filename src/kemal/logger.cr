@@ -33,5 +33,4 @@ class Kemal::Logger < HTTP::Handler
 
     "#{(millis * 1000).round(2)}µs"
   end
-
 end

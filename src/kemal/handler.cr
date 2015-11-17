@@ -17,7 +17,7 @@ class Kemal::Handler < HTTP::Handler
     @routes << Route.new(method, path, &handler)
   end
 
-  def process_request(request)  
+  def process_request(request)
     @routes.each do |route|
       match = route.match?(request)
       if match

@@ -7,7 +7,7 @@ at_exit do
       Kemal.config.port = opt_port.to_i
     end
     opts.on("-e ", "--environment ", "environment") do |env|
-      Kemal.config.env = env
+      env ? Kemal.config.env = env : "development"
     end
   end
 

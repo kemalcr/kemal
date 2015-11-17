@@ -1,5 +1,4 @@
 module Kemal
-
   class Config
     INSTANCE = Config.new
     HANDLERS = [] of HTTP::Handler
