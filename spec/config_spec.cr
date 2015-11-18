@@ -12,6 +12,17 @@ describe "Config" do
     config.port.should eq 3000
   end
 
+  it "sets default environment to development" do
+    config = Kemal.config
+    config.env.should eq "development"
+  end
+
+  it "set environment to production" do
+    config = Kemal.config
+    config.env = "production"
+    config.env.should eq "production"
+  end
+
   it "adds a custom handler" do
     config = Kemal.config
     config.add_handler CustomTestHandler.new

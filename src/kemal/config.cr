@@ -8,6 +8,7 @@ module Kemal
 
     def initialize
       @port = 3000
+      @env = "development" unless @env
     end
 
     def scheme

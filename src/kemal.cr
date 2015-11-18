@@ -7,7 +7,7 @@ at_exit do
       Kemal.config.port = opt_port.to_i
     end
     opts.on("-e ", "--environment ", "environment") do |env|
-      env ? Kemal.config.env = env : "development"
+      Kemal.config.env = env
     end
   end
 
@@ -17,9 +17,6 @@ at_exit do
   config.add_handler HTTP::StaticFileHandler.new("./public")
 
   server = HTTP::Server.new(config.port, config.handlers)
-
   server.ssl = config.ssl
-
-  puts "Kemal is ready to lead at #{config.scheme}://0.0.0.0:#{config.port}"
   server.listen
 end

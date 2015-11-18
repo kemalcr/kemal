@@ -1,13 +1,12 @@
 class Kemal::Logger < HTTP::Handler
-  property handler
+  getter handler
 
   def initialize
     @env = Kemal.config.env
-    if @env == "production"
-      @handler = File.new("kemal.log", "a+")
-    else
-      @handler = STDOUT
-    end
+    @handler = STDOUT
+    config = Kemal.config
+    @startup_message = "Kemal is ready to lead at #{config.scheme}://0.0.0.0:#{config.port}"
+    @env == "production" ? setup_file_handler : setup_stdout_handler
   end
 
   def call(request)
@@ -32,5 +31,14 @@ class Kemal::Logger < HTTP::Handler
     return "#{millis.round(2)}ms" if millis >= 1
 
     "#{(millis * 1000).round(2)}µs"
+  end
+
+  private def setup_file_handler
+    @handler = File.new("kemal.log", "a+")
+    @handler.write @startup_message.to_slice
+  end
+
+  private def setup_stdout_handler
+    @handler.print @startup_message
   end
 end
