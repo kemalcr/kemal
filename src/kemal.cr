@@ -12,11 +12,20 @@ at_exit do
   end
 
   config = Kemal.config
-  config.add_handler Kemal::Logger.new
+  logger = Kemal::Logger.new
+  config.add_handler logger
   config.add_handler Kemal::Handler::INSTANCE
   config.add_handler HTTP::StaticFileHandler.new("./public")
 
   server = HTTP::Server.new(config.port, config.handlers)
   server.ssl = config.ssl
+  logger.write "Kemal is ready to lead at #{config.scheme}://0.0.0.0:#{config.port}\n"
+
+  Signal::INT.trap {
+    logger.handler.close
+    server.close
+    exit
+  }
+
   server.listen
 end

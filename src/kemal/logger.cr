@@ -3,10 +3,11 @@ class Kemal::Logger < HTTP::Handler
 
   def initialize
     @env = Kemal.config.env
-    @handler = STDOUT
-    config = Kemal.config
-    @startup_message = "Kemal is ready to lead at #{config.scheme}://0.0.0.0:#{config.port}"
-    @env == "production" ? setup_file_handler : setup_stdout_handler
+    @handler = if @env == "production"
+      File.new("kemal.log", "a+")
+    else
+      STDOUT
+    end
   end
 
   def call(request)
@@ -15,8 +16,7 @@ class Kemal::Logger < HTTP::Handler
     elapsed = Time.now - time
     elapsed_text = elapsed_text(elapsed)
     output_message = "#{request.method} #{request.resource} - #{response.status_code} (#{elapsed_text})\n"
-    @handler.print output_message if @env == "development"
-    @handler.write output_message.to_slice if @env == "production"
+    write output_message
     response
   end
 
@@ -33,12 +33,11 @@ class Kemal::Logger < HTTP::Handler
     "#{(millis * 1000).round(2)}µs"
   end
 
-  private def setup_file_handler
-    @handler = File.new("kemal.log", "a+")
-    @handler.write @startup_message.to_slice
-  end
-
-  private def setup_stdout_handler
-    @handler.print @startup_message
+  def write(message)
+    if @env == "production"
+      @handler.write message.to_slice
+    else
+      @handler.print message
+    end
   end
 end
