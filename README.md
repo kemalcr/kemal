@@ -33,7 +33,7 @@ Numbers speak louder than words.
 
 | Framework | Request Per Second  | Avg. Response Time |
 | :------------ |:---------------:| -----:|
-| Kemal (Production)    | 64986 | 10.20ms |
+| Kemal (Production)    | 64986 | 170μs  |
 | Sinatra (Thin)     | 2274        |   43.82ms |
 
 
