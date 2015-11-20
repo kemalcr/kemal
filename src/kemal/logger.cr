@@ -4,10 +4,10 @@ class Kemal::Logger < HTTP::Handler
   def initialize
     @env = Kemal.config.env
     @handler = if @env == "production"
-      File.new("kemal.log", "a+")
-    else
-      STDOUT
-    end
+                 File.new("kemal.log", "a")
+               else
+                 STDOUT
+               end
   end
 
   def call(request)
@@ -35,7 +35,7 @@ class Kemal::Logger < HTTP::Handler
 
   def write(message)
     if @env == "production"
-      @handler.write message.to_slice
+      File.write "kemal.log", message
     else
       @handler.print message
     end
