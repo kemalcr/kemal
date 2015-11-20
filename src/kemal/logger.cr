@@ -35,7 +35,7 @@ class Kemal::Logger < HTTP::Handler
 
   def write(message)
     if @env == "production"
-      File.write "kemal.log", message
+      @handler.write message.to_slice
     else
       @handler.print message
     end
