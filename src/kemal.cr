@@ -19,7 +19,7 @@ at_exit do
 
   server = HTTP::Server.new(config.port, config.handlers)
   server.ssl = config.ssl
-  logger.write "Kemal is ready to lead at #{config.scheme}://0.0.0.0:#{config.port}\n"
+  logger.write "[#{config.env}] Kemal is ready to lead at #{config.scheme}://0.0.0.0:#{config.port}\n"
 
   Signal::INT.trap {
     logger.handler.close
