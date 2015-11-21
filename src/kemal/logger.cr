@@ -4,7 +4,9 @@ class Kemal::Logger < HTTP::Handler
   def initialize
     @env = Kemal.config.env
     @handler = if @env == "production"
-                 File.new("kemal.log", "a")
+                 handler = File.new("kemal.log", "a")
+                 handler.flush_on_newline = true
+                 handler
                else
                  STDOUT
                end

@@ -18,8 +18,7 @@ describe "Logger" do
     logger = Kemal::Logger.new
     logger.handler.should be_a File
   end
-
-  #TODO: Check https://github.com/manastech/crystal/issues/1899
+  
   it "writes to a file in production" do
     config = Kemal.config
     config.env = "production"
@@ -28,6 +27,6 @@ describe "Logger" do
     logger.call request
     str = File.read("kemal.log")
     File.delete("kemal.log")
-    str.includes?("GET /?message=world&time=now").should eq false
+    str.includes?("GET /?message=world&time=now").should eq true
   end
 end
