@@ -1,3 +1,5 @@
+require "colorize"
+
 class Kemal::Logger < HTTP::Handler
   getter handler
 
@@ -17,7 +19,19 @@ class Kemal::Logger < HTTP::Handler
     response = call_next(request)
     elapsed = Time.now - time
     elapsed_text = elapsed_text(elapsed)
-    output_message = "#{request.method} #{request.resource} - #{response.status_code} (#{elapsed_text})\n"
+
+    if @env == "production"
+      status_code = " #{response.status_code} "
+      method = request.method
+    else
+      statusColor = color_for_status(response.status_code)
+      methodColor = color_for_method(request.method)
+
+      status_code = " #{response.status_code} ".colorize.back(statusColor).fore(:white)
+      method = request.method.colorize(methodColor)
+    end
+
+    output_message = "#{time} |#{status_code}| #{method} #{request.resource} - (#{elapsed_text})\n"
     write output_message
     response
   end
@@ -40,6 +54,39 @@ class Kemal::Logger < HTTP::Handler
       @handler.write message.to_slice
     else
       @handler.print message
+    end
+  end
+
+  private def color_for_status(code)
+    if code >= 200 && code < 300
+      return :green
+    elsif code >= 300 && code < 400
+      return :magenta
+    elsif code >= 400 && code < 500
+      return :yellow
+    else
+      return :default
+    end
+  end
+
+  private def color_for_method(method)
+    case method
+    when "GET"
+      return :blue
+    when "POST"
+      return :cyan
+    when "PUT"
+      return :yellow
+    when "DELETE"
+      return :red
+    when "PATCH"
+      return :green
+    when "HEAD"
+      return :magenta
+    when "OPTIONS"
+      return :white
+    else
+      return :default
     end
   end
 end

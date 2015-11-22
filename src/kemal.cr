@@ -22,6 +22,8 @@ at_exit do
   logger.write "[#{config.env}] Kemal is ready to lead at #{config.scheme}://0.0.0.0:#{config.port}\n"
 
   Signal::INT.trap {
+    logger.write "Kemal is going to take a rest!\n"
+    logger.write "#{Time.now} - Bye Bye!\n\n"
     logger.handler.close
     server.close
     exit
