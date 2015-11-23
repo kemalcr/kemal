@@ -137,6 +137,16 @@ Kemal has built-in support for serving your static files. You need to put your s
 
 E.g: A static file like ```/public/index.html``` will be served with the matching route ```/index.html```.
 
+## Production / Development Mode
+
+By default Kemal starts in ```development```mode and logs to STDOUT.
+
+You can use ```production``` mode to redirect the output to a file. By default Kemal logs the output to ```kemal.log```.
+
+You can start Kemal in production mode by:
+
+```./your_app -e production```
+
 ## Thanks
 
 Thanks to Manas for their awesome work on [Frank](https://github.com/manastech/frank).
