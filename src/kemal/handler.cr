@@ -6,6 +6,7 @@ class Kemal::Handler < HTTP::Handler
 
   def initialize
     @routes = [] of Route
+    @match = false
   end
 
   def call(request)
@@ -20,7 +21,7 @@ class Kemal::Handler < HTTP::Handler
   def process_request(request)
     @routes.each do |route|
       match = route.match?(request)
-      if match
+      if @match = match
         params = Kemal::ParamParser.new(route, request).parse
         context = Context.new(request, params)
         begin
@@ -31,6 +32,28 @@ class Kemal::Handler < HTTP::Handler
         end
       end
     end
+    unless @match
+      return HTTP::Response.new(404, not_found)
+    end
     nil
+  end
+
+  def not_found
+    <<-HTML
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <style type="text/css">
+          body { text-align:center;font-family:helvetica,arial;font-size:22px;
+            color:#888;margin:20px}
+          #c {margin:0 auto;width:500px;text-align:left}
+          </style>
+        </head>
+        <body>
+          <h2>Kemal doesn't know this way.</h2>
+          <img src="/images/404.png">
+        </body>
+        </html>
+    HTML
   end
 end

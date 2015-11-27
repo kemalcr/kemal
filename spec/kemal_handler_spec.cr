@@ -102,4 +102,11 @@ describe "Kemal::Handler" do
     response = kemal.call(request)
     response.body.should eq("Skills ruby,crystal")
   end
+
+  it "renders 404 on not found" do
+    kemal = Kemal::Handler.new
+    request = HTTP::Request.new("GET", "/?message=world")
+    response = kemal.call(request)
+    response.body.should eq("hello world")
+  end
 end
