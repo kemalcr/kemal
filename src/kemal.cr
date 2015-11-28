@@ -29,5 +29,13 @@ at_exit do
     exit
   }
 
+  # This route serves the built-in images for not_found and exceptions.
+  get "/__kemal__/:image" do |env|
+    image = env.params["image"]
+    file_path = File.expand_path("libs/kemal/images/#{image}", Dir.working_directory)
+    env.add_header "Content-Type", "application/octet-stream"
+    File.read(file_path)
+  end
+
   server.listen
 end

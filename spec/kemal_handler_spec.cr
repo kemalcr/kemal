@@ -107,6 +107,6 @@ describe "Kemal::Handler" do
     kemal = Kemal::Handler.new
     request = HTTP::Request.new("GET", "/?message=world")
     response = kemal.call(request)
-    response.body.should eq("hello world")
+    response.status_code.should eq 404
   end
 end

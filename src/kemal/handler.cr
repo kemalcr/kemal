@@ -51,7 +51,7 @@ class Kemal::Handler < HTTP::Handler
         </head>
         <body>
           <h2>Kemal doesn't know this way.</h2>
-          <img src="/images/404.png">
+          <img src="/__kemal__/404.png">
         </body>
         </html>
     HTML
