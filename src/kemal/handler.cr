@@ -28,18 +28,18 @@ class Kemal::Handler < HTTP::Handler
           body = route.handler.call(context).to_s
           return HTTP::Response.new(context.status_code, body, context.response_headers)
         rescue ex
-          return HTTP::Response.error("text/plain", ex.to_s)
+          return render_500(ex.to_s)
         end
       end
     end
     unless @match
-      return HTTP::Response.new(404, not_found)
+      return render_404
     end
     nil
   end
 
-  def not_found
-    <<-HTML
+  def render_404
+    template = <<-HTML
         <!DOCTYPE html>
         <html>
         <head>
@@ -55,5 +55,26 @@ class Kemal::Handler < HTTP::Handler
         </body>
         </html>
     HTML
+    HTTP::Response.new(404, template)
+  end
+
+  def render_500(ex)
+    template = <<-HTML
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <style type="text/css">
+          body { text-align:center;font-family:helvetica,arial;font-size:22px;
+            color:#888;margin:20px}
+          #c {margin:0 auto;width:500px;text-align:left}
+          </style>
+        </head>
+        <body>
+          <h2>Kemal has encountered an error. (500)</h2>
+          <p>#{ex}</p>
+        </body>
+        </html>
+    HTML
+    HTTP::Response.error("text/html", template)
   end
 end
