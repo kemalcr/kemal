@@ -33,7 +33,6 @@ class Kemal::Handler < HTTP::Handler
     end
     # Render 404 unless a route matches
     return render_404
-    nil
   end
 
   def render_404

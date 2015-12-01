@@ -109,4 +109,15 @@ describe "Kemal::Handler" do
     response = kemal.call(request)
     response.status_code.should eq 404
   end
+
+  it "renders 500 on exception" do
+    kemal = Kemal::Handler.new
+    kemal.add_route "GET", "/" do
+      raise "Exception"
+    end
+    request = HTTP::Request.new("GET", "/?message=world")
+    response = kemal.call(request)
+    response.status_code.should eq 500
+    response.body.includes?("Exception").should eq true
+  end
 end
