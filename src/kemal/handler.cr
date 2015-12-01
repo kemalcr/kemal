@@ -6,7 +6,6 @@ class Kemal::Handler < HTTP::Handler
 
   def initialize
     @routes = [] of Route
-    @match = false
   end
 
   def call(request)
@@ -21,7 +20,7 @@ class Kemal::Handler < HTTP::Handler
   def process_request(request)
     @routes.each do |route|
       match = route.match?(request)
-      if @match = match
+      if match
         params = Kemal::ParamParser.new(route, request).parse
         context = Context.new(request, params)
         begin
@@ -32,9 +31,8 @@ class Kemal::Handler < HTTP::Handler
         end
       end
     end
-    unless @match
-      return render_404
-    end
+    # Render 404 unless a route matches
+    return render_404
     nil
   end
 
