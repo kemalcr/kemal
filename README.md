@@ -40,9 +40,12 @@ These results were achieved with ```wrk``` on a Macbook Pro Late 2013. (**2Ghz i
 
 # Installation
 
-Add it to your ```shard.yml```
+Kemal supports Crystal 0.9.0 and up.
+You can add Kemal to your project by adding it to ```shard.yml```
 
 ```yml
+name: your-app
+
 dependencies:
   kemal:
     github: sdogruyol/kemal
