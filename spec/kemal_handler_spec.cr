@@ -120,4 +120,51 @@ describe "Kemal::Handler" do
     response.status_code.should eq 500
     response.body.includes?("Exception").should eq true
   end
+
+  it "checks for _method param in POST request to simulate PUT" do
+    kemal = Kemal::Handler.new
+    kemal.add_route "PUT", "/", do |env|
+      "Hello World from PUT"
+    end
+    request = HTTP::Request.new(
+      "POST",
+      "/",
+      body: "_method=PUT",
+      headers: HTTP::Headers{"Content-Type": "application/x-www-form-urlencoded"}
+    )
+    response = kemal.call(request)
+    response.body.should eq("Hello World from PUT")
+  end
+
+  it "checks for _method param in POST request to simulate PATCH" do
+    kemal = Kemal::Handler.new
+    kemal.add_route "PATCH", "/", do |env|
+      "Hello World from PATCH"
+    end
+    request = HTTP::Request.new(
+      "POST",
+      "/",
+      body: "_method=PATCH",
+      headers: HTTP::Headers{"Content-Type": "application/x-www-form-urlencoded; charset=UTF-8"}
+    )
+    response = kemal.call(request)
+    response.body.should eq("Hello World from PATCH")
+  end
+
+  it "checks for _method param in POST request to simulate DELETE" do
+    kemal = Kemal::Handler.new
+    kemal.add_route "DELETE", "/", do |env|
+      "Hello World from DELETE"
+    end
+    json_payload = {"_method": "DELETE"}
+    request = HTTP::Request.new(
+      "POST",
+      "/",
+      body: json_payload.to_json,
+      headers: HTTP::Headers{"Content-Type": "application/json"}
+    )
+    response = kemal.call(request)
+    response.body.should eq("Hello World from DELETE")
+  end
+
 end

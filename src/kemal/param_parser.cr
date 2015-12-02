@@ -29,7 +29,7 @@ class Kemal::ParamParser
   end
 
   def parse_body
-    return unless @request.headers["Content-Type"]? == URL_ENCODED_FORM
+    return if (@request.headers["Content-Type"]? =~ /#{URL_ENCODED_FORM}/).nil?
     parse_part(@request.body)
   end
 
