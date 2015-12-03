@@ -15,6 +15,9 @@ class Kemal::Handler < HTTP::Handler
 
   def add_route(method, path, &handler : Kemal::Context -> _)
     @routes << Route.new(method, path, &handler)
+
+    # Registering HEAD route for defined GET routes.
+    @routes << Route.new("HEAD", path, &handler) if method == "GET"
   end
 
   def process_request(request)
