@@ -2,8 +2,6 @@
 
 This README includes documentation of Kemal, the Crystal Web Server.
 
- - [Tutorial](./tutorial.md)
-
 ## What is Kemal?
 
 Kemal is a web server working on Crystal language. Strongly inspired on Sinatra project.
@@ -22,3 +20,13 @@ Crystal is a programming language based on *Ruby* syntax.
 ## The Name
 
 Kemal means *Mature, grown up* in Turkish and Arabic.
+
+## How to start?
+
+ - [Getting Started Tutorial](./tutorial.md)
+ - [Using Dynamic Templates](./templates.md)
+ - [Parsing HTTP requests and Form Data](./http-requests.md)
+ - [Uploading Files](./upload.md)
+ - [Serving Static Files](./statics.md)
+ - [Serving JSON API](./json.md)
+ - [How to connect to Database](./database.md)
