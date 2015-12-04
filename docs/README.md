@@ -2,6 +2,8 @@
 
 This README includes documentation of Kemal, the Crystal Web Server.
 
+ - [Tutorial](./tutorial.md)
+
 ## What is Kemal?
 
 Kemal is a web server working on Crystal language. Strongly inspired on Sinatra project.
