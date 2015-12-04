@@ -119,6 +119,17 @@ Accessing the environment (query params, body, content_type, headers, status_cod
   end
 ```
 
+### Browser Redirect
+Just like other things in `kemal`, browser redirection is super simple as well. Use `environment` variable in defined route's corresponding block and call `redirect` on it.
+
+```ruby
+  # Redirect browser
+  get "/logout" do |env|
+	# important stuff like clearing session etc.
+	env.redirect "/login" # redirect to /login page
+  end
+```
+
 ## Middlewares
 
 You can create your own middlewares by inheriting from ```HTTP::Handler```

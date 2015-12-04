@@ -22,6 +22,11 @@ class Kemal::Context
     @response.content_type
   end
 
+  def redirect(url)
+    @response.headers.add "Location", url
+    @response.status_code = 301
+  end
+
   delegate headers, @request
   delegate status_code, @response
   delegate :"status_code=", @response

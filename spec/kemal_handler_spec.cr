@@ -184,4 +184,15 @@ describe "Kemal::Handler" do
     response.status_code.should eq(404)
   end
 
+  it "redirects user to provided url" do
+    kemal = Kemal::Handler.new
+    kemal.add_route "GET", "/" do |env|
+      env.redirect("/login")
+    end
+    request = HTTP::Request.new("GET", "/")
+    response = kemal.call(request)
+    response.status_code.should eq(301)
+    response.headers.has_key?("Location").should eq(true)
+  end
+
 end
