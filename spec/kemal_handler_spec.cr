@@ -167,4 +167,21 @@ describe "Kemal::Handler" do
     response.body.should eq("Hello World from DELETE")
   end
 
+  it "can process HTTP HEAD requests for defined GET routes" do
+    kemal = Kemal::Handler.new
+    kemal.add_route "GET", "/" do |env|
+      "Hello World from GET"
+    end
+    request = HTTP::Request.new("HEAD", "/")
+    response = kemal.call(request)
+    response.status_code.should eq(200)
+  end
+
+  it "can't process HTTP HEAD requests for undefined GET routes" do
+    kemal = Kemal::Handler.new
+    request = HTTP::Request.new("HEAD", "/")
+    response = kemal.call(request)
+    response.status_code.should eq(404)
+  end
+
 end
