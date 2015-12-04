@@ -18,7 +18,7 @@ cd awesome_web_project
 
 Then add *kemal* to the `shard.yml` file as a dependency.
 
-```
+```yml
 dependencies:
   kemal:
     github: sdogruyol/kemal
@@ -35,7 +35,7 @@ shards install
 
 Open `awesome_web_project/src/awesome_web_project.cr` and require `kemal` to use Kemal.
 
-```
+```ruby
 require 'kemal'
 ```
 
@@ -43,7 +43,7 @@ require 'kemal'
 
 Do some awesome stuff with awesome Kemal.
 
-```
+```ruby
 get "/" do
   "Hello World!"
 end
