@@ -1,6 +1,6 @@
 # Kemal Documentation
 
-This README includes documentation of Kemal, the Crystal Web Server.
+This README includes documentation of Kemal, the Crystal Web Framework.
 
 ## What is Kemal?
 
