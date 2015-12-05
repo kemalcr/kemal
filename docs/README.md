@@ -4,8 +4,7 @@ This README includes documentation of Kemal, the Crystal Web Framework.
 
 ## What is Kemal?
 
-Kemal is a web server working on Crystal language. Strongly inspired on Sinatra project.
-_Needs more info_
+Kemal is a micro web framework written in Crystal language. It's strongly inspired from [Sinatra](www.sinatrarb.com).
 
 ## What is Crystal?
 
@@ -13,13 +12,13 @@ Crystal is a programming language based on *Ruby* syntax.
 
 ## Advantages of using Kemal
 
- - Too easy to learn and start to develop.
+ - Easy to learn and start to develop.
  - Since it's working on LLVM, it's too fast.
- - You can deploy it on *Heroku*.
+ - Easy deploment to *Heroku*.
 
 ## The Name
 
-Kemal means *Mature, grown up* in Turkish and Arabic.
+Kemal means *Mature, grown up* in Turkish.
 
 ## How to start?
 
