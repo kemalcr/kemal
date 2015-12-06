@@ -123,7 +123,7 @@ describe "Kemal::Handler" do
 
   it "checks for _method param in POST request to simulate PUT" do
     kemal = Kemal::Handler.new
-    kemal.add_route "PUT", "/", do |env|
+    kemal.add_route "PUT", "/" do |env|
       "Hello World from PUT"
     end
     request = HTTP::Request.new(
@@ -138,7 +138,7 @@ describe "Kemal::Handler" do
 
   it "checks for _method param in POST request to simulate PATCH" do
     kemal = Kemal::Handler.new
-    kemal.add_route "PATCH", "/", do |env|
+    kemal.add_route "PATCH", "/" do |env|
       "Hello World from PATCH"
     end
     request = HTTP::Request.new(
@@ -153,7 +153,7 @@ describe "Kemal::Handler" do
 
   it "checks for _method param in POST request to simulate DELETE" do
     kemal = Kemal::Handler.new
-    kemal.add_route "DELETE", "/", do |env|
+    kemal.add_route "DELETE", "/" do |env|
       "Hello World from DELETE"
     end
     json_payload = {"_method": "DELETE"}
@@ -194,5 +194,4 @@ describe "Kemal::Handler" do
     response.status_code.should eq(301)
     response.headers.has_key?("Location").should eq(true)
   end
-
 end
