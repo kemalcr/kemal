@@ -147,6 +147,22 @@ end
 Kemal.config.add_handler CustomHandler.new
 ```
 
+### Views
+
+You can use ERB-like built-in **ECR** views to render files.
+
+```crystal
+get '/:name' do
+  render "views/hello.ecr"
+end
+```
+
+And you should have an `hello.ecr` view. It will have the same context as the method.
+
+```erb
+Hello <%= env.params["name"] %>
+```
+
 ## Static Files
 
 Kemal has built-in support for serving your static files. You need to put your static files under your ```/public``` directory.

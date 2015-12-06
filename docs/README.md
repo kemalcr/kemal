@@ -23,7 +23,7 @@ Kemal means *Mature, grown up* in Turkish.
 ## How to start?
 
  - [Getting Started Tutorial](./tutorial.md)
- - [Using Dynamic Templates (Not Supported Yet)](./templates.md)
+ - [Using Dynamic Views](./views.md)
  - [Parsing HTTP requests and Form Data](./http-requests.md)
  - [Uploading Files](./upload.md)
  - [Serving Static Files](./statics.md)
