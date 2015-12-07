@@ -1,13 +1,13 @@
 # Kemal Tutorial
 
-## Install Crystal
+## 1. Install Crystal
 
 ```
 brew update
 brew install crystal-lang
 ```
 
-## Installing Kemal
+## 2. Installing Kemal
 
 You should create your application first:
 
@@ -31,7 +31,15 @@ You should run `shards` to get dependencies:
 shards install
 ```
 
-## Include Kemal into your project
+It will output something like that:
+
+```
+$ shards install
+Updating https://github.com/sdogruyol/kemal.git
+Installing kemal (master)
+```
+
+## 3. Include Kemal into your project
 
 Open `awesome_web_project/src/awesome_web_project.cr` and require `kemal` to use Kemal.
 
@@ -39,7 +47,7 @@ Open `awesome_web_project/src/awesome_web_project.cr` and require `kemal` to use
 require 'kemal'
 ```
 
-## Hack your project
+## 4. Hack your project
 
 Do some awesome stuff with awesome Kemal.
 
@@ -49,11 +57,32 @@ get "/" do
 end
 ```
 
-## Run your awesome web project.
+All the code should look like this:
+
+```ruby
+require "./crystal_test/*"
+require "kemal"
+
+module AwesomeWebProject
+  get "/" do
+    "Hello World!"
+  end
+end
+```
+
+## 5. Run your awesome web project.
 
 ```
 crystal build --release src/awesome_web_project.cr
 ./awesome_web_project
+```
+
+You should see some logs like these:
+
+```
+[development] Kemal is ready to lead at http://0.0.0.0:3000
+2015-12-01 13:47:48 +0200 | 200 | GET / - (666µs)
+2015-12-05 13:47:48 +0200 | 404 | GET /favicon.ico - (14µs)
 ```
 
 Now you can be happy with your new, very fast, readable web project.
