@@ -65,7 +65,7 @@ class Kemal::Logger < HTTP::Handler
     elsif code >= 400 && code < 500
       return :yellow
     else
-      return :default
+      return :light_blue
     end
   end
 
@@ -84,9 +84,9 @@ class Kemal::Logger < HTTP::Handler
     when "HEAD"
       return :magenta
     when "OPTIONS"
-      return :white
+      return :light_blue
     else
-      return :default
+      return :white
     end
   end
 end
