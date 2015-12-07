@@ -12,8 +12,8 @@ brew install crystal-lang
 You should create your application first:
 
 ```
-crystal init app awesome_web_project
-cd awesome_web_project
+crystal init app your_app
+cd your_app
 ```
 
 Then add *kemal* to the `shard.yml` file as a dependency.
@@ -41,7 +41,7 @@ Installing kemal (master)
 
 ## 3. Include Kemal into your project
 
-Open `awesome_web_project/src/awesome_web_project.cr` and require `kemal` to use Kemal.
+Open `your_app/src/your_app.cr` and require `kemal` to use Kemal.
 
 ```ruby
 require 'kemal'
@@ -60,21 +60,18 @@ end
 All the code should look like this:
 
 ```ruby
-require "./crystal_test/*"
 require "kemal"
 
-module AwesomeWebProject
-  get "/" do
-    "Hello World!"
-  end
+get "/" do
+  "Hello World!"
 end
 ```
 
 ## 5. Run your awesome web project.
 
 ```
-crystal build --release src/awesome_web_project.cr
-./awesome_web_project
+crystal build --release src/your_app.cr
+./your_app
 ```
 
 You should see some logs like these:

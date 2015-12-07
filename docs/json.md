@@ -1,6 +1,6 @@
 # Serving JSON API
 
-Just use `to_json` method to return.
+You need to return a ```JSON``` object or need to convert the existing object via `to_json`.
 
 ```ruby
 require "kemal"

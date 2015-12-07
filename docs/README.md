@@ -14,7 +14,7 @@ Crystal is a programming language based on *Ruby* syntax.
 
  - Easy to learn and start to develop.
  - Since it's working on LLVM, it's too fast.
- - Easy deploment to *Heroku*.
+ - Easy deployment to *Heroku*.
 
 ## The Name
 
@@ -24,7 +24,7 @@ Kemal means *Mature, grown up* in Turkish.
 
  - [Getting Started Tutorial](./tutorial.md)
  - [Using Dynamic Views](./views.md)
- - [Parsing HTTP requests and Form Data](./http-requests.md)
+ - [HTTP Requests and Responses](./http-requests.md)
  - [Uploading Files](./upload.md)
  - [Serving Static Files](./statics.md)
  - [Serving JSON API](./json.md)

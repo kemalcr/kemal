@@ -1,6 +1,6 @@
-# HTTP Requests
+# Handling HTTP Request/Response
 
-You should use `env` variable to handle HTTP params. For both `get` and `post` (and others) methods, you should use `env` object.
+You should use `env` variable to handle HTTP Request/Response. For both `get` and `post` (and others) methods, you should use the yielded `env` object.
 
 ```ruby
 # Matches /hello/kemal

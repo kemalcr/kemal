@@ -5,13 +5,13 @@ Add your files to `public` directory and Kemal will serve these files immediatel
 ```
 app/
   src/
-    awesome_web_project.cr
+    your_app.cr
   public/
     js/
       jquery.js
-      awesome_web_project.js
+      your_app.js
     css/
-      awesome_web_project.css
+      your_app.css
     index.html
 ```
 
@@ -21,8 +21,8 @@ Open index.html and add
 <html>
  <head>
    <script src="/js/jquery.js"></script>
-   <script src="/js/awesome_web_project.js"></script>
-   <link rel="stylesheet" href="/css/awesome_web_project.css"/>
+   <script src="/js/your_app.js"></script>
+   <link rel="stylesheet" href="/css/your_app.css"/>
  </head>
  <body>
    ...
