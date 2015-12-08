@@ -9,6 +9,9 @@ at_exit do
     opts.on("-e ", "--environment ", "environment") do |env|
       Kemal.config.env = env
     end
+    opts.on("-w VALUE", "--workers", "workers") do |workers|
+      Kemal.config.workers = workers.to_i
+    end
   end
 
   config = Kemal.config
@@ -17,7 +20,7 @@ at_exit do
   config.add_handler Kemal::Handler::INSTANCE
   config.add_handler HTTP::StaticFileHandler.new("./public")
 
-  server = HTTP::Server.new("0.0.0.0", config.port, config.handlers)
+  server = HTTP::Server.new(config.port, config.handlers)
   server.ssl = config.ssl
   logger.write "[#{config.env}] Kemal is ready to lead at #{config.scheme}://0.0.0.0:#{config.port}\n"
 
@@ -37,5 +40,11 @@ at_exit do
     File.read(file_path)
   end
 
-  server.listen
+  workers = Kemal.config.workers
+  if workers > 1
+    logger.write "Kemal is starting with #{workers} workers!"
+    server.listen_fork workers: workers
+  else
+    server.listen
+  end
 end

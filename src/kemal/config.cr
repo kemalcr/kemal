@@ -5,10 +5,12 @@ module Kemal
     property ssl
     property port
     property env
+    property workers
 
     def initialize
       @port = 3000
       @env = "development" unless @env
+      @workers = 1
     end
 
     def scheme
