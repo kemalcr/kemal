@@ -26,7 +26,6 @@ at_exit do
 
   Signal::INT.trap {
     logger.write "Kemal is going to take a rest!\n"
-    logger.write "#{Time.now} - Bye Bye!\n\n"
     logger.handler.close
     server.close
     exit
