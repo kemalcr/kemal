@@ -187,7 +187,7 @@ describe "Kemal::Handler" do
   it "redirects user to provided url" do
     kemal = Kemal::Handler.new
     kemal.add_route "GET", "/" do |env|
-      env.redirect("/login")
+      redirect "/login"
     end
     request = HTTP::Request.new("GET", "/")
     response = kemal.call(request)

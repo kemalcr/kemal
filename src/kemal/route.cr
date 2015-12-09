@@ -11,7 +11,6 @@ class Kemal::Route
 
   def match?(request)
     check_for_method_override!(request)
-
     return nil unless request.override_method == @method
     components = request.path.not_nil!.split "/"
     return nil unless components.size == @components.size

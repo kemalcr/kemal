@@ -1,6 +1,6 @@
 # Kemal render uses built-in ECR to render methods.
 
-## Usage
+# # Usage
 # get '/' do
 #   render 'hello.ecr'
 # end
