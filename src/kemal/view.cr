@@ -9,6 +9,11 @@ require "ecr/macros"
 
 macro render(filename)
   String.build do |__view__|
-    embed_ecr {{filename}}, "__view__"
+    embed_ecr({{filename}}, "__view__")
   end
+end
+
+macro render(filename, layout)
+  content = render {{filename}}
+  render {{layout}}
 end
