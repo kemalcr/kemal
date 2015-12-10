@@ -1,7 +1,6 @@
 require "http/server"
-require "ecr/macros"
 
-class Kemal::StaticFileHandler < HTTP::Handler
+class Kemal::StaticFileHandler < HTTP::StaticFileHandler
   def call(request)
     request_path = request.path.not_nil!
     return call_next(request) if request_path == "/"
