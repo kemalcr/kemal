@@ -17,8 +17,8 @@ at_exit do
   config = Kemal.config
   logger = Kemal::Logger.new
   config.add_handler logger
+  config.add_handler Kemal::StaticHandler.new("./public")
   config.add_handler Kemal::Handler::INSTANCE
-  config.add_handler HTTP::StaticFileHandler.new("./public")
 
   server = HTTP::Server.new(config.port, config.handlers)
   server.ssl = config.ssl
