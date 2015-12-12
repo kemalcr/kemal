@@ -20,7 +20,7 @@ at_exit do
   config.add_handler Kemal::StaticFileHandler.new(config.public_folder)
   config.add_handler Kemal::Handler::INSTANCE
 
-  server = HTTP::Server.new(config.port, config.handlers)
+  server = HTTP::Server.new("0.0.0.0", config.port, config.handlers)
   server.ssl = config.ssl
   logger.write "[#{config.env}] Kemal is ready to lead at #{config.scheme}://0.0.0.0:#{config.port}\n"
 
