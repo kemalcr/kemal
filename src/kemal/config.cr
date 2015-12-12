@@ -1,16 +1,17 @@
+require "yaml"
+
 module Kemal
   class Config
     INSTANCE = Config.new
     HANDLERS = [] of HTTP::Handler
-    property ssl
-    property port
-    property env
-    property workers
+    property ssl, port, env, workers, public_folder
 
     def initialize
       @port = 3000
       @env = "development" unless @env
       @workers = 1
+      @public_folder = "./public"
+      read_file
     end
 
     def scheme
@@ -23,6 +24,15 @@ module Kemal
 
     def add_handler(handler : HTTP::Handler)
       HANDLERS << handler
+    end
+
+    def read_file
+      path = File.expand_path("config.yml", Dir.working_directory)
+      if File.exists?(path)
+        data = YAML.load(File.read(path)) as Hash
+        public_folder = File.expand_path("./#{data["public_folder"]}", Dir.working_directory)
+        @public_folder = public_folder
+      end
     end
   end
 
