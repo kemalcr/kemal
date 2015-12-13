@@ -26,6 +26,10 @@ module Kemal
       HANDLERS << handler
     end
 
+    # Reads configuration from config.yml. Currently it only supports the public_folder
+    # option.
+    # config.yml
+    # public_folder = "root/to/folder"
     def read_file
       path = File.expand_path("config.yml", Dir.working_directory)
       if File.exists?(path)

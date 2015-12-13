@@ -1,12 +1,10 @@
-# Kemal render uses built-in ECR to render methods.
+require "ecr/macros"
 
+# Uses built-in ECR to render views.
 # # Usage
 # get '/' do
 #   render 'hello.ecr'
 # end
-
-require "ecr/macros"
-
 macro render(filename)
   String.build do |__view__|
     embed_ecr({{filename}}, "__view__")
@@ -18,6 +16,7 @@ macro render(filename, layout)
   render {{layout}}
 end
 
+# Template for 404 Not Found
 def render_404
   template = <<-HTML
       <!DOCTYPE html>
@@ -38,6 +37,7 @@ def render_404
   HTTP::Response.new(404, template)
 end
 
+# Template for 500 Internal Server Error
 def render_500(ex)
   template = <<-HTML
       <!DOCTYPE html>

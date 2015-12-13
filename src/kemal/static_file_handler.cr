@@ -1,5 +1,3 @@
-require "http/server"
-
 class Kemal::StaticFileHandler < HTTP::StaticFileHandler
   def call(request)
     request_path = request.path.not_nil!

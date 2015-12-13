@@ -1,5 +1,5 @@
 # Route is the main building block of Kemal.
-# It takes 3 parameters method, path and a block to specify
+# It takes 3 parameters: Method, path and a block to specify
 # what action to be done if the route is matched.
 class Kemal::Route
   getter handler
@@ -22,7 +22,7 @@ class Kemal::Route
     true
   end
 
-  # checks if request params contain _method param to override request incoming method
+  # Checks if request params contain _method param to override request incoming method
   def check_for_method_override!(request)
     request.override_method = request.method
     if request.method == "POST"
@@ -33,7 +33,7 @@ class Kemal::Route
     end
   end
 
-  # checks if method contained in _method param is valid one
+  # Checks if method contained in _method param is valid one
   def override_method_valid?(override_method)
     return false unless override_method.is_a?(String)
     override_method = override_method.upcase
