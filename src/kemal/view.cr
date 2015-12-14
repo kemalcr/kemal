@@ -1,21 +1,3 @@
-require "ecr/macros"
-
-# Uses built-in ECR to render views.
-# # Usage
-# get '/' do
-#   render 'hello.ecr'
-# end
-macro render(filename)
-  String.build do |__view__|
-    embed_ecr({{filename}}, "__view__")
-  end
-end
-
-macro render(filename, layout)
-  content = render {{filename}}
-  render {{layout}}
-end
-
 # Template for 404 Not Found
 def render_404
   template = <<-HTML
