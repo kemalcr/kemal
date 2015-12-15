@@ -5,3 +5,7 @@ HTTP_METHODS = %w(get post put patch delete)
    Kemal::Handler::INSTANCE.add_route({{method}}.upcase, path, &block)
   end
 {% end %}
+
+def ws(path, &block : HTTP::WebSocketHandler::WebSocketSession -> _)
+  Kemal::WebsocketHandler.new path, &block
+end

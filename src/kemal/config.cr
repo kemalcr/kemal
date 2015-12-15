@@ -4,6 +4,7 @@ module Kemal
   class Config
     INSTANCE = Config.new
     HANDLERS = [] of HTTP::Handler
+    WS_HANDLERS = [] of HTTP::Handler
     property ssl, port, env, workers, public_folder
 
     def initialize
@@ -23,6 +24,10 @@ module Kemal
     end
 
     def add_handler(handler : HTTP::Handler)
+      HANDLERS << handler
+    end
+
+    def add_ws_handler(handler : HTTP::WebSocketHandler)
       HANDLERS << handler
     end
 
