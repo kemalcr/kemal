@@ -4,7 +4,6 @@ module Kemal
   class Config
     INSTANCE = Config.new
     HANDLERS = [] of HTTP::Handler
-    WS_HANDLERS = [] of HTTP::Handler
     property ssl, port, env, workers, public_folder
 
     def initialize

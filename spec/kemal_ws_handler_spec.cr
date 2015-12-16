@@ -1,7 +1,6 @@
 require "./spec_helper"
 
 describe "Kemal::WebsocketHandler" do
-
   it "doesn't match on wrong route" do
     handler = Kemal::WebsocketHandler.new "/" { }
     headers = HTTP::Headers{
@@ -57,5 +56,4 @@ describe "Kemal::WebsocketHandler" do
     response.headers["Sec-WebSocket-Accept"].should eq("s3pPLMBiTxaQ9kYGzzhZRbK+xOo=")
     response.upgrade_handler.should_not be_nil
   end
-
 end
