@@ -1,29 +1,15 @@
 # Views
 
-You can use ECR to build views. Kemal serves a `render` macro to use Crystal's built-in `ECR`
-library.
-
-## Embedding View File
+You can use ERB-like built-in **ECR** views to render files.
 
 ```crystal
-get '/' do |env|
-  your_name = "Kemal"
+get '/:name' do
   render "views/hello.ecr"
 end
 ```
 
-## Writing Views
+And you should have an `hello.ecr` view. It will have the same context as the method.
 
-ECR is pretty similar ERB(from Ruby). As you can see you can easily access the block variables in your view. In this
-example `your_name` is available for use in the view.
-
-```
-src/
-  views/
-    hello.ecr
-```
-
-Write `hello.ecr`
 ```erb
-Hello <%= your_name %>
+Hello <%= env.params["name"] %>
 ```

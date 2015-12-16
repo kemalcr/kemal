@@ -1,9 +1,9 @@
-# Handling HTTP Request/Response
+# HTTP Request / Response Lifecycle
 
-You should use `env` variable to handle HTTP Request/Response. For both `get` and `post` (and others) methods, you should use the yielded `env` object.
+Accessing the HTTP request/response environment (query params, body, content_type, headers, status_code) is super easy. You can use the environment returned from the block:
 
 ```ruby
-# Matches /hello/kemal
+  # Matches /hello/kemal
   get "/hello/:name" do |env|
     name = env.params["name"]
     "Hello back to #{name}"
@@ -37,4 +37,3 @@ You should use `env` variable to handle HTTP Request/Response. For both `get` an
     env.add_header "Accept-Language", "tr"
     env.add_header "Authorization", "Token 12345"
   end
-```

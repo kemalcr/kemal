@@ -22,11 +22,12 @@ Kemal means *Mature, grown up* in Turkish.
 
 ## How to start?
 
- - [Getting Started Tutorial](./tutorial.md)
+ - [Getting Started Tutorial](./getting_started.md)
+ - [Restful Web Services](./rest.md)
+ - [Websockets](./websockets.md)
  - [Using Dynamic Views](./views.md)
  - [HTTP Requests and Responses](./http-requests.md)
- - [Uploading Files](./upload.md)
  - [Serving Static Files](./statics.md)
  - [Serving JSON API](./json.md)
- - [Restful Web Services](./rest.md)
+ - [Middlewares](./middlewares.md)
  - [How to connect to Database](./database.md)
