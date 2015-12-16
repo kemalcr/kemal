@@ -25,7 +25,7 @@ crystal run src/kemal_sample.cr
 ```
 Go to *http://localhost:3000*
 
-Check [samples](https://github.com/sdogruyol/kemal/tree/master/samples) for more.
+Check [documentation]https://github.com/sdogruyol/kemal/tree/master/docs) or [samples](https://github.com/sdogruyol/kemal/tree/master/samples) for more.
 
 # Super Fast <3
 
@@ -48,6 +48,10 @@ These results were achieved with ```wrk``` on a Macbook Pro Late 2013. (**2Ghz i
 - Built-in JSON support
 - Built-in static file serving
 - Built-in view templating via ecr
+
+# Documentation
+
+You can read the documentation under [docs](https://github.com/sdogruyol/kemal/tree/master/docs) folder.
 
 ## Thanks
 
