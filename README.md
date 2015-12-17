@@ -25,7 +25,7 @@ crystal run src/kemal_sample.cr
 ```
 Go to *http://localhost:3000*
 
-Check [documentation]https://github.com/sdogruyol/kemal/tree/master/docs) or [samples](https://github.com/sdogruyol/kemal/tree/master/samples) for more.
+Check [documentation](https://github.com/sdogruyol/kemal/tree/master/docs) or [samples](https://github.com/sdogruyol/kemal/tree/master/samples) for more.
 
 # Super Fast <3
 
