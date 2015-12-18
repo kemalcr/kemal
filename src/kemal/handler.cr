@@ -1,7 +1,9 @@
 require "http/server"
 require "uri"
 
-# Handles the routes
+# Kemal::Handler is the main handler which handles all the HTTP requests. Routing, parsing, rendering e.g
+# are done in this handler.
+
 class Kemal::Handler < HTTP::Handler
   INSTANCE = new
 
