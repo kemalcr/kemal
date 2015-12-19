@@ -4,12 +4,11 @@ module Kemal
   class Config
     INSTANCE = Config.new
     HANDLERS = [] of HTTP::Handler
-    property ssl, port, env, workers, public_folder
+    property ssl, port, env, public_folder
 
     def initialize
       @port = 3000
       @env = "development" unless @env
-      @workers = 1
       @public_folder = "./public"
       read_file
     end
