@@ -4,17 +4,24 @@
 [![Join the chat at https://gitter.im/sdogruyol/kemal](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/sdogruyol/kemal?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 Lightning Fast, Super Simple web framework for [Crystal](http://www.crystal-lang.org).
-Inspired by [Sinatra](http://www.sinatrarb.com/)
+Inspired by [Sinatra](http://www.sinatrarb.com/) but with superior performance and built-in WebSocket support.
 
-Kemal is under heavy development and currently supports Crystal 0.9.0.
+Kemal is under heavy development and currently supports Crystal 0.9.1.
 
 # Super Simple <3
 
 ```ruby
 require "kemal"
 
+# Matches GET "http://host:port/"
 get "/" do
   "Hello World!"
+end
+
+# Creates a WebSocket handler.
+# Matches "ws://host:port/socket"
+ws "/socket" do |socket|
+  socket.send "Hello from Kemal!"
 end
 ```
 
