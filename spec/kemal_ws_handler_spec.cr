@@ -1,8 +1,8 @@
 require "./spec_helper"
 
-describe "Kemal::WebsocketHandler" do
+describe "Kemal::WebSocketHandler" do
   it "doesn't match on wrong route" do
-    handler = Kemal::WebsocketHandler.new "/" { }
+    handler = Kemal::WebSocketHandler.new "/" { }
     headers = HTTP::Headers{
       "Upgrade":           "websocket",
       "Connection":        "Upgrade",
@@ -14,7 +14,7 @@ describe "Kemal::WebsocketHandler" do
   end
 
   it "matches on given route" do
-    handler = Kemal::WebsocketHandler.new "/" { }
+    handler = Kemal::WebSocketHandler.new "/" { }
     headers = HTTP::Headers{
       "Upgrade":           "websocket",
       "Connection":        "Upgrade",
@@ -35,7 +35,7 @@ describe "Kemal::WebsocketHandler" do
       "hello #{env.params["message"]}"
     end
 
-    ws_handler = Kemal::WebsocketHandler.new "/" { }
+    ws_handler = Kemal::WebSocketHandler.new "/" { }
     headers = HTTP::Headers{
       "Upgrade":           "websocket",
       "Connection":        "Upgrade",
@@ -46,6 +46,27 @@ describe "Kemal::WebsocketHandler" do
     request = HTTP::Request.new("GET", "/?message=world")
     response = kemal.call(request)
     response.body.should eq("hello world")
+
+    # Websocket request
+    request = HTTP::Request.new("GET", "/", headers)
+    response = ws_handler.call request
+    response.status_code.should eq(101)
+    response.headers["Upgrade"].should eq("websocket")
+    response.headers["Connection"].should eq("Upgrade")
+    response.headers["Sec-WebSocket-Accept"].should eq("s3pPLMBiTxaQ9kYGzzhZRbK+xOo=")
+    response.upgrade_handler.should_not be_nil
+  end
+
+  it "has a sockets array" do
+
+    ws_handler = Kemal::WebSocketHandler.new "/" do |socket|
+
+    end
+    headers = HTTP::Headers{
+      "Upgrade":           "websocket",
+      "Connection":        "Upgrade",
+      "Sec-WebSocket-Key": "dGhlIHNhbXBsZSBub25jZQ==",
+    }
 
     # Websocket request
     request = HTTP::Request.new("GET", "/", headers)

@@ -7,5 +7,5 @@ HTTP_METHODS = %w(get post put patch delete)
 {% end %}
 
 def ws(path, &block : HTTP::WebSocketHandler::WebSocketSession -> _)
-  Kemal::WebsocketHandler.new path, &block
+  Kemal::WebSocketHandler.new path, &block
 end
