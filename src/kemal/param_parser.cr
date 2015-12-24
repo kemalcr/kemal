@@ -42,7 +42,7 @@ class Kemal::ParamParser
 
     body = @request.body as String
 
-    case json = JSON.parse(body)
+    case json = JSON.parse(body).raw
     when Hash
       json.each do |k, v|
         @params[k as String] = v as AllParamTypes
