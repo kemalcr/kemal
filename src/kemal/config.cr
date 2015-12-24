@@ -34,10 +34,10 @@ module Kemal
     # config.yml
     # public_folder = "root/to/folder"
     def read_file
-      path = File.expand_path("config.yml", Dir.working_directory)
+      path = File.expand_path("config.yml", Dir.current)
       if File.exists?(path)
         data = YAML.load(File.read(path)) as Hash
-        public_folder = File.expand_path("./#{data["public_folder"]}", Dir.working_directory)
+        public_folder = File.expand_path("./#{data["public_folder"]}", Dir.current)
         @public_folder = public_folder
       end
     end
