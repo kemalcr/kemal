@@ -37,3 +37,7 @@ end
 
 Kemal.config.add_handler CustomHandler.new
 ```
+
+## Other middlewares
+
+[kemal-pg](https://github.com/sdogruyol/kemal-pg): Postgresql Middleware for Kemal. Easily integrate Postgresql to your Kemal app.
