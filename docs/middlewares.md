@@ -6,7 +6,7 @@ Kemal has built-in middlewares for common use cases.
 
 ### HTTP Basic Authorization
 
-This middleware let's you add HTTP Basic Authorization support to your Kemal application.
+This middleware lets you add HTTP Basic Authorization to your Kemal application.
 You can easily use this middleware with `basic_auth` macro like below.
 
 ```crystal
