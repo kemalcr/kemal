@@ -1,0 +1,29 @@
+# Site settings
+title:            Kemal
+email:            dogruyolserdar@gmail.com
+description:      'Lightning Fast, Super Simple web framework for Crystal. Inspired by Sinatra'
+baseurl:          "" # the subpath of your site, e.g. /blog
+url:              "http://yourdomain.com" # the base hostname & protocol for your site
+twitter_username: sdogruyol
+github_username:  sdogruyol
+
+# Build settings
+markdown:         redcarpet
+highlighter:      pygments
+permalink:        /blog/:year/:month/:day/:title/
+
+collections:
+  docs:
+    output: true
+
+nav_bars:
+  - title: "Documents"
+    url: "/docs/getting_started"
+  - title: "Blog"
+    url: "/blog"
+  - title: "Github"
+    url: "http://github.com/sdogruyol/kemal"
+
+examples:
+  - title: "How to connect to Database"
+    url: https://github.com/sdogruyol/kemal-pg-sample
