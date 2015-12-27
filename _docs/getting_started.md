@@ -3,8 +3,6 @@ layout: doc
 title: "Getting Started"
 ---
 
-# Kemal Tutorial
-
 ## 1. Install Crystal
 
 ```

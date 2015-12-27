@@ -18,12 +18,12 @@ collections:
 
 nav_bars:
   - title: "Documents"
-    url: "/kemal/docs/getting_started"
+    url: "/kemal/docs/getting_started.html"
   - title: "Blog"
-    url: "/blog"
+    url: "/blog/"
   - title: "Github"
     url: "https://github.com/sdogruyol/kemal"
 
 examples:
   - title: "How to connect to Database"
-    url: https://github.com/sdogruyol/kemal-pg-sample
+    url: "https://github.com/sdogruyol/kemal-pg-sample"

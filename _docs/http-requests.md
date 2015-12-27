@@ -1,9 +1,7 @@
 ---
 layout: doc
-title: HTTP Requests and Responses
+title: HTTP Request / Response Lifecycle
 ---
-
-# HTTP Request / Response Lifecycle
 
 Accessing the HTTP request/response environment (query params, body, content_type, headers, status_code) is super easy. You can use the environment returned from the block:
 

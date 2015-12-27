@@ -3,8 +3,6 @@ layout: doc
 title: Serving JSON API
 ---
 
-# Serving JSON API
-
 You need to return a ```JSON``` object or need to convert the existing object via `to_json`.
 
 ```ruby

@@ -3,8 +3,6 @@ layout: doc
 title: Restful Web Services
 ---
 
-# Restful Web Services
-
 You can handle HTTP methods as easy as writing method names and the route with a code block. Kemal will handle all the hard work.
 
 ```
@@ -26,5 +24,5 @@ You can handle HTTP methods as easy as writing method names and the route with a
 
   delete "/" do
   .. annihilate something ..
-  end  
+  end
 ```

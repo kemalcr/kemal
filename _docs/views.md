@@ -3,8 +3,6 @@ layout: doc
 title: Using Dynamic Views
 ---
 
-# Views
-
 You can use ERB-like built-in **ECR** views to render files.
 
 ```ruby

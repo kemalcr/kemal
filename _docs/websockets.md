@@ -3,9 +3,7 @@ layout: doc
 title: Websockets
 ---
 
-# Using Websockets
-
-Using Websockets is super easy! By nature Websockets are a bit different than standard Http Request/Response lifecycle.
+Using Websockets is super easy! By nature Websockets are a bit different than standard Http Request / Response lifecycle.
 
 You can easily create a websocket handler which matches the route of `ws://host:port/route. You can create more than 1 websocket handler
 with different routes.

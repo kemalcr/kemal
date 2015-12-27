@@ -3,9 +3,29 @@ layout: doc
 title: Middlewares
 ---
 
-# Middlewares
+## Built-in Middlewares
 
-You can create your own middlewares by inheriting from ```HTTP::Handler```
+Kemal has built-in middlewares for common use cases.
+
+### HTTP Basic Authorization
+
+This middleware lets you add HTTP Basic Authorization to your Kemal application.
+You can easily use this middleware with `basic_auth` macro like below.
+
+```ruby
+require "kemal"
+
+basic_auth "username", "password"
+
+get "/" do
+  "This won't render without correct username and password."
+end
+
+```
+
+## Custom middlewares
+
+You can create your own middleware by inheriting from ```HTTP::Handler```
 
 ```ruby
 class CustomHandler < HTTP::Handler

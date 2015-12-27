@@ -1,20 +1,36 @@
 ---
 layout: doc
-title: Serving Static Files
+title: Static Files
 ---
 
-## Static Files
+# Statics
 
-Kemal has built-in support for serving your static files. You need to put your static files under your ```/public``` directory.
+Add your files to `public` directory and Kemal will serve these files immediately.
 
-E.g: A static file like ```/public/index.html``` will be served with the matching route ```/index.html```.
+```
+app/
+  src/
+    your_app.cr
+  public/
+    js/
+      jquery.js
+      your_app.js
+    css/
+      your_app.css
+    index.html
+```
 
-## Production / Development Mode
+Open index.html and add
 
-By default Kemal starts in ```development```mode and logs to STDOUT.
-
-You can use ```production``` mode to redirect the output to a file. By default Kemal logs the output to ```kemal.log```.
-
-You can start Kemal in production mode by:
-
-```./your_app -e production```
+```html
+<html>
+ <head>
+   <script src="/js/jquery.js"></script>
+   <script src="/js/your_app.js"></script>
+   <link rel="stylesheet" href="/css/your_app.css"/>
+ </head>
+ <body>
+   ...
+ </body>
+</html>
+```
