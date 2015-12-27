@@ -56,25 +56,4 @@ describe "Kemal::WebSocketHandler" do
     response.headers["Sec-WebSocket-Accept"].should eq("s3pPLMBiTxaQ9kYGzzhZRbK+xOo=")
     response.upgrade_handler.should_not be_nil
   end
-
-  it "has a sockets array" do
-
-    ws_handler = Kemal::WebSocketHandler.new "/" do |socket|
-
-    end
-    headers = HTTP::Headers{
-      "Upgrade":           "websocket",
-      "Connection":        "Upgrade",
-      "Sec-WebSocket-Key": "dGhlIHNhbXBsZSBub25jZQ==",
-    }
-
-    # Websocket request
-    request = HTTP::Request.new("GET", "/", headers)
-    response = ws_handler.call request
-    response.status_code.should eq(101)
-    response.headers["Upgrade"].should eq("websocket")
-    response.headers["Connection"].should eq("Upgrade")
-    response.headers["Sec-WebSocket-Accept"].should eq("s3pPLMBiTxaQ9kYGzzhZRbK+xOo=")
-    response.upgrade_handler.should_not be_nil
-  end
 end

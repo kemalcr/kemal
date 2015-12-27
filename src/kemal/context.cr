@@ -23,7 +23,5 @@ class Kemal::Context
   end
 
   delegate headers, @request
-  delegate status_code, @response
-  delegate :"status_code=", @response
-  delegate :"content_type=", @response
+  delegate status_code, :"status_code=", :"content_type=", @response
 end
