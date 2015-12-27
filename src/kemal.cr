@@ -1,5 +1,6 @@
 require "option_parser"
 require "./kemal/*"
+require "./kemal/middleware/*"
 
 at_exit do
   OptionParser.parse! do |opts|
