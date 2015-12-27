@@ -5,7 +5,7 @@ title: Restful Web Services
 
 You can handle HTTP methods as easy as writing method names and the route with a code block. Kemal will handle all the hard work.
 
-```
+```ruby
   get "/" do
   .. show something ..
   end
