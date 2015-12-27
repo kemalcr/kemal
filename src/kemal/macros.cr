@@ -20,3 +20,9 @@ macro redirect(url)
   env.response.headers.add "Location", {{url}}
   env.response.status_code = 301
 end
+
+# Uses Kemal::Middleware::HTTPBasicAuth to easily add HTTP Basic Auth support.
+macro basic_auth(username, password)
+  auth_handler = Kemal::Middleware::HTTPBasicAuth.new("serdar", "123")
+  Kemal.config.add_handler auth_handler
+end
