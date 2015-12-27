@@ -3,8 +3,6 @@ layout: doc
 title: Static Files
 ---
 
-# Statics
-
 Add your files to `public` directory and Kemal will serve these files immediately.
 
 ```

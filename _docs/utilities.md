@@ -3,7 +3,8 @@ layout: doc
 title: Utilities
 ---
 
-# Browser Redirect
+## Browser Redirect
+
 Just like other things in `kemal`, browser redirection is super simple as well. Use `environment` variable in defined route's corresponding block and call `redirect` on it.
 
 ```ruby
