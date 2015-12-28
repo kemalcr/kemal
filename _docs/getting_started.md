@@ -47,7 +47,7 @@ Installing kemal (master)
 Open `your_app/src/your_app.cr` and require `kemal` to use Kemal.
 
 ```ruby
-require 'kemal'
+require "kemal"
 ```
 
 ## 4. Hack your project
