@@ -42,7 +42,7 @@ end
 
 Kemal has superb performance for Websockets.
 
-Crystal 0.9.1 with [Kemal]
+Kemal
 
 ```ruby
 require "kemal"
