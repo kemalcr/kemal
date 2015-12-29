@@ -70,10 +70,8 @@ wss.on('connection', function connection(ws) {
 
 `thor -A 10000 http://localhost:3000`
 
-| Platform | CPU Usage | Memory Usage |
-| :------------ |:---------------:| -----:|
-| Crystal (Kemal)    | 1.85 | 11.2 MB  |
-| Node.js (ws)     | 38.95        |   906.3 MB |
+- Crystal (Kemal)  CPU ***1.85***         Memory   ***11.2  MB***
+- Node.js (ws)     CPU ***38.95***        Memory   ***906.3 MB***
 
 This benchmark was performed on a 2013 Late Macbook Pro with 2Ghz i7 and 8G ram.
 
