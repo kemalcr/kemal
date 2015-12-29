@@ -40,7 +40,7 @@ end
 
 ## Performance
 
-Thanks to Crystal Kemal has superb performance for Websockets.
+Kemal has superb performance for Websockets.
 
 Crystal 0.9.1 with [Kemal]
 
