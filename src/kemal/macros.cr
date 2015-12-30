@@ -26,3 +26,7 @@ macro basic_auth(username, password)
   auth_handler = Kemal::Middleware::HTTPBasicAuth.new("serdar", "123")
   Kemal.config.add_handler auth_handler
 end
+
+macro public_folder(path)
+  Kemal.config.public_folder = {{path}}
+end

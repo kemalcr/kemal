@@ -28,4 +28,9 @@ describe "Config" do
     config.add_handler CustomTestHandler.new
     config.handlers.size.should eq(1)
   end
+
+  it "sets public folder" do
+    public_folder "/some/path/to/folder"
+    Kemal.config.public_folder.should eq("/some/path/to/folder")
+  end
 end
