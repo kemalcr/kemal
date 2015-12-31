@@ -37,6 +37,10 @@ class Kemal::ParamParser
     parse_part(@request.query)
   end
 
+  # Parses JSON request body if Content-Type is `application/json`.
+  # If request body is a JSON Hash then all the params are parsed and added into `params`.
+  # If request body is a JSON Array it's added into `params` as `_json` and can be accessed
+  # like params["_json"]
   def parse_json
     return unless @request.body && @request.headers["Content-Type"]? == APPLICATION_JSON
 
