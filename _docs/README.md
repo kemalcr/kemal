@@ -33,4 +33,4 @@ Kemal means *Mature, grown up* in Turkish.
  - [HTTP Requests and Responses](./http-requests.md)
  - [Serving JSON API](./json.md)
  - [Middlewares](./middlewares.md)
- - [How to connect to Database](https://github.com/sdogruyol/kemal-pg-sample)
+ - [Connectiong to database](./database.md)
