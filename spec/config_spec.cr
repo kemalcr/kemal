@@ -17,10 +17,16 @@ describe "Config" do
     config.env.should eq "development"
   end
 
-  it "set environment to production" do
+  it "sets environment to production" do
     config = Kemal.config
     config.env = "production"
     config.env.should eq "production"
+  end
+
+  it "sets host binding" do
+    config = Kemal.config
+    config.host_binding = "127.0.0.1"
+    config.host_binding.should eq "127.0.0.1"
   end
 
   it "adds a custom handler" do
