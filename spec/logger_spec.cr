@@ -18,6 +18,7 @@ describe "Logger" do
     logger = Kemal::Logger.new
     logger.handler.should be_a File
   end
+  
   it "writes to a file in production" do
     config = Kemal.config
     config.env = "production"
