@@ -22,7 +22,9 @@ module Kemal::Middleware
           end
         end
       end
-      HTTP::Response.new(401, "Unauthorized")
+      headers = HTTP::Headers.new
+      headers["WWW-Authenticate"] = "Basic realm=\"Login Required\""
+      HTTP::Response.new(401, "Could not verify your access level for that URL.\nYou have to login with proper credentials", headers, nil, "HTTP/1.1", nil)
     end
 
     def authorized?(value)
