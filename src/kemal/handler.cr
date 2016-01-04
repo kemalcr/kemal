@@ -33,6 +33,7 @@ class Kemal::Handler < HTTP::Handler
           body = route.handler.call(context).to_s
           return HTTP::Response.new(context.status_code, body, context.response_headers)
         rescue ex
+          Kemal::Logger::INSTANCE.write "Exception: #{ex.to_s}\n"
           return render_500(ex.to_s)
         end
       end

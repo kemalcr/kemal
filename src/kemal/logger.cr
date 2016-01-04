@@ -1,6 +1,7 @@
 require "colorize"
 
 class Kemal::Logger < HTTP::Handler
+  INSTANCE = new
   getter handler
 
   def initialize
