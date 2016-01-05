@@ -14,4 +14,11 @@ describe "Macros" do
       Kemal.config.public_folder.should eq("/some/path/to/folder")
     end
   end
+
+  describe "#add_handler" do
+    it "adds a custom handler" do
+      add_handler CustomTestHandler.new
+      Kemal.config.handlers.size.should eq 1
+    end
+  end
 end

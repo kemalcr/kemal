@@ -1,11 +1,5 @@
 require "./spec_helper"
 
-class CustomTestHandler < HTTP::Handler
-  def call(request)
-    call_next request
-  end
-end
-
 describe "Config" do
   it "sets default port to 3000" do
     config = Kemal.config
