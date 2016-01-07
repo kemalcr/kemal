@@ -4,7 +4,7 @@ layout: default
 
 <div class="doc-sidebar">
 
-  <h1 class="doc-heading">Documents</h1>
+  <h1 class="doc-heading">Documentation</h1>
 
   <ul class="doc-list">
     {% for post in site.docs %}
