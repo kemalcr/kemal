@@ -3,7 +3,7 @@ title:            Kemal
 email:            dogruyolserdar@gmail.com
 description:      'Lightning Fast, Super Simple web framework for Crystal. Inspired by Sinatra'
 baseurl:          "/kemal" # the subpath of your site, e.g. /blog
-url:              "" # the base hostname & protocol for your site
+url:              "https://kemalcr.com" # the base hostname & protocol for your site
 twitter_username: sdogruyol
 github_username:  sdogruyol
 
