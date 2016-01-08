@@ -8,8 +8,10 @@ module Kemal::Middleware
   # Kemal.config.add_handler auth_handler
   #
   class HTTPBasicAuth < HTTP::Handler
-    BASIC = "Basic"
-    AUTH  = "Authorization"
+    BASIC                 = "Basic"
+    AUTH                  = "Authorization"
+    AUTH_MESSAGE          = "Could not verify your access level for that URL.\nYou have to login with proper credentials"
+    HEADER_LOGIN_REQUIRED = "Basic realm=\"Login Required\""
 
     def initialize(@username, @password)
     end
@@ -23,8 +25,8 @@ module Kemal::Middleware
         end
       end
       headers = HTTP::Headers.new
-      headers["WWW-Authenticate"] = "Basic realm=\"Login Required\""
-      HTTP::Response.new(401, "Could not verify your access level for that URL.\nYou have to login with proper credentials", headers, nil, "HTTP/1.1", nil)
+      headers["WWW-Authenticate"] = HEADER_LOGIN_REQUIRED
+      HTTP::Response.new(401, AUTH_MESSAGE, headers, nil, "HTTP/1.1", nil)
     end
 
     def authorized?(value)

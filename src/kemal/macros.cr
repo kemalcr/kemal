@@ -34,3 +34,10 @@ end
 macro public_folder(path)
   Kemal.config.public_folder = {{path}}
 end
+
+# Logs to output stream.
+# development: STDOUT in
+# production: kemal.log
+macro log(message)
+  Kemal::Logger::INSTANCE.write "#{{{message}}}\n"
+end
