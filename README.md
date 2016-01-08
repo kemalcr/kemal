@@ -6,7 +6,7 @@
 Lightning Fast, Super Simple web framework for [Crystal](http://www.crystal-lang.org).
 Inspired by [Sinatra](http://www.sinatrarb.com/) but with superior performance and built-in WebSocket support.
 
-Kemal is under heavy development and currently supports Crystal 0.9.1.
+Kemal is under heavy development and currently supports Crystal latest.
 
 # Super Simple <3
 
