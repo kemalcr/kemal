@@ -5,10 +5,21 @@ title: "Getting Started"
 
 ## 1. Install Crystal
 
+### OS X
+
 ```
 brew update
 brew install crystal-lang
 ```
+
+### Debian / Ubuntu
+
+```
+curl http://dist.crystal-lang.org/apt/setup.sh | sudo bash
+sudo apt-get install crystal
+```
+
+For other OSes and distros check the [official documentation](http://crystal-lang.org/docs/installation/on_debian_and_ubuntu.html).
 
 ## 2. Installing Kemal
 
