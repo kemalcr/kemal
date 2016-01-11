@@ -32,7 +32,7 @@ crystal run src/kemal_sample.cr
 ```
 Go to *http://localhost:3000*
 
-Check [documentation](https://serdardogruyol.com/kemal) or [samples](https://github.com/sdogruyol/kemal/tree/master/samples) for more.
+Check [documentation](https://kemalcr.com) or [samples](https://github.com/sdogruyol/kemal/tree/master/samples) for more.
 
 # Super Fast <3
 
@@ -58,7 +58,7 @@ These results were achieved with ```wrk``` on a Macbook Pro Late 2013. (**2Ghz i
 
 # Documentation
 
-You can read the documentation under [docs](https://github.com/sdogruyol/kemal/tree/master/docs) folder.
+You can read the documentation at the official site [kemalcr.com](https://kemalcr.com)
 
 ## Thanks
 
