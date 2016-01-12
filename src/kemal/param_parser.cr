@@ -36,7 +36,18 @@ class Kemal::ParamParser
   end
 
   def parse_url_params
-    parse_part(@request.url_params.to_s)
+    url_params = @request.url_params
+    begin
+      url_params = url_params.not_nil!
+      name_table = url_params.regex.name_table
+      size = url_params.size
+      size.times do |i|
+        name = name_table.fetch(i + 1) { i + 1 }
+        value = url_params[i + 1]
+        @params[name as String] = value
+      end
+    rescue
+    end
   end
 
   # Parses JSON request body if Content-Type is `application/json`.
