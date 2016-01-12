@@ -1,5 +1,4 @@
 require "http/server"
-require "uri"
 
 # Kemal::Handler is the main handler which handles all the HTTP requests. Routing, parsing, rendering e.g
 # are done in this handler.
@@ -24,11 +23,11 @@ class Kemal::Handler < HTTP::Handler
   end
 
   def process_request(request)
+    url = request.path.not_nil!
     @routes.each do |route|
-      match = route.match?(request)
-      if match
-        params = Kemal::ParamParser.new(route, request).parse
-        context = Context.new(request, params)
+      url.match(route.pattern as Regex) do |url_params|
+        request.url_params = url_params
+        context = Context.new(request, route)
         begin
           body = route.handler.call(context).to_s
           return HTTP::Response.new(context.status_code, body, context.response_headers)
