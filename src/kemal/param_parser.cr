@@ -35,18 +35,15 @@ class Kemal::ParamParser
     parse_part(@request.query)
   end
 
+  # Ditto: This needs memoization without the huge AllParamTypes union :|
   def parse_url_params
-    url_params = @request.url_params
-    begin
-      url_params = url_params.not_nil!
+    if @request.url_params
+      url_params = @request.url_params.not_nil!
       name_table = url_params.regex.name_table
-      size = url_params.size
-      size.times do |i|
-        name = name_table.fetch(i + 1) { i + 1 }
-        value = url_params[i + 1]
-        @params[name as String] = value
+      url_params.size.times do |i|
+        name = (name_table.fetch(i + 1) { i + 1 }) as String
+        @params[name] = url_params[i + 1]
       end
-    rescue
     end
   end
 
