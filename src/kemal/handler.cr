@@ -25,8 +25,7 @@ class Kemal::Handler < HTTP::Handler
   def process_request(request)
     url = request.path.not_nil!
     @routes.each do |route|
-      url.match(route.pattern as Regex) do |url_params|
-        request.url_params = url_params
+      if route.match?(request)
         context = Context.new(request, route)
         begin
           body = route.handler.call(context).to_s
