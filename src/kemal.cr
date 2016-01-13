@@ -1,21 +1,11 @@
-require "option_parser"
 require "./kemal/*"
 require "./kemal/middleware/*"
 
 at_exit do
-  OptionParser.parse! do |opts|
-    opts.on("-p ", "--port ", "port") do |opt_port|
-      Kemal.config.port = opt_port.to_i
-    end
-    opts.on("-e ", "--environment ", "environment") do |env|
-      Kemal.config.env = env
-    end
-    opts.on("-b", "--bind", "host binding") do |host_binding|
-      Kemal.config.host_binding = host_binding
-    end
-  end
+  Kemal::CLI.new
 
   config = Kemal.config
+
   logger = Kemal::Logger.new
   config.add_handler logger
   config.add_handler Kemal::StaticFileHandler.new(config.public_folder)
@@ -37,7 +27,7 @@ at_exit do
     image = env.params["image"]
     file_path = File.expand_path("libs/kemal/images/#{image}", Dir.current)
     env.add_header "Content-Type", "application/octet-stream"
-    File.read(file_path)
+    File.read(file_path) if File.exists? file_path
   end
 
   server.listen
