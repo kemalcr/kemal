@@ -11,17 +11,15 @@ class Kemal::ParamParser
   APPLICATION_JSON = "application/json"
 
   def initialize(@route, @request)
-    @route_components = route.components
-    @request_components = request.path.not_nil!.split "/"
     @params = {} of String => AllParamTypes
   end
 
   def parse
-    parse_components
     parse_request
   end
 
   def parse_request
+    parse_url_params
     parse_query
     parse_body
     parse_json
@@ -37,6 +35,18 @@ class Kemal::ParamParser
     parse_part(@request.query)
   end
 
+  # Ditto: This needs memoization without the huge AllParamTypes union :|
+  def parse_url_params
+    if @request.url_params
+      url_params = @request.url_params.not_nil!
+      name_table = url_params.regex.name_table
+      url_params.size.times do |i|
+        name = (name_table.fetch(i + 1) { i + 1 }) as String
+        @params[name] = url_params[i + 1]
+      end
+    end
+  end
+
   # Parses JSON request body if Content-Type is `application/json`.
   # If request body is a JSON Hash then all the params are parsed and added into `params`.
   # If request body is a JSON Array it's added into `params` as `_json` and can be accessed
@@ -45,7 +55,6 @@ class Kemal::ParamParser
     return unless @request.body && @request.headers["Content-Type"]? == APPLICATION_JSON
 
     body = @request.body as String
-
     case json = JSON.parse(body).raw
     when Hash
       json.each do |k, v|
@@ -63,13 +72,4 @@ class Kemal::ParamParser
     end
   end
 
-  def parse_components
-    @route_components.zip(@request_components) do |route_component, req_component|
-      if route_component.starts_with? ':'
-        @params[route_component[1..-1]] = req_component
-      else
-        return nil unless route_component == req_component
-      end
-    end
-  end
 end

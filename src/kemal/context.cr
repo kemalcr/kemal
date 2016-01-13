@@ -3,10 +3,10 @@
 class Kemal::Context
   getter request
   getter response
-  getter params
+  getter route
   getter content_type
 
-  def initialize(@request, @params)
+  def initialize(@request, @route)
     @response = Kemal::Response.new
   end
 
@@ -20,6 +20,10 @@ class Kemal::Context
 
   def content_type
     @response.content_type
+  end
+
+  def params
+    Kemal::ParamParser.new(@route, @request).parse
   end
 
   delegate headers, @request
