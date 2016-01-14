@@ -1,0 +1,18 @@
+module Kemal::Middleware
+  class SSL
+
+    getter context
+
+    def initialize
+      @context = OpenSSL::SSL::Context.new
+    end
+
+    def set_key_file(key_file)
+      @context.private_key = key_file
+    end
+
+    def set_cert_file(cert_file)
+      @context.certificate_chain = cert_file
+    end
+  end
+end
