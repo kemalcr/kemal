@@ -3,9 +3,7 @@ require "./kemal/middleware/*"
 
 at_exit do
   Kemal::CLI.new
-
   config = Kemal.config
-
   logger = Kemal::Logger.new
   config.add_handler logger
   config.add_handler Kemal::StaticFileHandler.new(config.public_folder)
