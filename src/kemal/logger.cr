@@ -32,7 +32,7 @@ class Kemal::Logger < HTTP::Handler
       method = request.method.colorize(methodColor)
     end
 
-    output_message = "#{time} |#{status_code}| #{method} #{request.resource} - (#{elapsed_text})\n"
+    output_message = "#{time} |#{status_code}| #{method} #{request.resource} - #{elapsed_text}\n"
     write output_message
     response
   end
