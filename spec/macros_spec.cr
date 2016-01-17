@@ -21,4 +21,11 @@ describe "Macros" do
       Kemal.config.handlers.size.should eq 1
     end
   end
+
+  describe "#logging" do
+    it "sets logging status" do
+      logging false
+      Kemal.config.logging.should eq false
+    end
+  end
 end
