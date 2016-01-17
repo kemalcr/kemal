@@ -22,6 +22,15 @@ module Kemal
       HANDLERS
     end
 
+    def logger
+      @logger
+    end
+
+    def logger=(logger)
+      HANDLERS << logger
+      @logger = logger
+    end
+
     def add_handler(handler : HTTP::Handler)
       HANDLERS << handler
     end
