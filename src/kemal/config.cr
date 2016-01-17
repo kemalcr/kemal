@@ -12,6 +12,7 @@ module Kemal
       @env = "development" unless @env
       @public_folder = "./public"
       @logging = true
+      @logger = nil
     end
 
     def scheme
@@ -23,7 +24,7 @@ module Kemal
     end
 
     def logger
-      @logger
+      @logger.not_nil!
     end
 
     def logger=(logger)
