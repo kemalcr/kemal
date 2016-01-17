@@ -41,3 +41,8 @@ end
 macro log(message)
   Kemal::Logger::INSTANCE.write "#{{{message}}}\n"
 end
+
+# Enables / Disables logging
+macro logging(status)
+  Kemal.config.logging = {{status}}
+end
