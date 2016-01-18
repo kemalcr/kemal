@@ -1,6 +1,5 @@
 module Kemal::Middleware
   class SSL
-
     getter context
 
     def initialize

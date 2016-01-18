@@ -42,5 +42,4 @@ class Kemal::Route
     end
     Regex.new "^#{pattern}/?$"
   end
-
 end

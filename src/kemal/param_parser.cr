@@ -71,5 +71,4 @@ class Kemal::ParamParser
       @params[key] ||= value
     end
   end
-
 end

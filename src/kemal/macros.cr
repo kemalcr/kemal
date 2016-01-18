@@ -39,7 +39,7 @@ end
 # development: STDOUT in
 # production: kemal.log
 macro log(message)
-  Kemal::Logger::INSTANCE.write "#{{{message}}}\n"
+  Kemal::Logger::INSTANCE.write "#{{{message}}}\n" if Kemal.config.logging
 end
 
 # Enables / Disables logging

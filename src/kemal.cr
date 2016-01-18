@@ -16,8 +16,10 @@ at_exit do
   server.ssl = config.ssl
 
   Signal::INT.trap {
-    config.logger.write "Kemal is going to take a rest!\n"
-    config.logger.handler.close
+    if config.logging
+      config.logger.write "Kemal is going to take a rest!\n"
+      config.logger.handler.close
+    end
     server.close
     exit
   }
