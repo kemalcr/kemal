@@ -6,13 +6,14 @@ class Kemal::Route
   getter method
 
   def initialize(@method, @path, &@handler : Kemal::Context -> _)
+    @compiled_regex = pattern_to_regex(@path)
   end
 
   def match?(request)
     check_for_method_override!(request)
     return nil unless request.override_method == @method
     return true if request.path.not_nil!.includes?(':') && request.path.not_nil! == @path
-    request.path.not_nil!.match(pattern_to_regex(@path)) do |url_params|
+    request.path.not_nil!.match(@compiled_regex) do |url_params|
       request.url_params = url_params
       return true
     end
