@@ -10,7 +10,7 @@ class Kemal::Route
   end
 
   def match?(request)
-    check_for_method_override!(request)
+    self.class.check_for_method_override!(request)
     return nil unless request.override_method == @method
     return true if request.path.not_nil!.includes?(':') && request.path.not_nil! == @path
     request.path.not_nil!.match(@compiled_regex) do |url_params|
@@ -20,7 +20,7 @@ class Kemal::Route
   end
 
   # Checks if request params contain _method param to override request incoming method
-  def check_for_method_override!(request)
+  def self.check_for_method_override!(request)
     request.override_method = request.method
     if request.method == "POST"
       params = Kemal::ParamParser.new(self, request).parse_request
@@ -31,7 +31,7 @@ class Kemal::Route
   end
 
   # Checks if method contained in _method param is valid one
-  def override_method_valid?(override_method)
+  def self.override_method_valid?(override_method)
     return false unless override_method.is_a?(String)
     override_method = override_method.upcase
     return (override_method == "PUT" || override_method == "PATCH" || override_method == "DELETE")

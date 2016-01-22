@@ -1,4 +1,5 @@
 require "http/server"
+require "beryl/beryl/routing/tree"
 
 # Kemal::Handler is the main handler which handles all the HTTP requests. Routing, parsing, rendering e.g
 # are done in this handler.
@@ -7,7 +8,7 @@ class Kemal::Handler < HTTP::Handler
   INSTANCE = new
 
   def initialize
-    @routes = [] of Route
+    @tree = Beryl::Routing::Tree.new
   end
 
   def call(request)
@@ -16,15 +17,18 @@ class Kemal::Handler < HTTP::Handler
   end
 
   def add_route(method, path, &handler : Kemal::Context -> _)
-    @routes << Route.new(method, path, &handler)
+    add_to_radix_tree method, path, Route.new(method, path, &handler)
 
     # Registering HEAD route for defined GET routes.
-    @routes << Route.new("HEAD", path, &handler) if method == "GET"
+    add_to_radix_tree("HEAD", path, Route.new("HEAD", path, &handler)) if method == "GET"
   end
 
   def process_request(request)
     url = request.path.not_nil!
-    @routes.each do |route|
+    Kemal::Route.check_for_method_override!(request)
+    lookup = @tree.find radix_path(request.override_method, request.path)
+    if lookup.found?
+      route = lookup.payload as Route
       if route.match?(request)
         context = Context.new(request, route)
         begin
@@ -38,5 +42,14 @@ class Kemal::Handler < HTTP::Handler
     end
     # Render 404 unless a route matches
     return render_404
+  end
+
+  private def radix_path(method, path)
+    "#{method} #{path}"
+  end
+
+  private def add_to_radix_tree(method, path, route)
+    node = radix_path method, path
+    @tree.add node, route
   end
 end
