@@ -1,5 +1,9 @@
 name: kemal
 version: 0.7.0
 
+dependencies:
+  beryl:
+    github: luislavena/beryl
+
 author:
   - Serdar Dogruyol <dogruyolserdar@gmail.com>
