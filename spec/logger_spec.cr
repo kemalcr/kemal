@@ -24,7 +24,11 @@ describe "Logger" do
     config.env = "production"
     logger = Kemal::Logger.new
     request = HTTP::Request.new("GET", "/?message=world&time=now")
-    logger.call request
+    io = MemoryIO.new
+    response = HTTP::Server::Response.new(io)
+    context = HTTP::Server::Context.new(request, response)
+    logger.call(context)
+    response.close
     str = File.read("kemal.log")
     File.delete("kemal.log")
     str.includes?("GET /?message=world&time=now").should eq true

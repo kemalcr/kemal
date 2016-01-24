@@ -8,8 +8,10 @@ describe "Kemal::Middleware::HTTPBasicAuth" do
       "/",
       headers: HTTP::Headers{"Authorization": "Basic c2VyZGFyOjEyMw=="},
     )
-    response = auth_handler.call(request)
-    response.status_code.should eq 404
+
+    io_with_context = create_request_and_return_io(auth_handler, request)
+    client_response = HTTP::Client::Response.from_io(io_with_context, decompress: false)
+    client_response.status_code.should eq 404
   end
 
   it "returns 401 with incorrect credentials" do
@@ -19,7 +21,8 @@ describe "Kemal::Middleware::HTTPBasicAuth" do
       "/",
       headers: HTTP::Headers{"Authorization": "NotBasic"},
     )
-    response = auth_handler.call(request)
-    response.status_code.should eq 401
+    io_with_context = create_request_and_return_io(auth_handler, request)
+    client_response = HTTP::Client::Response.from_io(io_with_context, decompress: false)
+    client_response.status_code.should eq 401
   end
 end

@@ -15,26 +15,26 @@ class Kemal::Logger < HTTP::Handler
                end
   end
 
-  def call(request)
+  def call(context)
     time = Time.now
-    response = call_next(request)
+    call_next(context)
     elapsed = Time.now - time
     elapsed_text = elapsed_text(elapsed)
 
     if @env == "production"
-      status_code = " #{response.status_code} "
-      method = request.method
+      status_code = " #{context.response.status_code} "
+      method = context.request.method
     else
-      statusColor = color_for_status(response.status_code)
-      methodColor = color_for_method(request.method)
+      statusColor = color_for_status(context.response.status_code)
+      methodColor = color_for_method(context.request.method)
 
-      status_code = " #{response.status_code} ".colorize.back(statusColor).fore(:white)
-      method = request.method.colorize(methodColor)
+      status_code = " #{context.response.status_code} ".colorize.back(statusColor).fore(:white)
+      method = context.request.method.colorize(methodColor)
     end
 
-    output_message = "#{time} |#{status_code}| #{method} #{request.resource} - #{elapsed_text}\n"
+    output_message = "#{time} |#{status_code}| #{method} #{context.request.resource} - #{elapsed_text}\n"
     write output_message
-    response
+    context
   end
 
   private def elapsed_text(elapsed)

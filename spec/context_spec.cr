@@ -7,40 +7,45 @@ describe "Context" do
       "Hello"
     end
     request = HTTP::Request.new("GET", "/")
-    response = kemal.call(request)
-    response.headers["Content-Type"].should eq("text/html")
+    io_with_context = create_request_and_return_io(kemal, request)
+    client_response = HTTP::Client::Response.from_io(io_with_context, decompress: false)
+    client_response.headers["Content-Type"].should eq("text/html")
   end
 
   it "sets content type" do
     kemal = Kemal::Handler.new
     kemal.add_route "GET", "/" do |env|
-      env.content_type = "application/json"
+      env.response.content_type = "application/json"
+      "Hello"
     end
     request = HTTP::Request.new("GET", "/")
-    response = kemal.call(request)
-    response.headers["Content-Type"].should eq("application/json")
+    io_with_context = create_request_and_return_io(kemal, request)
+    client_response = HTTP::Client::Response.from_io(io_with_context, decompress: false)
+    client_response.headers["Content-Type"].should eq("application/json")
   end
 
   it "parses headers" do
     kemal = Kemal::Handler.new
     kemal.add_route "GET", "/" do |env|
-      name = env.headers["name"]
+      name = env.request.headers["name"]
       "Hello #{name}"
     end
     headers = HTTP::Headers.new
-    headers["Name"] = "kemal"
+    headers["name"] = "kemal"
     request = HTTP::Request.new("GET", "/", headers)
-    response = kemal.call(request)
-    response.body.should eq "Hello kemal"
+    io_with_context = create_request_and_return_io(kemal, request)
+    client_response = HTTP::Client::Response.from_io(io_with_context, decompress: false)
+    client_response.body.should eq "Hello kemal"
   end
 
   it "sets response headers" do
     kemal = Kemal::Handler.new
     kemal.add_route "GET", "/" do |env|
-      env.add_header "Accept-Language", "tr"
+      env.response.headers.add "Accept-Language", "tr"
     end
     request = HTTP::Request.new("GET", "/")
-    response = kemal.call(request)
-    response.headers["Accept-Language"].should eq "tr"
+    io_with_context = create_request_and_return_io(kemal, request)
+    client_response = HTTP::Client::Response.from_io(io_with_context, decompress: false)
+    client_response.headers["Accept-Language"].should eq "tr"
   end
 end

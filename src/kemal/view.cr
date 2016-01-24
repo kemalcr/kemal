@@ -1,5 +1,5 @@
 # Template for 403 Forbidden
-def render_403
+def render_403(context)
   template = <<-HTML
       <!DOCTYPE html>
       <html>
@@ -17,11 +17,13 @@ def render_403
       </body>
       </html>
   HTML
-  HTTP::Response.new(403, template)
+  context.response.status_code = 403
+  context.response.print template
+  context
 end
 
 # Template for 404 Not Found
-def render_404
+def render_404(context)
   template = <<-HTML
       <!DOCTYPE html>
       <html>
@@ -38,11 +40,13 @@ def render_404
       </body>
       </html>
   HTML
-  HTTP::Response.new(404, template)
+  context.response.status_code = 404
+  context.response.print template
+  context
 end
 
 # Template for 500 Internal Server Error
-def render_500(ex)
+def render_500(context, ex)
   template = <<-HTML
       <!DOCTYPE html>
       <html>
@@ -59,5 +63,7 @@ def render_500(ex)
       </body>
       </html>
   HTML
-  HTTP::Response.error("text/html", template)
+  context.response.status_code = 500
+  context.response.print template
+  context
 end

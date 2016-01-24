@@ -11,8 +11,9 @@ describe "Route" do
         "Route 2"
       end
       request = HTTP::Request.new("GET", "/route2")
-      response = kemal.call(request)
-      response.body.should eq("Route 2")
+      io_with_context = create_request_and_return_io(kemal, request)
+      client_response = HTTP::Client::Response.from_io(io_with_context, decompress: false)
+      client_response.body.should eq("Route 2")
     end
   end
 end

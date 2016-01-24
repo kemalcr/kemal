@@ -11,37 +11,39 @@ class Kemal::Handler < HTTP::Handler
     @tree = Beryl::Routing::Tree.new
   end
 
-  def call(request)
-    response = process_request(request)
-    response || call_next(request)
+  def call(context)
+    context.response.content_type = "text/html"
+    response = process_request(context)
+    response || call_next(context)
   end
 
-  def add_route(method, path, &handler : Kemal::Context -> _)
+  def add_route(method, path, &handler : HTTP::Server::Context -> _)
     add_to_radix_tree method, path, Route.new(method, path, &handler)
 
     # Registering HEAD route for defined GET routes.
     add_to_radix_tree("HEAD", path, Route.new("HEAD", path, &handler)) if method == "GET"
   end
 
-  def process_request(request)
-    url = request.path.not_nil!
-    Kemal::Route.check_for_method_override!(request)
-    lookup = @tree.find radix_path(request.override_method, request.path)
+  def process_request(context)
+    url = context.request.path.not_nil!
+    Kemal::Route.check_for_method_override!(context.request)
+    lookup = @tree.find radix_path(context.request.override_method, context.request.path)
     if lookup.found?
       route = lookup.payload as Route
-      if route.match?(request)
-        context = Context.new(request, route)
+      if route.match?(context.request)
         begin
+          context.response.content_type = "text/html"
           body = route.handler.call(context).to_s
-          return HTTP::Response.new(context.status_code, body, context.response_headers)
+          context.response.print body
+          return context
         rescue ex
           Kemal::Logger::INSTANCE.write "Exception: #{ex.to_s}\n"
-          return render_500(ex.to_s)
+          return render_500(context, ex.to_s)
         end
       end
     end
     # Render 404 unless a route matches
-    return render_404
+    return render_404(context)
   end
 
   private def radix_path(method, path)

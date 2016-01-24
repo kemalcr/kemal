@@ -28,8 +28,13 @@ at_exit do
   get "/__kemal__/:image" do |env|
     image = env.params["image"]
     file_path = File.expand_path("libs/kemal/images/#{image}", Dir.current)
-    env.add_header "Content-Type", "application/octet-stream"
-    File.read(file_path) if File.exists? file_path
+    if File.exists? file_path
+      env.response.headers.add "Content-Type", "application/octet-stream"
+      env.response.content_length = File.size(file_path)
+      File.open(file_path) do |file|
+        IO.copy(file, env.response)
+      end
+    end
   end
 
   server.listen

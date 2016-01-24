@@ -1,6 +1,6 @@
 class Kemal::StaticFileHandler < HTTP::StaticFileHandler
-  def call(request)
-    return call_next(request) if request.path.not_nil! == "/"
+  def call(context)
+    return call_next(context) if context.request.path.not_nil! == "/"
     super
   end
 end
