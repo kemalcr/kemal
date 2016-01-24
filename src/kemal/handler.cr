@@ -1,5 +1,5 @@
 require "http/server"
-require "beryl/beryl/routing/tree"
+require "radix"
 
 # Kemal::Handler is the main handler which handles all the HTTP requests. Routing, parsing, rendering e.g
 # are done in this handler.
@@ -8,7 +8,7 @@ class Kemal::Handler < HTTP::Handler
   INSTANCE = new
 
   def initialize
-    @tree = Beryl::Routing::Tree.new
+    @tree = Radix::Tree.new
   end
 
   def call(context)
