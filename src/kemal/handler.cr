@@ -32,8 +32,6 @@ class Kemal::Handler < HTTP::Handler
       if route.match?(context.request)
         begin
           body = route.handler.call(context).to_s
-          # context.response.status_code = 200
-          # context.response.content_type =  "text/html"
           context.response.print body
           return context
         rescue ex
