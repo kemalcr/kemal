@@ -1,7 +1,7 @@
 require "./spec_helper"
 
 describe "Context" do
-  it "sets content type" do
+  it "has a default content type" do
     kemal = Kemal::Handler.new
     kemal.add_route "GET", "/" do |env|
       "Hello"
