@@ -196,15 +196,15 @@ describe "Kemal::Handler" do
     client_response.status_code.should eq(404)
   end
 
-  # it "redirects user to provided url" do
-  #   kemal = Kemal::Handler.new
-  #   kemal.add_route "GET", "/" do |env|
-  #     redirect "/login"
-  #   end
-  #   request = HTTP::Request.new("GET", "/")
-  #   io_with_context = create_request_and_return_io(kemal, request)
-  #   client_response = HTTP::Client::Response.from_io(io_with_context, decompress: false)
-  #   client_response.status_code.should eq(301)
-  #   client_response.headers.has_key?("Location").should eq(true)
-  # end
+  it "redirects user to provided url" do
+    kemal = Kemal::Handler.new
+    kemal.add_route "GET", "/" do |env|
+      env.redirect "/login"
+    end
+    request = HTTP::Request.new("GET", "/")
+    io_with_context = create_request_and_return_io(kemal, request)
+    client_response = HTTP::Client::Response.from_io(io_with_context, decompress: false)
+    client_response.status_code.should eq(301)
+    client_response.headers.has_key?("Location").should eq(true)
+  end
 end

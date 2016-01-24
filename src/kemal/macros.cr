@@ -16,11 +16,6 @@ macro render(filename, layout)
   render {{layout}}
 end
 
-macro redirect(url)
-  env.response.headers.add "Location", {{url}}
-  env.response.status_code = 301
-end
-
 macro add_handler(handler)
   Kemal.config.add_handler {{handler}}
 end
