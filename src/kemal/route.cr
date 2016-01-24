@@ -5,7 +5,7 @@ class Kemal::Route
   getter handler
   getter method
 
-  def initialize(@method, @path, &@handler : Kemal::Context -> _)
+  def initialize(@method, @path, &@handler : HTTP::Server::Context -> _)
     @compiled_regex = pattern_to_regex(@path)
   end
 

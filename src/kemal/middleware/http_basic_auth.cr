@@ -16,17 +16,18 @@ module Kemal::Middleware
     def initialize(@username, @password)
     end
 
-    def call(request)
-      if request.headers[AUTH]?
-        if value = request.headers[AUTH]
+    def call(context)
+      if context.request.headers[AUTH]?
+        if value = context.request.headers[AUTH]
           if value.size > 0 && value.starts_with?(BASIC)
-            return call_next(request) if authorized?(value)
+            return call_next(context) if authorized?(value)
           end
         end
       end
       headers = HTTP::Headers.new
-      headers["WWW-Authenticate"] = HEADER_LOGIN_REQUIRED
-      HTTP::Response.new(401, AUTH_MESSAGE, headers, nil, "HTTP/1.1", nil)
+      context.response.status_code = 401
+      context.response.headers["WWW-Authenticate"] = HEADER_LOGIN_REQUIRED
+      context.response.print AUTH_MESSAGE
     end
 
     def authorized?(value)
