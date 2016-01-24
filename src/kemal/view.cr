@@ -18,7 +18,8 @@ def render_403(context)
       </html>
   HTML
   context.response.status_code = 403
-  context.response.puts template
+  context.response.print template
+  context
 end
 
 # Template for 404 Not Found
@@ -40,7 +41,8 @@ def render_404(context)
       </html>
   HTML
   context.response.status_code = 404
-  context.response.puts template
+  context.response.print template
+  context
 end
 
 # Template for 500 Internal Server Error
@@ -62,5 +64,6 @@ def render_500(context, ex)
       </html>
   HTML
   context.response.status_code = 500
-  context.response.puts template
+  context.response.print template
+  context
 end

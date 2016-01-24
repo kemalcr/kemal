@@ -4,6 +4,17 @@ describe "Context" do
   it "sets content type" do
     kemal = Kemal::Handler.new
     kemal.add_route "GET", "/" do |env|
+      "Hello"
+    end
+    request = HTTP::Request.new("GET", "/")
+    io_with_context = create_request_and_return_io(kemal, request)
+    client_response = HTTP::Client::Response.from_io(io_with_context, decompress: false)
+    client_response.headers["Content-Type"].should eq("text/html")
+  end
+
+  it "sets content type" do
+    kemal = Kemal::Handler.new
+    kemal.add_route "GET", "/" do |env|
       env.response.content_type = "application/json"
       "Hello"
     end

@@ -12,6 +12,7 @@ class Kemal::Handler < HTTP::Handler
   end
 
   def call(context)
+    context.response.content_type = "text/html"
     response = process_request(context)
     response || call_next(context)
   end
@@ -31,6 +32,7 @@ class Kemal::Handler < HTTP::Handler
       route = lookup.payload as Route
       if route.match?(context.request)
         begin
+          context.response.content_type = "text/html"
           body = route.handler.call(context).to_s
           context.response.print body
           return context
