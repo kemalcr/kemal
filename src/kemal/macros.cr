@@ -6,9 +6,9 @@ require "ecr/macros"
 #   render 'hello.ecr'
 # end
 macro render(filename)
-  String.build do |__view__|
-    embed_ecr({{filename}}, "__view__")
-  end
+  __view__ = String::Builder.new
+  embed_ecr({{filename}}, "__view__")
+  __view__.to_s
 end
 
 macro render(filename, layout)
