@@ -39,9 +39,9 @@ Check [documentation](https://kemalcr.com) or [samples](https://github.com/sdogr
 Numbers speak louder than words.
 
 | Framework             | Request Per Second  | Avg. Response Time |
-| --------------------- | ------------------- | ------------------ |
-| Kemal (Production)    | 100238              | 395.44μs           |
-| Sinatra (Thin)        | 2274                | 43.82ms            |
+| --------------------- | :-----------------: | -----------------: |
+| Kemal (Production)    | 100238              |           395.44μs |
+| Sinatra (Thin)        | 2274                |            43.82ms |
 
 
 These results were achieved with ```wrk``` on a Macbook Pro Late 2013. (**2Ghz i7 8GB Ram OS X Yosemite**)
