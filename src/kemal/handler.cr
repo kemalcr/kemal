@@ -30,16 +30,15 @@ class Kemal::Handler < HTTP::Handler
     lookup = @tree.find radix_path(context.request.override_method as String, context.request.path)
     if lookup.found?
       route = lookup.payload as Route
-      if route.match?(context.request)
-        begin
-          context.response.content_type = "text/html"
-          body = route.handler.call(context).to_s
-          context.response.print body
-          return context
-        rescue ex
-          Kemal::Logger::INSTANCE.write "Exception: #{ex.to_s}\n"
-          return render_500(context, ex.to_s)
-        end
+      context.request.url_params = lookup.params
+      begin
+        context.response.content_type = "text/html"
+        body = route.handler.call(context).to_s
+        context.response.print body
+        return context
+      rescue ex
+        Kemal::Logger::INSTANCE.write "Exception: #{ex.to_s}\n"
+        return render_500(context, ex.to_s)
       end
     end
     # Render 404 unless a route matches

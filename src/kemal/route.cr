@@ -6,17 +6,6 @@ class Kemal::Route
   getter method
 
   def initialize(@method, @path, &@handler : HTTP::Server::Context -> _)
-    @compiled_regex = pattern_to_regex(@path)
-  end
-
-  def match?(request)
-    self.class.check_for_method_override!(request)
-    return nil unless request.override_method == @method
-    return true if request.path.not_nil!.includes?(':') && request.path.not_nil! == @path
-    request.path.not_nil!.match(@compiled_regex) do |url_params|
-      request.url_params = url_params
-      return true
-    end
   end
 
   # Checks if request params contain _method param to override request incoming method
@@ -35,12 +24,5 @@ class Kemal::Route
     return false unless override_method.is_a?(String)
     override_method = override_method.upcase
     return (override_method == "PUT" || override_method == "PATCH" || override_method == "DELETE")
-  end
-
-  private def pattern_to_regex(pattern)
-    pattern = pattern.gsub(/\:(?<param>\w+)/) do |_, match|
-      "(?<#{match["param"]}>.*)"
-    end
-    Regex.new "^#{pattern}/?$"
   end
 end
