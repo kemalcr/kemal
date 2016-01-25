@@ -27,7 +27,7 @@ class Kemal::Handler < HTTP::Handler
   def process_request(context)
     url = context.request.path.not_nil!
     Kemal::Route.check_for_method_override!(context.request)
-    lookup = @tree.find radix_path(context.request.override_method, context.request.path)
+    lookup = @tree.find radix_path(context.request.override_method as String, context.request.path)
     if lookup.found?
       route = lookup.payload as Route
       if route.match?(context.request)
@@ -46,8 +46,8 @@ class Kemal::Handler < HTTP::Handler
     return render_404(context)
   end
 
-  private def radix_path(method, path)
-    "#{method} #{path}"
+  private def radix_path(method : String, path)
+    "/#{method.downcase}#{path}"
   end
 
   private def add_to_radix_tree(method, path, route)
