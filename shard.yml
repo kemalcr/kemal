@@ -3,7 +3,7 @@ version: 0.7.0
 
 dependencies:
   radix:
-    github: f/radix
+    github: luislavena/radix
 
 author:
   - Serdar Dogruyol <dogruyolserdar@gmail.com>
