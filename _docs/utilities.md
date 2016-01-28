@@ -11,7 +11,7 @@ Just like other things in `kemal`, browser redirection is super simple as well. 
   # Redirect browser
   get "/logout" do |env|
 	# important stuff like clearing session etc.
-	redirect "/login" # redirect to /login page
+	env.redirect "/login" # redirect to /login page
   end
 ```
 _Make sure to receive `env` as param in defined route's block or you might end-up having compile-time errors._
