@@ -34,7 +34,7 @@ class Kemal::Handler < HTTP::Handler
 
   def process_filter(context, type)
     lookup = @tree.find radix_path("#{type}/filter", context.request.path)
-    if lookup.found?
+    if lookup.found? && lookup.payload.is_a? Filter
       filter = lookup.payload as Filter
       filter.block.call()
     end
