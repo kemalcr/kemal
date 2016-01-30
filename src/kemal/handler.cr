@@ -13,7 +13,9 @@ class Kemal::Handler < HTTP::Handler
 
   def call(context)
     context.response.content_type = "text/html"
+    process_filter(context, :before)
     response = process_request(context)
+    process_filter(context, :after)
     response || call_next(context)
   end
 
@@ -22,6 +24,20 @@ class Kemal::Handler < HTTP::Handler
 
     # Registering HEAD route for defined GET routes.
     add_to_radix_tree("HEAD", path, Route.new("HEAD", path, &handler)) if method == "GET"
+  end
+
+  def add_filter(type, path, options = {} of Symbol => String, &block : -> _)
+    node = radix_path "#{type}/filter", path
+    filter = Filter.new(type, path, options, &block)
+    @tree.add node, filter
+  end
+
+  def process_filter(context, type)
+    lookup = @tree.find radix_path("#{type}/filter", context.request.path)
+    if lookup.found? && lookup.payload.is_a? Filter
+      filter = lookup.payload as Filter
+      filter.block.call()
+    end
   end
 
   def process_request(context)
