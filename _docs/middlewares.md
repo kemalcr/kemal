@@ -20,7 +20,6 @@ basic_auth "username", "password"
 get "/" do
   "This won't render without correct username and password."
 end
-
 ```
 
 ## Custom middlewares
@@ -29,9 +28,9 @@ You can create your own middleware by inheriting from ```HTTP::Handler```
 
 ```ruby
 class CustomHandler < HTTP::Handler
-  def call(request)
+  def call(context)
     puts "Doing some custom stuff here"
-    call_next request
+    call_next context
   end
 end
 

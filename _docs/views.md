@@ -7,6 +7,7 @@ You can use ERB-like built-in **ECR** views to render files.
 
 ```ruby
 get '/:name' do
+  name = env.params["name"]
   render "views/hello.ecr"
 end
 ```
@@ -14,7 +15,7 @@ end
 And you should have an `hello.ecr` view. It will have the same context as the method.
 
 ```erb
-Hello <%= env.params["name"] %>
+Hello <%= name %>
 ```
 
 ## Using Layouts
