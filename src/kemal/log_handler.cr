@@ -1,6 +1,7 @@
 require "colorize"
+require "http"
 
-class Kemal::Logger < HTTP::Handler
+class Kemal::LogHandler < HTTP::Handler
   INSTANCE = new
   getter handler
 

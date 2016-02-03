@@ -36,9 +36,8 @@ class Kemal::ParamParser
   end
 
   def parse_url_params
-    params = @request.url_params
-    if params
-      params.not_nil!.each do |key, value|
+    if params = @request.url_params
+      params.each do |key, value|
         @params[key] = value
       end
     end

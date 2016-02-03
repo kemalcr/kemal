@@ -6,7 +6,7 @@ end
 
 describe "Views" do
   it "renders file" do
-    kemal = Kemal::Handler.new
+    kemal = Kemal::RouteHandler.new
     kemal.add_route "GET", "/view/:name" do |env|
       name = env.params["name"]
       render "spec/asset/hello.ecr"
@@ -18,7 +18,7 @@ describe "Views" do
   end
 
   it "renders file with dynamic variables" do
-    kemal = Kemal::Handler.new
+    kemal = Kemal::RouteHandler.new
     kemal.add_route "GET", "/view/:name" do |env|
       name = env.params["name"]
       render_with_base_and_layout "hello.ecr"
@@ -30,7 +30,7 @@ describe "Views" do
   end
 
   it "renders layout" do
-    kemal = Kemal::Handler.new
+    kemal = Kemal::RouteHandler.new
     kemal.add_route "GET", "/view/:name" do |env|
       name = env.params["name"]
       render "spec/asset/hello.ecr", "spec/asset/layout.ecr"

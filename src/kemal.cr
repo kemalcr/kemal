@@ -5,12 +5,12 @@ at_exit do
   Kemal::CLI.new
   config = Kemal.config
   if config.logging
-    logger = Kemal::Logger.new
+    logger = Kemal::LogHandler.new
     config.logger = logger
     config.logger.write "[#{config.env}] Kemal is ready to lead at #{config.scheme}://#{config.host_binding}:#{config.port}\n"
   end
   config.add_handler Kemal::StaticFileHandler.new(config.public_folder)
-  config.add_handler Kemal::Handler::INSTANCE
+  config.add_handler Kemal::RouteHandler::INSTANCE
 
   server = HTTP::Server.new(config.host_binding.not_nil!.to_slice, config.port, config.handlers)
   server.ssl = config.ssl

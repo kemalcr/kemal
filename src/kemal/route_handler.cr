@@ -1,10 +1,10 @@
 require "http/server"
 require "radix"
 
-# Kemal::Handler is the main handler which handles all the HTTP requests. Routing, parsing, rendering e.g
+# Kemal::RouteHandler is the main handler which handles all the HTTP requests. Routing, parsing, rendering e.g
 # are done in this handler.
 
-class Kemal::Handler < HTTP::Handler
+class Kemal::RouteHandler < HTTP::Handler
   INSTANCE = new
 
   def initialize
@@ -36,7 +36,7 @@ class Kemal::Handler < HTTP::Handler
         context.response.print body
         return context
       rescue ex
-        Kemal::Logger::INSTANCE.write "Exception: #{ex.to_s}\n"
+        Kemal::LogHandler::INSTANCE.write "Exception: #{ex.to_s}\n"
         return render_500(context, ex.to_s)
       end
     end
