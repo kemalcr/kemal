@@ -8,7 +8,7 @@ Inspired by [Sinatra](http://www.sinatrarb.com/) but with superior performance a
 
 Kemal is under heavy development and currently supports Crystal latest.
 
-# Super Simple <3
+# Super Simple ⚡️
 
 ```ruby
 require "kemal"
@@ -34,7 +34,7 @@ Go to *http://localhost:3000*
 
 Check [documentation](https://kemalcr.com) or [samples](https://github.com/sdogruyol/kemal/tree/master/samples) for more.
 
-# Super Fast <3
+# Super Fast 🚀
 
 Numbers speak louder than words.
 
