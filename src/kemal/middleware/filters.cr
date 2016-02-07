@@ -38,15 +38,15 @@ module Kemal::Middleware
 end
 
 def add_filters
-  Kemal.config.add_handler Kemal::Filters::Filter.new
+  Kemal.config.add_handler Kemal::Middleware::Filter.new
 end
 
 def before(path = "*", options = {} of Symbol => String, &block : HTTP::Server::Context -> _)
-  filter = Kemal.config.handlers.first as Kemal::Filters::Filter
+  filter = Kemal.config.handlers.first as Kemal::Middleware::Filter
   filter.add :before, path, options, &block
 end
 
 def after(path = "*", options = {} of Symbol => String, &block : HTTP::Server::Context -> _)
-  filter = Kemal.config.handlers.first as Kemal::Filters::Filter
+  filter = Kemal.config.handlers.first as Kemal::Middleware::Filter
   filter.add :after, path, options, &block
 end
