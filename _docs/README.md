@@ -33,6 +33,7 @@ Kemal means *Mature, grown up* in Turkish.
  - [HTTP Requests and Responses](./http-requests.md)
  - [Serving JSON API](./json.md)
  - [Middlewares](./middlewares.md)
+ - [Filters](./filters.md)
  - [Connectiong to database](./database.md)
  - [SSL](./ssl.md)
  - [Deployment](./deployment.md)
