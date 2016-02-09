@@ -8,9 +8,9 @@ class HTTP::Server
       Kemal::ParamParser.new(@route, @request).parse
     end
 
-    def redirect(url)
+    def redirect(url, status_code = 302)
       @response.headers.add "Location", url
-      @response.status_code = 301
+      @response.status_code = status_code
     end
   end
 end
