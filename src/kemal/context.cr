@@ -2,10 +2,8 @@
 # information such as params, content_type e.g
 class HTTP::Server
   class Context
-    getter params
-
     def params
-      Kemal::ParamParser.new(@route, @request).parse
+      @params ||= Kemal::ParamParser.new(@route, @request).parse
     end
 
     def redirect(url, status_code = 302)
