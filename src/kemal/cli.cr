@@ -13,13 +13,13 @@ module Kemal
 
     def parse
       OptionParser.parse! do |opts|
-        opts.on("-b HOST", "--bind HOST", "HTTP host to bind (defaults to 0.0.0.0)") do |host_binding|
+        opts.on("-b HOST", "--bind HOST", "Host to bind (defaults to 0.0.0.0)") do |host_binding|
           @config.host_binding = host_binding
         end
-        opts.on("-p PORT", "--port PORT", "HTTP port to listen connections (defaults to 3000)") do |opt_port|
+        opts.on("-p PORT", "--port PORT", "Port to listen for connections (defaults to 3000)") do |opt_port|
           @config.port = opt_port.to_i
         end
-        opts.on("-e ENV", "--environment ENV", "Running environment [development, production] (defaults to development). Set `production` to boost performance") do |env|
+        opts.on("-e ENV", "--environment ENV", "Environment [development, production] (defaults to development). Set `production` to boost performance") do |env|
           @config.env = env
         end
         opts.on("-s", "--ssl", "Enables SSL") do
