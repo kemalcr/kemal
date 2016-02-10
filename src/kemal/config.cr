@@ -1,5 +1,3 @@
-require "yaml"
-
 module Kemal
   class Config
     INSTANCE = Config.new
