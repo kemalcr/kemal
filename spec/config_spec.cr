@@ -28,4 +28,10 @@ describe "Config" do
     config.add_handler CustomTestHandler.new
     config.handlers.size.should eq(1)
   end
+
+  it "sets a custom logger" do
+    config = Kemal::Config::INSTANCE
+    config.logger = CustomTestHandler.new
+    config.handlers.first.should be_a(CustomTestHandler)
+  end
 end

@@ -2,7 +2,7 @@ module Kemal
   class Config
     INSTANCE = Config.new
     HANDLERS = [] of HTTP::Handler
-    property host_binding, ssl, port, env, public_folder, logging
+    property host_binding, ssl, port, env, public_folder, logging, logger
 
     def initialize
       @host_binding = "0.0.0.0" unless @host_binding
@@ -10,7 +10,7 @@ module Kemal
       @env = "development" unless @env
       @public_folder = "./public"
       @logging = true
-      @logger = nil
+      @logger = Kemal::LogHandler.new(@env) unless @logging
     end
 
     def scheme

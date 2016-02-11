@@ -2,11 +2,10 @@ require "colorize"
 require "http"
 
 class Kemal::LogHandler < HTTP::Handler
-  INSTANCE = new
+  # INSTANCE = new
   getter handler
 
-  def initialize
-    @env = Kemal.config.env
+  def initialize(@env)
     @handler = if @env == "production"
                  handler = File.new("kemal.log", "a")
                  handler.flush_on_newline = true

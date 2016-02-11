@@ -2,27 +2,27 @@ require "./spec_helper"
 
 describe "Kemal::LogHandler" do
   it "creates a handler" do
-    logger = Kemal::LogHandler.new
+    logger = Kemal::LogHandler.new "production"
     logger.handler.should_not be nil
   end
 
   it "creates a STDOUT handler by default" do
     config = Kemal.config
-    logger = Kemal::LogHandler.new
+    logger = Kemal::LogHandler.new "production"
     logger.handler.should be_a IO
   end
 
   it "creates a file handler in production" do
     config = Kemal.config
     config.env = "production"
-    logger = Kemal::LogHandler.new
+    logger = Kemal::LogHandler.new "production"
     logger.handler.should be_a File
   end
 
   it "writes to a file in production" do
     config = Kemal.config
     config.env = "production"
-    logger = Kemal::LogHandler.new
+    logger = Kemal::LogHandler.new "production"
     request = HTTP::Request.new("GET", "/?message=world&time=now")
     io = MemoryIO.new
     response = HTTP::Server::Response.new(io)

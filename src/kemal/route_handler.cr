@@ -35,7 +35,7 @@ class Kemal::RouteHandler < HTTP::Handler
         context.response.print body
         return context
       rescue ex
-        Kemal::LogHandler::INSTANCE.write "Exception: #{ex.to_s}\n"
+        # Kemal.config.logger.write "Exception: #{ex.to_s}\n"
         return render_500(context, ex.to_s)
       end
     end

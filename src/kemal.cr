@@ -5,8 +5,6 @@ at_exit do
   Kemal::CLI.new
   config = Kemal.config
   if config.logging
-    logger = Kemal::LogHandler.new
-    config.logger = logger
     config.logger.write "[#{config.env}] Kemal is ready to lead at #{config.scheme}://#{config.host_binding}:#{config.port}\n"
   end
   config.add_handler Kemal::StaticFileHandler.new(config.public_folder)
