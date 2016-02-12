@@ -10,7 +10,7 @@ module Kemal
       @env = "development" unless @env
       @public_folder = "./public"
       @logging = true
-      @logger = Kemal::LogHandler.new(@env) unless @logging
+      @logger = Kemal::LogHandler.new(@env) if @logging
     end
 
     def scheme
