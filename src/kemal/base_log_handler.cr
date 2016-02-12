@@ -6,6 +6,7 @@ class Kemal::BaseLogHandler < HTTP::Handler
   end
 
   def call(context)
+    call_next context
   end
 
   def write(message)

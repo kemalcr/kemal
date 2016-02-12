@@ -19,7 +19,6 @@ module Kemal
 
     def logger=(logger : Kemal::BaseLogHandler)
       @logger = logger
-      HANDLERS << @logger.not_nil!
     end
 
     def scheme

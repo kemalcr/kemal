@@ -29,10 +29,4 @@ describe "Config" do
     config.handlers.size.should eq(1)
   end
 
-  it "sets a custom logger" do
-    config = Kemal::Config::INSTANCE
-    config.logger = CustomLogHandler.new("production")
-    config.handlers.first.should be_a(CustomLogHandler)
-    config.logger.should be_a(CustomLogHandler)
-  end
 end

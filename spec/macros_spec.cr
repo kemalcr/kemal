@@ -27,5 +27,12 @@ describe "Macros" do
       logging false
       Kemal.config.logging.should eq false
     end
+    
+    it "sets a custom logger" do
+      config = Kemal::Config::INSTANCE
+      logger CustomLogHandler.new("production")
+      config.handlers.first.should be_a(CustomLogHandler)
+      config.logger.should be_a(CustomLogHandler)
+    end
   end
 end
