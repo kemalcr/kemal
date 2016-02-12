@@ -4,9 +4,8 @@ require "./kemal/middleware/*"
 at_exit do
   Kemal::CLI.new
   config = Kemal.config
-  if config.logging
-    config.logger.write "[#{config.env}] Kemal is ready to lead at #{config.scheme}://#{config.host_binding}:#{config.port}\n"
-  end
+  config.setup_logging
+  config.logger.write "[#{config.env}] Kemal is ready to lead at #{config.scheme}://#{config.host_binding}:#{config.port}\n"
   config.add_handler Kemal::StaticFileHandler.new(config.public_folder)
   config.add_handler Kemal::RouteHandler::INSTANCE
 
@@ -14,10 +13,7 @@ at_exit do
   server.ssl = config.ssl
 
   Signal::INT.trap {
-    if config.logging
-      config.logger.write "Kemal is going to take a rest!\n"
-      config.logger.handler.close
-    end
+    config.logger.write "Kemal is going to take a rest!\n"
     server.close
     exit
   }

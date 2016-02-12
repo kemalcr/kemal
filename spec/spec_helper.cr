@@ -10,6 +10,8 @@ class CustomTestHandler < HTTP::Handler
   end
 end
 
+class CustomLogHandler < Kemal::BaseLogHandler; end
+
 def create_request_and_return_io(handler, request)
   io = MemoryIO.new
   response = HTTP::Server::Response.new(io)
@@ -34,6 +36,8 @@ def create_ws_request_and_return_io(handler, request)
 end
 
 Spec.before_each do
-  Kemal.config.env = "development"
-  Kemal.config.handlers.clear
+  config = Kemal.config
+  config.env = "development"
+  config.setup_logging
+  config.handlers.clear
 end

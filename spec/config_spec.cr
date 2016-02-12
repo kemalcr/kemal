@@ -31,7 +31,8 @@ describe "Config" do
 
   it "sets a custom logger" do
     config = Kemal::Config::INSTANCE
-    config.logger = CustomTestHandler.new
-    config.handlers.first.should be_a(CustomTestHandler)
+    config.logger = CustomLogHandler.new("production")
+    config.handlers.first.should be_a(CustomLogHandler)
+    config.logger.should be_a(CustomLogHandler)
   end
 end
