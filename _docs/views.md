@@ -8,7 +8,7 @@ You can use ERB-like built-in **ECR** views to render files.
 ```ruby
 get '/:name' do |env|
   name = env.params["name"]
-  render "views/hello.ecr"
+  render "src/views/hello.ecr"
 end
 ```
 
@@ -24,7 +24,7 @@ You can use **layouts** in Kemal. You should pass a second argument.
 
 ```ruby
 get '/:name' do
-  render "views/subview.ecr", "views/layouts/layout.ecr"
+  render "src/views/subview.ecr", "src/views/layouts/layout.ecr"
 end
 ```
 
