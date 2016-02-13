@@ -6,7 +6,7 @@ title: Using Dynamic Views
 You can use ERB-like built-in **ECR** views to render files.
 
 ```ruby
-get '/:name' do
+get '/:name' do |env|
   name = env.params["name"]
   render "views/hello.ecr"
 end
