@@ -4,6 +4,8 @@ version: 0.9.0
 dependencies:
   radix:
     github: luislavena/radix
+  kilt:
+    github: jeromegn/kilt
 
 author:
   - Serdar Dogruyol <dogruyolserdar@gmail.com>
