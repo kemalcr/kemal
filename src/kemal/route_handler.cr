@@ -12,17 +12,17 @@ class Kemal::RouteHandler < HTTP::Handler
 
   def call(context)
     context.response.content_type = "text/html"
-    response = process_request(context)
-    response || call_next(context)
+    process_request(context)
   end
 
+  # Adds a given route to routing tree. As an exception each `GET` route additionaly defines
+  # a corresponding `HEAD` route.
   def add_route(method, path, &handler : HTTP::Server::Context -> _)
     add_to_radix_tree method, path, Route.new(method, path, &handler)
-
-    # Registering HEAD route for defined GET routes.
     add_to_radix_tree("HEAD", path, Route.new("HEAD", path, &handler)) if method == "GET"
   end
 
+  # Processes the route if it's a match. Otherwise renders 404.
   def process_request(context)
     url = context.request.path.not_nil!
     Kemal::Route.check_for_method_override!(context.request)
@@ -38,7 +38,6 @@ class Kemal::RouteHandler < HTTP::Handler
         return render_500(context, ex.to_s)
       end
     end
-    # Render 404 unless a route matches
     return render_404(context)
   end
 
