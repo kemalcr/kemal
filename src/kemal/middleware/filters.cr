@@ -45,15 +45,14 @@ module Kemal::Middleware
         super "An after-filter is already defined for path: '#{path}'."
       end
     end
-
   end
 
   class Block
     property block
+
     def initialize(&@block : HTTP::Server::Context -> _)
     end
   end
-
 end
 
 def add_filters

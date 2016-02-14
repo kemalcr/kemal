@@ -55,7 +55,6 @@ module Kemal
         HANDLERS << @error_handler.not_nil!
       end
     end
-
   end
 
   def self.config

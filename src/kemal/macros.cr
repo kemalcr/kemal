@@ -40,11 +40,10 @@ end
 # Enables / Disables logging
 macro logging(status)
   Kemal.config.logging = {{status}}
-end 
+end
 
-macro logger(logger) 
+macro logger(logger)
+
   Kemal.config.logger = {{logger}}
   Kemal.config.add_handler {{logger}}
 end
-
-

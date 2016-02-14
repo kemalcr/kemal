@@ -1,2 +1,2 @@
-class Kemal::NullLogHandler < Kemal::BaseLogHandler 
+class Kemal::NullLogHandler < Kemal::BaseLogHandler
 end

@@ -28,5 +28,4 @@ describe "Config" do
     config.add_handler CustomTestHandler.new
     config.handlers.size.should eq(1)
   end
-
 end

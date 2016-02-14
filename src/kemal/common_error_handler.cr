@@ -12,5 +12,4 @@ class Kemal::CommonErrorHandler < HTTP::Handler
       return render_500(context, ex.to_s)
     end
   end
-
 end

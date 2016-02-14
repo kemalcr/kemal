@@ -1,8 +1,7 @@
 require "colorize"
 require "http"
 
-class Kemal::CommonLogHandler < Kemal::BaseLogHandler 
-  # INSTANCE = new
+class Kemal::CommonLogHandler < Kemal::BaseLogHandler
   getter handler
 
   def initialize(@env)

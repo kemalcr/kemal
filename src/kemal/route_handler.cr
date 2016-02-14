@@ -41,5 +41,4 @@ class Kemal::RouteHandler < HTTP::Handler
     node = radix_path method, path
     @tree.add node, route
   end
-
 end

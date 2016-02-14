@@ -1,7 +1,6 @@
 require "http"
 
 class Kemal::BaseLogHandler < HTTP::Handler
-
   def initialize(@env)
   end
 
