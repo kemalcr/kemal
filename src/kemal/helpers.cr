@@ -1,4 +1,4 @@
-require "ecr/macros"
+require "kilt"
 
 # Uses built-in ECR to render views.
 # # Usage
@@ -7,7 +7,7 @@ require "ecr/macros"
 # end
 macro render(filename)
   __view__ = String::Builder.new
-  embed_ecr({{filename}}, "__view__")
+  Kilt.embed({{filename}}, "__view__")
   __view__.to_s
 end
 
