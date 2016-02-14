@@ -16,34 +16,33 @@ macro render(filename, layout)
   render {{layout}}
 end
 
-macro add_handler(handler)
-  Kemal.config.add_handler {{handler}}
+def add_handler(handler)
+  Kemal.config.add_handler handler
 end
 
 # Uses Kemal::Middleware::HTTPBasicAuth to easily add HTTP Basic Auth support.
-macro basic_auth(username, password)
-  auth_handler = Kemal::Middleware::HTTPBasicAuth.new({{username}}, {{password}})
+def basic_auth(username, password)
+  auth_handler = Kemal::Middleware::HTTPBasicAuth.new(username, password)
   add_handler auth_handler
 end
 
-macro public_folder(path)
-  Kemal.config.public_folder = {{path}}
+def public_folder(path)
+  Kemal.config.public_folder = path
 end
 
 # Logs to output stream.
 # development: STDOUT in
 # production: kemal.log
-macro log(message)
-  Kemal.config.logger.write "#{{{message}}}\n"
+def log(message)
+  Kemal.config.logger.write "#{message}\n"
 end
 
 # Enables / Disables logging
-macro logging(status)
-  Kemal.config.logging = {{status}}
+def logging(status)
+  Kemal.config.logging = status
 end
 
-macro logger(logger)
-
-  Kemal.config.logger = {{logger}}
-  Kemal.config.add_handler {{logger}}
+def logger(logger)
+  Kemal.config.logger = logger
+  Kemal.config.add_handler logger
 end
