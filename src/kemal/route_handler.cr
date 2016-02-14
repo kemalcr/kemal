@@ -24,21 +24,13 @@ class Kemal::RouteHandler < HTTP::Handler
 
   # Processes the route if it's a match. Otherwise renders 404.
   def process_request(context)
-    url = context.request.path.not_nil!
     Kemal::Route.check_for_method_override!(context.request)
     lookup = @tree.find radix_path(context.request.override_method as String, context.request.path)
-    if lookup.found?
-      route = lookup.payload as Route
-      context.request.url_params = lookup.params
-      begin
-        body = route.handler.call(context).to_s
-        context.response.print body
-        return context
-      rescue ex
-        return render_500(context, ex.to_s)
-      end
-    end
-    return render_404(context)
+    raise Kemal::Exceptions::RouteNotFound.new(context) unless lookup.found?
+    route = lookup.payload as Route
+    context.request.url_params = lookup.params
+    context.response.print(route.handler.call(context).to_s)
+    context
   end
 
   private def radix_path(method : String, path)
@@ -49,4 +41,5 @@ class Kemal::RouteHandler < HTTP::Handler
     node = radix_path method, path
     @tree.add node, route
   end
+
 end

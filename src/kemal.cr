@@ -7,6 +7,7 @@ at_exit do
   config.setup_logging
   config.logger.write "[#{config.env}] Kemal is ready to lead at #{config.scheme}://#{config.host_binding}:#{config.port}\n"
   config.add_handler Kemal::StaticFileHandler.new(config.public_folder)
+  config.setup_error_handler
   config.add_handler Kemal::RouteHandler::INSTANCE
 
   server = HTTP::Server.new(config.host_binding.not_nil!.to_slice, config.port, config.handlers)
