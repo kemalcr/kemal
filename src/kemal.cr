@@ -4,9 +4,7 @@ require "./kemal/middleware/*"
 at_exit do
   Kemal::CLI.new
   config = Kemal.config
-  config.setup_logging
-  config.setup_error_handler
-  config.add_handler Kemal::StaticFileHandler.new(config.public_folder)
+  config.setup
   config.add_handler Kemal::RouteHandler::INSTANCE
 
   server = HTTP::Server.new(config.host_binding.not_nil!.to_slice, config.port, config.handlers)
@@ -30,7 +28,7 @@ at_exit do
       end
     end
   end
-  
+
   config.logger.write "[#{config.env}] Kemal is ready to lead at #{config.scheme}://#{config.host_binding}:#{config.port}\n"
   server.listen
 end

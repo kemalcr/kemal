@@ -2,12 +2,13 @@ module Kemal
   class Config
     INSTANCE = Config.new
     HANDLERS = [] of HTTP::Handler
-    property host_binding, ssl, port, env, public_folder, logging, always_rescue, error_handler
+    property host_binding, ssl, port, env, public_folder, logging, always_rescue, error_handler, serve_static
 
     def initialize
-      @host_binding = "0.0.0.0" unless @host_binding
+      @host_binding = "0.0.0.0"
       @port = 3000
-      @env = "development" unless @env
+      @env = "development"
+      @serve_static = true
       @public_folder = "./public"
       @logging = true
       @logger = nil
@@ -39,6 +40,12 @@ module Kemal
       HANDLERS << handler
     end
 
+    def setup
+      setup_logging
+      setup_error_handler
+      setup_public_folder
+    end
+
     def setup_logging
       if @logging
         @logger ||= Kemal::CommonLogHandler.new(@env)
@@ -49,11 +56,15 @@ module Kemal
       end
     end
 
-    def setup_error_handler
+    private def setup_error_handler
       if @always_rescue
         @error_handler ||= Kemal::CommonErrorHandler::INSTANCE
         HANDLERS << @error_handler.not_nil!
       end
+    end
+
+    private def setup_public_folder
+      HANDLERS << Kemal::StaticFileHandler.new(@public_folder) if @serve_static
     end
   end
 
