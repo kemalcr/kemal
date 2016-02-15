@@ -5,15 +5,14 @@ require "kilt"
 # get '/' do
 #   render 'hello.ecr'
 # end
-macro render(filename)
-  __view__ = String::Builder.new
-  Kilt.embed({{filename}}, "__view__")
-  __view__.to_s
-end
 
 macro render(filename, layout)
   content = render {{filename}}
   render {{layout}}
+end
+
+macro render(filename, *args)
+  Kilt.render({{filename}}, {{*args}})
 end
 
 def add_handler(handler)
