@@ -6,7 +6,7 @@ describe "Kemal::Middleware::Filters" do
     test_filter.modified = "false"
 
     filter = Kemal::Middleware::Filter.new
-    filter.add :before, "/greetings", {} of Symbol => String { test_filter.modified = "true" }
+    filter.add("GET", "/greetings", :before) { test_filter.modified = "true" }
 
     kemal = Kemal::RouteHandler.new
     kemal.add_route "GET", "/greetings" { test_filter.modified }
