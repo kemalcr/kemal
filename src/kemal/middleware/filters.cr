@@ -32,7 +32,7 @@ module Kemal::Middleware
     end
 
     private def radix_path(verb, path, type : Symbol)
-      "#{verb}/#{path}#{type}"
+      "#{type}/#{verb}/#{path}"
     end
 
     class BeforeFilterAlreadyDefinedException < Exception

@@ -12,7 +12,7 @@ end
 
 {% for type in ["before", "after"]%}
   {% for method in HTTP_METHODS %}
-    def {{type.id}}_{{method.id}}(path, &block : HTTP::Server::Context -> _)
+    def {{type.id}}_{{method.id}}(path = "*", &block : HTTP::Server::Context -> _)
      {{type.id}}({{method}}.upcase, path, &block)
     end
   {% end %}
