@@ -6,8 +6,8 @@ module Kemal::Middleware
       @tree = Radix::Tree.new
     end
 
-    def add(type, path, options, &block : HTTP::Server::Context -> _)
-      node = radix_path type, path
+    def add(verb, path, type, &block : HTTP::Server::Context -> _)
+      node = radix_path(verb, path, type)
       @tree.add node, Block.new &block
     end
 
@@ -17,32 +17,33 @@ module Kemal::Middleware
       process_filter(context, :after)
     end
 
-    def filter_for_path_type_defined?(path, type)
-      lookup = @tree.find radix_path(type, path)
+    def filter_for_path_type_defined?(verb, path, type)
+      lookup = @tree.find radix_path(verb, path, type)
       lookup.found? && lookup.payload.is_a? Block
     end
 
     private def process_filter(context, type)
-      lookup = @tree.find radix_path(type, context.request.path)
+      Kemal::Route.check_for_method_override!(context.request)
+      lookup = @tree.find radix_path(context.request.override_method, context.request.path, type)
       if lookup.found? && lookup.payload.is_a? Block
         block = lookup.payload as Block
         block.block.call(context)
       end
     end
 
-    private def radix_path(type : Symbol, path)
-      "/#{type}#{path}"
+    private def radix_path(verb, path, type : Symbol)
+      "#{type}/#{verb}/#{path}"
     end
 
     class BeforeFilterAlreadyDefinedException < Exception
-      def initialize(path)
-        super "A before-filter is already defined for path: '#{path}'."
+      def initialize(verb, path)
+        super "A before-filter is already defined for path: '#{verb}:#{path}'."
       end
     end
 
     class AfterFilterAlreadyDefinedException < Exception
-      def initialize(path)
-        super "An after-filter is already defined for path: '#{path}'."
+      def initialize(verb, path)
+        super "An after-filter is already defined for path: '#{verb}:#{path}'."
       end
     end
   end
@@ -63,14 +64,14 @@ def add_filters
   filter
 end
 
-def before(path = "*", options = {} of Symbol => String, &block : HTTP::Server::Context -> _)
+def before(verb, path = "*", &block : HTTP::Server::Context -> _)
   filter = (Kemal.config.handlers.find { |handler| handler.is_a? Kemal::Middleware::Filter } || add_filters) as Kemal::Middleware::Filter
-  raise Kemal::Middleware::Filter::BeforeFilterAlreadyDefinedException.new(path) if filter.filter_for_path_type_defined?(path, :before)
-  filter.add :before, path, options, &block
+  raise Kemal::Middleware::Filter::BeforeFilterAlreadyDefinedException.new(verb, path) if filter.filter_for_path_type_defined?(verb, path, :before)
+  filter.add verb, path, :before, &block
 end
 
-def after(path = "*", options = {} of Symbol => String, &block : HTTP::Server::Context -> _)
+def after(verb, path = "*", &block : HTTP::Server::Context -> _)
   filter = (Kemal.config.handlers.find { |handler| handler.is_a? Kemal::Middleware::Filter } || add_filters) as Kemal::Middleware::Filter
-  raise Kemal::Middleware::Filter::AfterFilterAlreadyDefinedException.new(path) if filter.filter_for_path_type_defined?(path, :after)
-  filter.add :after, path, options, &block
+  raise Kemal::Middleware::Filter::AfterFilterAlreadyDefinedException.new(verb, path) if filter.filter_for_path_type_defined?(verb, path, :after)
+  filter.add verb, path, :after, &block
 end
