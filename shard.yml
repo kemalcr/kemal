@@ -7,6 +7,6 @@ dependencies:
     version: 0.1.0
   kilt:
     github: jeromegn/kilt
-    version: 0.3.0
+    version: 0.3.2
 author:
   - Serdar Dogruyol <dogruyolserdar@gmail.com>
