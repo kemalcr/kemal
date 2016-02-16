@@ -2,7 +2,7 @@ require "./spec_helper"
 
 describe "Kemal::RouteHandler" do
   it "routes" do
-    kemal = Kemal::RouteHandler.new
+    kemal = Kemal::RouteHandler::INSTANCE
     kemal.add_route "GET", "/" do
       "hello"
     end
@@ -13,7 +13,7 @@ describe "Kemal::RouteHandler" do
   end
 
   it "routes request with query string" do
-    kemal = Kemal::RouteHandler.new
+    kemal = Kemal::RouteHandler::INSTANCE
     kemal.add_route "GET", "/" do |env|
       "hello #{env.params["message"]}"
     end
@@ -24,7 +24,7 @@ describe "Kemal::RouteHandler" do
   end
 
   it "routes request with multiple query strings" do
-    kemal = Kemal::RouteHandler.new
+    kemal = Kemal::RouteHandler::INSTANCE
     kemal.add_route "GET", "/" do |env|
       "hello #{env.params["message"]} time #{env.params["time"]}"
     end
@@ -35,7 +35,7 @@ describe "Kemal::RouteHandler" do
   end
 
   it "route parameter has more precedence than query string arguments" do
-    kemal = Kemal::RouteHandler.new
+    kemal = Kemal::RouteHandler::INSTANCE
     kemal.add_route "GET", "/:message" do |env|
       "hello #{env.params["message"]}"
     end
@@ -46,7 +46,7 @@ describe "Kemal::RouteHandler" do
   end
 
   it "parses simple JSON body" do
-    kemal = Kemal::RouteHandler.new
+    kemal = Kemal::RouteHandler::INSTANCE
     kemal.add_route "POST", "/" do |env|
       name = env.params["name"]
       age = env.params["age"]
@@ -66,7 +66,7 @@ describe "Kemal::RouteHandler" do
   end
 
   it "parses JSON with string array" do
-    kemal = Kemal::RouteHandler.new
+    kemal = Kemal::RouteHandler::INSTANCE
     kemal.add_route "POST", "/" do |env|
       skills = env.params["skills"] as Array
       "Skills #{skills.each.join(',')}"
@@ -85,7 +85,7 @@ describe "Kemal::RouteHandler" do
   end
 
   it "parses JSON with json object array" do
-    kemal = Kemal::RouteHandler.new
+    kemal = Kemal::RouteHandler::INSTANCE
     kemal.add_route "POST", "/" do |env|
       skills = env.params["skills"] as Array
       skills_from_languages = skills.map do |skill|
@@ -110,7 +110,7 @@ describe "Kemal::RouteHandler" do
 
   # Removed until there is a way to test multiple middlewares
   # it "renders 404 on not found" do
-  #  kemal = Kemal::RouteHandler.new
+  #  kemal = Kemal::RouteHandler::INSTANCE
   #  request = HTTP::Request.new("GET", "/?message=world")
   #  io_with_context = create_request_and_return_io(kemal, request)
   #  client_response = HTTP::Client::Response.from_io(io_with_context, decompress: false)
@@ -118,7 +118,7 @@ describe "Kemal::RouteHandler" do
   # end
 
   # it "renders 500 on exception" do
-  #   kemal = Kemal::RouteHandler.new
+  #   kemal = Kemal::RouteHandler::INSTANCE
   #   kemal.add_route "GET", "/" do
   #     raise "Exception"
   #   end
@@ -130,7 +130,7 @@ describe "Kemal::RouteHandler" do
   # end
   #
   it "checks for _method param in POST request to simulate PUT" do
-    kemal = Kemal::RouteHandler.new
+    kemal = Kemal::RouteHandler::INSTANCE
     kemal.add_route "PUT", "/" do |env|
       "Hello World from PUT"
     end
@@ -146,7 +146,7 @@ describe "Kemal::RouteHandler" do
   end
 
   it "checks for _method param in POST request to simulate PATCH" do
-    kemal = Kemal::RouteHandler.new
+    kemal = Kemal::RouteHandler::INSTANCE
     kemal.add_route "PATCH", "/" do |env|
       "Hello World from PATCH"
     end
@@ -162,7 +162,7 @@ describe "Kemal::RouteHandler" do
   end
 
   it "checks for _method param in POST request to simulate DELETE" do
-    kemal = Kemal::RouteHandler.new
+    kemal = Kemal::RouteHandler::INSTANCE
     kemal.add_route "DELETE", "/" do |env|
       "Hello World from DELETE"
     end
@@ -179,7 +179,7 @@ describe "Kemal::RouteHandler" do
   end
 
   it "can process HTTP HEAD requests for defined GET routes" do
-    kemal = Kemal::RouteHandler.new
+    kemal = Kemal::RouteHandler::INSTANCE
     kemal.add_route "GET", "/" do |env|
       "Hello World from GET"
     end
@@ -191,7 +191,7 @@ describe "Kemal::RouteHandler" do
 
   # Removed until there is a way to test multiple middlewares
   # it "can't process HTTP HEAD requests for undefined GET routes" do
-  #  kemal = Kemal::RouteHandler.new
+  #  kemal = Kemal::RouteHandler::INSTANCE
   #  request = HTTP::Request.new("HEAD", "/")
   #  io_with_context = create_request_and_return_io(kemal, request)
   #  client_response = HTTP::Client::Response.from_io(io_with_context, decompress: false)
@@ -199,7 +199,7 @@ describe "Kemal::RouteHandler" do
   # end
 
   it "redirects user to provided url" do
-    kemal = Kemal::RouteHandler.new
+    kemal = Kemal::RouteHandler::INSTANCE
     kemal.add_route "GET", "/" do |env|
       env.redirect "/login"
     end

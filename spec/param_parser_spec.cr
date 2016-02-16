@@ -7,7 +7,7 @@ describe "ParamParser" do
       "Hello #{hasan}"
     end
     request = HTTP::Request.new("POST", "/?hasan=cemal")
-    params = Kemal::ParamParser.new(route, request).parse
+    params = Kemal::ParamParser.new(request).parse
     params["hasan"].should eq "cemal"
   end
 
@@ -26,7 +26,7 @@ describe "ParamParser" do
       headers: HTTP::Headers{"Content-Type": "application/x-www-form-urlencoded"},
     )
 
-    params = Kemal::ParamParser.new(route, request).parse
+    params = Kemal::ParamParser.new(request).parse
     params.should eq({"hasan" => "cemal", "name" => "serdar", "age" => "99"})
   end
 
@@ -41,7 +41,7 @@ describe "ParamParser" do
         headers: HTTP::Headers{"Content-Type": "application/json"},
       )
 
-      params = Kemal::ParamParser.new(route, request).parse
+      params = Kemal::ParamParser.new(request).parse
       params.should eq({"name": "Serdar"})
     end
 
@@ -55,7 +55,7 @@ describe "ParamParser" do
         headers: HTTP::Headers{"Content-Type": "application/json"},
       )
 
-      params = Kemal::ParamParser.new(route, request).parse
+      params = Kemal::ParamParser.new(request).parse
       params.should eq({"_json": [1]})
     end
 
@@ -69,7 +69,7 @@ describe "ParamParser" do
         headers: HTTP::Headers{"Content-Type": "application/json"},
       )
 
-      params = Kemal::ParamParser.new(route, request).parse
+      params = Kemal::ParamParser.new(request).parse
       params.should eq({"foo": "bar", "_json": [1]})
     end
 
@@ -82,7 +82,7 @@ describe "ParamParser" do
         headers: HTTP::Headers{"Content-Type": "application/json"},
       )
 
-      params = Kemal::ParamParser.new(route, request).parse
+      params = Kemal::ParamParser.new(request).parse
       params.should eq({} of String => AllParamTypes)
     end
   end
@@ -103,7 +103,7 @@ describe "ParamParser" do
         headers: HTTP::Headers{"Content-Type": "text/plain"},
       )
 
-      params = Kemal::ParamParser.new(route, request).parse
+      params = Kemal::ParamParser.new(request).parse
       params.should eq({"hasan" => "cemal"})
     end
   end

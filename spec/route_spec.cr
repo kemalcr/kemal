@@ -3,7 +3,7 @@ require "./spec_helper"
 describe "Route" do
   describe "match?" do
     it "matches the correct route" do
-      kemal = Kemal::RouteHandler.new
+      kemal = Kemal::RouteHandler::INSTANCE
       kemal.add_route "GET", "/route1" do |env|
         "Route 1"
       end
