@@ -1,4 +1,7 @@
-# Filters
+---
+layout: doc
+title: "Filters" 
+---
 
 Before filters are evaluated before each request within the same context as the routes. They can modify the request and response.
 
