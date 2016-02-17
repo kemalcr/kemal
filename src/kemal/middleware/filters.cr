@@ -35,15 +35,23 @@ module Kemal::Middleware
     end
 
     # This can be called directly but it's simpler to just use the macros, it will check if another filter is not already defined for this verb/path/type and proceed to call `add_route_filter`
-    def before(verb, path = "*", &block : HTTP::Server::Context -> _)
+    def before(verb = "all", path = "*", &block : HTTP::Server::Context -> _)
       raise Kemal::Middleware::Filter::BeforeFilterAlreadyDefinedException.new(verb, path) if filter_for_path_type_defined?(verb, path, :before)
       _add_route_filter verb, path, :before, &block
     end
 
+    def before(path = "*", &block : HTTP::Server::Context -> _)
+      before("all", path, &block)
+    end
+
     # This can be called directly but it's simpler to just use the macros, it will check if another filter is not already defined for this verb/path/type and proceed to call `add_route_filter`
-    def after(verb, path = "*", &block : HTTP::Server::Context -> _)
+    def after(verb = "all", path = "*", &block : HTTP::Server::Context -> _)
       raise Kemal::Middleware::Filter::AfterFilterAlreadyDefinedException.new(verb, path) if filter_for_path_type_defined?(verb, path, :after)
       _add_route_filter verb, path, :after, &block
+    end
+
+    def after(path = "*", &block : HTTP::Server::Context -> _)
+      after("all", path, &block)
     end
 
     # This will fetch the block for the verb/path/type from the tree and call it.
@@ -84,7 +92,7 @@ end
 #  - before_all, before_get, before_post, before_put, before_patch, before_delete
 #  - after_all, after_get, after_post, after_put, after_patch, after_delete
 
-ALL_METHODS = %w(get post put patch delete all)
+ALL_METHODS = %w(get post put patch delete)
 {% for type in ["before", "after"] %}
   {% for method in ALL_METHODS %}
     def {{type.id}}_{{method.id}}(path = "*", &block : HTTP::Server::Context -> _)
