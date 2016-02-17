@@ -21,54 +21,49 @@ module Kemal::Middleware
       context
     end
 
-    # This checks is filter is already defined for the verb/path/type combination
-    def filter_for_path_type_defined?(verb, path, type)
-      lookup = @tree.find radix_path(verb, path, type)
-      lookup.found? && lookup.payload.is_a? Block
-    end
-
     # :nodoc: This shouldn't be called directly, it's not private because I need to call it for testing purpose since I can't call the macros in the spec.
     # It adds the block for the corresponding verb/path/type combination to the tree.
     def _add_route_filter(verb, path, type, &block : HTTP::Server::Context -> _)
-      node = radix_path(verb, path, type)
-      @tree.add node, Block.new &block
+      lookup = lookup_filters_for_path_type(verb, path, type)
+      if lookup.found? && lookup.payload.is_a?(Array(Block))
+        (lookup.payload as Array(Block)) << Block.new(&block)
+      else
+        @tree.add radix_path(verb, path, type), [Block.new(&block)]
+      end
     end
 
     # This can be called directly but it's simpler to just use the macros, it will check if another filter is not already defined for this verb/path/type and proceed to call `add_route_filter`
     def before(verb, path = "*", &block : HTTP::Server::Context -> _)
-      raise Kemal::Middleware::Filter::BeforeFilterAlreadyDefinedException.new(verb, path) if filter_for_path_type_defined?(verb, path, :before)
       _add_route_filter verb, path, :before, &block
     end
 
     # This can be called directly but it's simpler to just use the macros, it will check if another filter is not already defined for this verb/path/type and proceed to call `add_route_filter`
     def after(verb, path = "*", &block : HTTP::Server::Context -> _)
-      raise Kemal::Middleware::Filter::AfterFilterAlreadyDefinedException.new(verb, path) if filter_for_path_type_defined?(verb, path, :after)
       _add_route_filter verb, path, :after, &block
     end
 
     # This will fetch the block for the verb/path/type from the tree and call it.
     private def call_block_for_path_type(verb, path, type, context)
-      lookup = @tree.find radix_path(verb, path, type)
-      if lookup.found? && lookup.payload.is_a? Block
-        block = lookup.payload as Block
-        block.block.call(context)
+      lookup = lookup_filters_for_path_type(verb, path, type)
+      if lookup.found? && lookup.payload.is_a? Array(Block)
+        blocks = lookup.payload as Array(Block)
+        blocks.each { |block| block.call(context) }
       end
+    end
+
+    # This checks is filter is already defined for the verb/path/type combination
+    private def filter_for_path_type_defined?(verb, path, type)
+      lookup = @tree.find radix_path(verb, path, type)
+      lookup.found? && lookup.payload.is_a? Block
+    end
+
+    # This returns a lookup for verb/path/type
+    private def lookup_filters_for_path_type(verb, path, type)
+      @tree.find radix_path(verb, path, type)
     end
 
     private def radix_path(verb, path, type : Symbol)
       "#{type}/#{verb}/#{path}"
-    end
-
-    class BeforeFilterAlreadyDefinedException < Exception
-      def initialize(verb, path)
-        super "A before-filter is already defined for path: '#{verb}:#{path}'."
-      end
-    end
-
-    class AfterFilterAlreadyDefinedException < Exception
-      def initialize(verb, path)
-        super "An after-filter is already defined for path: '#{verb}:#{path}'."
-      end
     end
   end
 
@@ -76,6 +71,10 @@ module Kemal::Middleware
     property block
 
     def initialize(&@block : HTTP::Server::Context -> _)
+    end
+
+    def call(context)
+      @block.call(context)
     end
   end
 end
