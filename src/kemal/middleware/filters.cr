@@ -40,10 +40,18 @@ module Kemal::Middleware
       _add_route_filter verb, path, :before, &block
     end
 
+    def before(path = "*", &block : HTTP::Server::Context -> _)
+      before("all", path, &block)
+    end
+
     # This can be called directly but it's simpler to just use the macros, it will check if another filter is not already defined for this verb/path/type and proceed to call `add_route_filter`
     def after(verb = "all", path = "*", &block : HTTP::Server::Context -> _)
       raise Kemal::Middleware::Filter::AfterFilterAlreadyDefinedException.new(verb, path) if filter_for_path_type_defined?(verb, path, :after)
       _add_route_filter verb, path, :after, &block
+    end
+
+    def after(path = "*", &block : HTTP::Server::Context -> _)
+      after("all", path, &block)
     end
 
     # This will fetch the block for the verb/path/type from the tree and call it.
