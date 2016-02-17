@@ -6,6 +6,8 @@ require "radix"
 class Kemal::RouteHandler < HTTP::Handler
   INSTANCE = new
 
+  property tree
+
   def initialize
     @tree = Radix::Tree.new
   end
@@ -22,13 +24,16 @@ class Kemal::RouteHandler < HTTP::Handler
     add_to_radix_tree("HEAD", path, Route.new("HEAD", path, &handler)) if method == "GET"
   end
 
+  # Check if a route is defined and returns the lookup
+  def lookup_route(verb, path)
+    @tree.find radix_path(verb, path)
+  end
+
   # Processes the route if it's a match. Otherwise renders 404.
   def process_request(context)
-    Kemal::Route.check_for_method_override!(context.request)
-    lookup = @tree.find radix_path(context.request.override_method as String, context.request.path)
-    raise Kemal::Exceptions::RouteNotFound.new(context) unless lookup.found?
-    route = lookup.payload as Route
-    context.request.url_params = lookup.params
+    raise Kemal::Exceptions::RouteNotFound.new(context) unless context.route_defined?
+    route = context.route_lookup.payload as Route
+    context.request.url_params = context.route_lookup.params
     context.response.print(route.handler.call(context).to_s)
     context
   end

@@ -2,7 +2,7 @@ require "./spec_helper"
 
 describe "Context" do
   it "has a default content type" do
-    kemal = Kemal::RouteHandler.new
+    kemal = Kemal::RouteHandler::INSTANCE
     kemal.add_route "GET", "/" do |env|
       "Hello"
     end
@@ -13,7 +13,7 @@ describe "Context" do
   end
 
   it "sets content type" do
-    kemal = Kemal::RouteHandler.new
+    kemal = Kemal::RouteHandler::INSTANCE
     kemal.add_route "GET", "/" do |env|
       env.response.content_type = "application/json"
       "Hello"
@@ -25,7 +25,7 @@ describe "Context" do
   end
 
   it "parses headers" do
-    kemal = Kemal::RouteHandler.new
+    kemal = Kemal::RouteHandler::INSTANCE
     kemal.add_route "GET", "/" do |env|
       name = env.request.headers["name"]
       "Hello #{name}"
@@ -39,7 +39,7 @@ describe "Context" do
   end
 
   it "sets response headers" do
-    kemal = Kemal::RouteHandler.new
+    kemal = Kemal::RouteHandler::INSTANCE
     kemal.add_route "GET", "/" do |env|
       env.response.headers.add "Accept-Language", "tr"
     end

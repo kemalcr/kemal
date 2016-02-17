@@ -40,4 +40,5 @@ Spec.before_each do
   config.env = "development"
   config.setup_logging
   config.handlers.clear
+  Kemal::RouteHandler::INSTANCE.tree = Radix::Tree.new
 end

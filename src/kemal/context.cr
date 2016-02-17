@@ -3,12 +3,21 @@
 class HTTP::Server
   class Context
     def params
-      @params ||= Kemal::ParamParser.new(@route, @request).parse
+      @params ||= Kemal::ParamParser.new(@request).parse
     end
 
     def redirect(url, status_code = 302)
       @response.headers.add "Location", url
       @response.status_code = status_code
     end
+
+    def route_lookup
+      @route_lookup ||= Kemal::RouteHandler::INSTANCE.lookup_route(@request.override_method as String, @request.path)
+    end
+
+    def route_defined?
+      route_lookup.found?
+    end
+
   end
 end
