@@ -7,6 +7,4 @@ class Kemal::Route
 
   def initialize(@method, @path, &@handler : HTTP::Server::Context -> _)
   end
-
-
 end

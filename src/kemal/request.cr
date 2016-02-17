@@ -25,5 +25,4 @@ class HTTP::Request
     override_method = override_method.upcase
     override_method == "PUT" || override_method == "PATCH" || override_method == "DELETE"
   end
-
 end

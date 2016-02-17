@@ -18,6 +18,5 @@ class HTTP::Server
     def route_defined?
       route_lookup.found?
     end
-
   end
 end

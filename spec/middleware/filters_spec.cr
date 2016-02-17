@@ -143,7 +143,6 @@ describe "Kemal::Middleware::Filters" do
     client_response = HTTP::Client::Response.from_io(io_with_context, decompress: false)
     client_response.body.should eq("false")
   end
-
 end
 
 class FilterTest

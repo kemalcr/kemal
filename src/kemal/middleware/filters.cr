@@ -85,7 +85,7 @@ end
 #  - after_all, after_get, after_post, after_put, after_patch, after_delete
 
 ALL_METHODS = %w(get post put patch delete all)
-{% for type in ["before", "after"]%}
+{% for type in ["before", "after"] %}
   {% for method in ALL_METHODS %}
     def {{type.id}}_{{method.id}}(path = "*", &block : HTTP::Server::Context -> _)
      Kemal::Middleware::Filter::INSTANCE.{{type.id}}({{method}}.upcase, path, &block)
