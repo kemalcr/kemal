@@ -5,9 +5,12 @@ title: "Filters"
 
 Before filters are evaluated before each request within the same context as the routes. They can modify the request and response.
 
+_Importante note: This should **not** be used by plugins/addons, instead they should do all their work in their own middleware._
+
 Available filters:
- - before_all, before_get, before_post, before_put, before_patch, before_delete
- - after_all, after_get, after_post, after_put, after_patch, after_delete
+
+ - before\_all, before\_get, before\_post, before\_put, before\_patch, before\_delete
+ - after\_all, after\_get, after\_post, after\_put, after\_patch, after\_delete
 
 The `Filter` middleware is lazily added as soon as a call to `after_X` or `before_X` is made. It will __not__ even be instantiated unless a call to `after_X` or `before_X` is made.
 
@@ -18,7 +21,7 @@ When using `before_all` and `after_all` keep in mind that they will be evaluated
 
 #### Simple before_get example
 
-```crystal
+```ruby
 before_get "/foo" do |env|
   puts "Setting response content type"
   context.response.content_type = "application/json"
@@ -32,7 +35,7 @@ end
 
 #### Simple before_all example
 
-```crystal
+```ruby
 before_all "/foo" do |env|
   puts "Setting response content type"
   context.response.content_type = "application/json"
@@ -59,7 +62,7 @@ end
 
 You can add many blocks to the same verb/path combination by calling it multiple times they will be called __in the same order they were defined__.
 
-```crystal
+```ruby
 before_all do |env|
  raise "Unauthorized" unless authorized?(env)
 end
