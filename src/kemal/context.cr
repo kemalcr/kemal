@@ -3,6 +3,7 @@
 class HTTP::Server
   class Context
     def params
+      @request.url_params = route_lookup.params
       @params ||= Kemal::ParamParser.new(@request).parse
     end
 
