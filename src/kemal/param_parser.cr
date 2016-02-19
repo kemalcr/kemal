@@ -18,10 +18,10 @@ class Kemal::ParamParser
   end
 
   def parse_request
-    parse_url_params
     parse_query
     parse_body
     parse_json
+    parse_url_params
     @params
   end
 

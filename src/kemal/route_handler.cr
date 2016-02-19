@@ -33,7 +33,6 @@ class Kemal::RouteHandler < HTTP::Handler
   def process_request(context)
     raise Kemal::Exceptions::RouteNotFound.new(context) unless context.route_defined?
     route = context.route_lookup.payload as Route
-    context.request.url_params = context.route_lookup.params
     context.response.print(route.handler.call(context).to_s)
     context
   end
