@@ -3,7 +3,7 @@ layout: doc
 title: Using Dynamic Views
 ---
 
-You can use ERB-like built-in **ECR** views to render files.
+You can use ERB-like built-in [ECR](http://crystal-lang.org/api/ECR.html) to render dynamic views.
 
 ```ruby
 get '/:name' do |env|
