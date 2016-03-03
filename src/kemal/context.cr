@@ -7,7 +7,7 @@ class HTTP::Server
       @params ||= Kemal::ParamParser.new(@request).parse
     end
 
-    def redirect(url, status_code = 302)
+   def redirect(url, status_code = 302)
       @response.headers.add "Location", url
       @response.status_code = status_code
     end
@@ -19,5 +19,14 @@ class HTTP::Server
     def route_defined?
       route_lookup.found?
     end
+
+    def clear_session
+      @session = {} of String => String
+    end
+
+    def session
+      @session ||= {} of String => String
+    end
+
   end
 end
