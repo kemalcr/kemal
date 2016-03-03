@@ -8,5 +8,7 @@ dependencies:
   kilt:
     github: jeromegn/kilt
     version: 0.3.2
+  msgpack:
+    github: benoist/msgpack-crystal
 author:
   - Serdar Dogruyol <dogruyolserdar@gmail.com>
