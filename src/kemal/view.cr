@@ -67,3 +67,51 @@ def render_500(context, ex)
   context.response.print template
   context
 end
+
+# Template for 415 Unsupported media type
+def render_415(context, message)
+  template = <<-HTML
+          <!DOCTYPE html>
+          <html>
+          <head>
+            <style type="text/css">
+            body { text-align:center;font-family:helvetica,arial;font-size:22px;
+              color:#888;margin:20px}
+            #c {margin:0 auto;width:500px;text-align:left}
+            </style>
+          </head>
+          <body>
+            <h2>Unsupported media type</h2>
+            <h3>#{message}</h3>
+            <img src="/__kemal__/404.png">
+          </body>
+          </html>
+      HTML
+  context.response.status_code = 415
+  context.response.print template
+  context
+end
+
+# Template for 400 Bad request
+def render_400(context, message)
+  template = <<-HTML
+          <!DOCTYPE html>
+          <html>
+          <head>
+            <style type="text/css">
+            body { text-align:center;font-family:helvetica,arial;font-size:22px;
+              color:#888;margin:20px}
+            #c {margin:0 auto;width:500px;text-align:left}
+            </style>
+          </head>
+          <body>
+            <h2>Bad request</h2>
+            <h3>#{message}</h3>
+            <img src="/__kemal__/404.png">
+          </body>
+          </html>
+      HTML
+  context.response.status_code = 400
+  context.response.print template
+  context
+end

@@ -49,22 +49,21 @@ module Kemal
     def setup_logging
       if @logging
         @logger ||= Kemal::CommonLogHandler.new(@env)
-        HANDLERS << @logger.not_nil!
+        HANDLERS.insert(0, @logger.not_nil!)
       else
         @logger = Kemal::NullLogHandler.new(@env)
-        HANDLERS << @logger.not_nil!
       end
     end
 
     private def setup_error_handler
       if @always_rescue
         @error_handler ||= Kemal::CommonErrorHandler::INSTANCE
-        HANDLERS << @error_handler.not_nil!
+        HANDLERS.insert(1, @error_handler.not_nil!)
       end
     end
 
     private def setup_public_folder
-      HANDLERS << Kemal::StaticFileHandler.new(@public_folder) if @serve_static
+      HANDLERS.insert(2, Kemal::StaticFileHandler.new(@public_folder)) if @serve_static
     end
   end
 
