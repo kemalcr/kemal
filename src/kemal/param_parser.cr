@@ -1,4 +1,5 @@
 require "json"
+require "msgpack"
 
 # ParamParser parses the request contents including query_params and body
 # and converts them into a params hash which you can within the environment
@@ -8,6 +9,7 @@ alias AllParamTypes = Nil | String | Int64 | Float64 | Bool | Hash(String, JSON:
 class Kemal::ParamParser
   URL_ENCODED_FORM = "application/x-www-form-urlencoded"
   APPLICATION_JSON = "application/json"
+  APPLICATION_MSGPACK = "application/msgpack"
 
   def initialize(@request)
     @params = {} of String => AllParamTypes
@@ -20,7 +22,13 @@ class Kemal::ParamParser
   def parse_request
     parse_query
     parse_body
-    parse_json
+    if @request.body
+      if @request.headers["Content-Type"] == APPLICATION_MSGPACK
+        parse_msgpack
+      elsif @request.headers["Content-Type"] == APPLICATION_JSON
+        parse_json
+      end
+    end
     parse_url_params
     @params
   end
@@ -47,8 +55,6 @@ class Kemal::ParamParser
   # If request body is a JSON Array it's added into `params` as `_json` and can be accessed
   # like params["_json"]
   def parse_json
-    return unless @request.body && @request.headers["Content-Type"]? == APPLICATION_JSON
-
     body = @request.body as String
     case json = JSON.parse(body).raw
     when Hash
@@ -57,6 +63,17 @@ class Kemal::ParamParser
       end
     when Array
       @params["_json"] = json
+    end
+  end
+
+  def parse_msgpack
+    body = @request.body as String
+    unpacker = MessagePack::Unpacker.new(body.bytes)
+    case data = unpacker.read
+    when Hash
+      data.each do |k, v|
+        @params[k as String] = v as AllParamTypes
+      end
     end
   end
 
