@@ -5,35 +5,26 @@ require "json"
 # context.
 alias AllParamTypes = Nil | String | Int64 | Float64 | Bool | Hash(String, JSON::Type) | Array(JSON::Type)
 
-class Kemal::ParamContainer
-  property url
-  property query
-  property body
-  property json
-
-  def initialize
-    @url = {} of String => String
-    @query = {} of String => String
-    @body = {} of String => String
-    @json = {} of String => AllParamTypes
-  end
-
-  def all
-    @url.merge(@query).merge(@body).merge(@json)
-  end
-end
-
 class Kemal::ParamParser
   URL_ENCODED_FORM = "application/x-www-form-urlencoded"
   APPLICATION_JSON = "application/json"
 
+  getter url
+  getter query
+  getter body
+  getter json
+
   def initialize(@request)
-    @param_container = Kemal::ParamContainer.new
+    @url = {} of String => String
+    @query = {} of String => String
+    @body = {} of String => String
+    @json = {} of String => AllParamTypes
+
+    parse_request
   end
 
   def params
-    parse_request
-    @param_container
+    @query.merge(@body).merge(@json).merge(@url)
   end
 
   def parse_request
@@ -45,17 +36,17 @@ class Kemal::ParamParser
 
   def parse_body
     return if (@request.headers["Content-Type"]? =~ /#{URL_ENCODED_FORM}/).nil?
-    @param_container.body = parse_part(@request.body)
+    @body = parse_part(@request.body)
   end
 
   def parse_query
-    @param_container.query = parse_part(@request.query)
+    @query = parse_part(@request.query)
   end
 
   def parse_url_params
     if params = @request.url_params
       params.each do |key, value|
-        @param_container.url[key as String] = value as String
+        @url[key as String] = value as String
       end
     end
   end
@@ -71,10 +62,10 @@ class Kemal::ParamParser
     case json = JSON.parse(body).raw
     when Hash
       json.each do |key, value|
-        @param_container.json[key as String] = value as AllParamTypes
+        @json[key as String] = value as AllParamTypes
       end
     when Array
-      @param_container.json["_json"] = json
+      @json["_json"] = json
     end
   end
 
@@ -88,6 +79,5 @@ class Kemal::ParamParser
     part_params
   end
 
-  delegate url, body, query, json, @param_container
 end
 

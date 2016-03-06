@@ -7,7 +7,7 @@ describe "ParamParser" do
       "Hello #{hasan}"
     end
     request = HTTP::Request.new("POST", "/?hasan=cemal")
-    query_params = Kemal::ParamParser.new(request).params.query
+    query_params = Kemal::ParamParser.new(request).query
     query_params["hasan"].should eq "cemal"
   end
 
@@ -19,7 +19,7 @@ describe "ParamParser" do
     request = HTTP::Request.new("POST", "/hello/cemal")
     # Radix tree MUST be run to parse url params.
     io_with_context = create_request_and_return_io(kemal, request)
-    url_params = Kemal::ParamParser.new(request).params.url
+    url_params = Kemal::ParamParser.new(request).url
     url_params["hasan"].should eq "cemal"
   end
 
@@ -38,10 +38,10 @@ describe "ParamParser" do
       headers: HTTP::Headers{"Content-Type": "application/x-www-form-urlencoded"},
     )
 
-    query_params = Kemal::ParamParser.new(request).params.query
+    query_params = Kemal::ParamParser.new(request).query
     query_params.should eq({"hasan" => "cemal"})
 
-    body_params = Kemal::ParamParser.new(request).params.body
+    body_params = Kemal::ParamParser.new(request).body
     body_params.should eq({"name" => "serdar", "age" => "99"})
   end
 
@@ -56,7 +56,7 @@ describe "ParamParser" do
         headers: HTTP::Headers{"Content-Type": "application/json"},
       )
 
-      json_params = Kemal::ParamParser.new(request).params.json
+      json_params = Kemal::ParamParser.new(request).json
       json_params.should eq({"name": "Serdar"})
     end
 
@@ -70,7 +70,7 @@ describe "ParamParser" do
         headers: HTTP::Headers{"Content-Type": "application/json"},
       )
 
-      json_params = Kemal::ParamParser.new(request).params.json
+      json_params = Kemal::ParamParser.new(request).json
       json_params.should eq({"_json": [1]})
     end
 
@@ -84,10 +84,10 @@ describe "ParamParser" do
         headers: HTTP::Headers{"Content-Type": "application/json"},
       )
 
-      query_params = Kemal::ParamParser.new(request).params.query
+      query_params = Kemal::ParamParser.new(request).query
       query_params.should eq({"foo": "bar"})
 
-      json_params = Kemal::ParamParser.new(request).params.json
+      json_params = Kemal::ParamParser.new(request).json
       json_params.should eq({"_json": [1]})
     end
 
@@ -100,16 +100,16 @@ describe "ParamParser" do
         headers: HTTP::Headers{"Content-Type": "application/json"},
       )
 
-      url_params = Kemal::ParamParser.new(request).params.url
+      url_params = Kemal::ParamParser.new(request).url
       url_params.should eq({} of String => String)
 
-      query_params = Kemal::ParamParser.new(request).params.query
+      query_params = Kemal::ParamParser.new(request).query
       query_params.should eq({} of String => String)
 
-      body_params = Kemal::ParamParser.new(request).params.body
+      body_params = Kemal::ParamParser.new(request).body
       body_params.should eq({} of String => String)
 
-      json_params = Kemal::ParamParser.new(request).params.json
+      json_params = Kemal::ParamParser.new(request).json
       json_params.should eq({} of String => AllParamTypes)
     end
   end
@@ -130,10 +130,10 @@ describe "ParamParser" do
         headers: HTTP::Headers{"Content-Type": "text/plain"},
       )
 
-      query_params = Kemal::ParamParser.new(request).params.query
+      query_params = Kemal::ParamParser.new(request).query
       query_params.should eq({"hasan" => "cemal"})
 
-      body_params = Kemal::ParamParser.new(request).params.body
+      body_params = Kemal::ParamParser.new(request).body
       body_params.should eq({} of String => String)
     end
   end

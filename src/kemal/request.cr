@@ -11,7 +11,7 @@ class HTTP::Request
   private def check_for_method_override!
     @override_method = @method
     if @method == "POST"
-      params = Kemal::ParamParser.new(self).params.all
+      params = Kemal::ParamParser.new(self).params
       if params.has_key?("_method") && HTTP::Request.override_method_valid?(params["_method"])
         @override_method = params["_method"]
       end
