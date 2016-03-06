@@ -47,12 +47,12 @@ module Kemal
     end
 
     def setup_logging
-      if @logging
-        @logger ||= Kemal::CommonLogHandler.new(@env)
-        HANDLERS.insert(0, @logger.not_nil!)
-      else
-        @logger = Kemal::NullLogHandler.new(@env)
-      end
+      @logger = if @logging
+                  Kemal::CommonLogHandler.new(@env)
+                else
+                  Kemal::NullLogHandler.new(@env)
+                end
+      HANDLERS.insert(0, @logger.not_nil!)
     end
 
     private def setup_error_handler
