@@ -170,8 +170,8 @@ describe "Kemal::RouteHandler" do
     request = HTTP::Request.new(
       "POST",
       "/",
-      body: json_payload.to_json,
-      headers: HTTP::Headers{"Content-Type": "application/json"}
+      body: "_method=DELETE",
+      headers: HTTP::Headers{"Content-Type": "application/x-www-form-urlencoded; charset=UTF-8"}
     )
     io_with_context = create_request_and_return_io(kemal, request)
     client_response = HTTP::Client::Response.from_io(io_with_context, decompress: false)

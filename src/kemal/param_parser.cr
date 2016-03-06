@@ -23,10 +23,6 @@ class Kemal::ParamParser
     parse_request
   end
 
-  def params
-    @query.merge(@body).merge(@json).merge(@url)
-  end
-
   def parse_request
     parse_query
     parse_body
