@@ -2,7 +2,6 @@
 # information such as params, content_type e.g
 class HTTP::Server
   class Context
-
     def params
       @request.url_params = route_lookup.params
       @params ||= Kemal::ParamParser.new(@request)

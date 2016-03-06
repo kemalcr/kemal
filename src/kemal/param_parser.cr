@@ -18,7 +18,12 @@ class Kemal::ParamParser
 
   {% for method in %w(url query body json) %}
   def {{method.id}}
+    # check memoization
+    return @{{method.id}} if @{{method.id}}_parsed
+
     parse_{{method.id}}
+    # memoize
+    @{{method.id}}_parsed = true
     @{{method.id}}
   end
   {% end %}
@@ -67,6 +72,4 @@ class Kemal::ParamParser
     end
     part_params
   end
-
 end
-
