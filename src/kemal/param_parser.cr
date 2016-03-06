@@ -6,12 +6,16 @@ require "json"
 alias AllParamTypes = Nil | String | Int64 | Float64 | Bool | Hash(String, JSON::Type) | Array(JSON::Type)
 
 class Kemal::ParamContainer
-  getter url
-  getter query
-  getter body
-  getter json
+  property url
+  property query
+  property body
+  property json
 
-  def initialize(@url, @query, @body, @json)
+  def initialize
+    @url = {} of String => String
+    @query = {} of String => String
+    @body = {} of String => String
+    @json = {} of String => AllParamTypes
   end
 
   def all
@@ -24,15 +28,12 @@ class Kemal::ParamParser
   APPLICATION_JSON = "application/json"
 
   def initialize(@request)
-    @url = {} of String => String
-    @query = {} of String => String
-    @body = {} of String => String
-    @json = {} of String => AllParamTypes
+    @param_container = Kemal::ParamContainer.new
   end
 
   def params
     parse_request
-    Kemal::ParamContainer.new(@url, @query, @body, @json)
+    @param_container
   end
 
   def parse_request
@@ -44,17 +45,17 @@ class Kemal::ParamParser
 
   def parse_body
     return if (@request.headers["Content-Type"]? =~ /#{URL_ENCODED_FORM}/).nil?
-    @body = parse_part(@request.body)
+    @param_container.body = parse_part(@request.body)
   end
 
   def parse_query
-    @query = parse_part(@request.query)
+    @param_container.query = parse_part(@request.query)
   end
 
   def parse_url_params
     if params = @request.url_params
       params.each do |key, value|
-        @url[key as String] = value as String
+        @param_container.url[key as String] = value as String
       end
     end
   end
@@ -70,10 +71,10 @@ class Kemal::ParamParser
     case json = JSON.parse(body).raw
     when Hash
       json.each do |key, value|
-        @json[key as String] = value as AllParamTypes
+        @param_container.json[key as String] = value as AllParamTypes
       end
     when Array
-      @json["_json"] = json
+      @param_container.json["_json"] = json
     end
   end
 
@@ -86,4 +87,7 @@ class Kemal::ParamParser
     end
     part_params
   end
+
+  delegate url, body, query, json, @param_container
 end
+
