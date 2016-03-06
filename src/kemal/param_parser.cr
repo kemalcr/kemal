@@ -9,26 +9,19 @@ class Kemal::ParamParser
   URL_ENCODED_FORM = "application/x-www-form-urlencoded"
   APPLICATION_JSON = "application/json"
 
-  getter url
-  getter query
-  getter body
-  getter json
-
   def initialize(@request)
     @url = {} of String => String
     @query = {} of String => String
     @body = {} of String => String
     @json = {} of String => AllParamTypes
-
-    parse_request
   end
 
-  def parse_request
-    parse_query
-    parse_body
-    parse_json
-    parse_url_params
+  {% for method in %w(url query body json) %}
+  def {{method.id}}
+    parse_{{method.id}}
+    @{{method.id}}
   end
+  {% end %}
 
   def parse_body
     return if (@request.headers["Content-Type"]? =~ /#{URL_ENCODED_FORM}/).nil?
@@ -39,7 +32,7 @@ class Kemal::ParamParser
     @query = parse_part(@request.query)
   end
 
-  def parse_url_params
+  def parse_url
     if params = @request.url_params
       params.each do |key, value|
         @url[key as String] = value as String
