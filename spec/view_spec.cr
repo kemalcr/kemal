@@ -8,7 +8,7 @@ describe "Views" do
   it "renders file" do
     kemal = Kemal::RouteHandler::INSTANCE
     kemal.add_route "GET", "/view/:name" do |env|
-      name = env.params["name"]
+      name = env.params.url["name"]
       render "spec/asset/hello.ecr"
     end
     request = HTTP::Request.new("GET", "/view/world")
@@ -20,7 +20,7 @@ describe "Views" do
   it "renders file with dynamic variables" do
     kemal = Kemal::RouteHandler::INSTANCE
     kemal.add_route "GET", "/view/:name" do |env|
-      name = env.params["name"]
+      name = env.params.url["name"]
       render_with_base_and_layout "hello.ecr"
     end
     request = HTTP::Request.new("GET", "/view/world")
@@ -32,7 +32,7 @@ describe "Views" do
   it "renders layout" do
     kemal = Kemal::RouteHandler::INSTANCE
     kemal.add_route "GET", "/view/:name" do |env|
-      name = env.params["name"]
+      name = env.params.url["name"]
       render "spec/asset/hello.ecr", "spec/asset/layout.ecr"
     end
     request = HTTP::Request.new("GET", "/view/world")

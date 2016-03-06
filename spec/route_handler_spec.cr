@@ -15,7 +15,7 @@ describe "Kemal::RouteHandler" do
   it "routes request with query string" do
     kemal = Kemal::RouteHandler::INSTANCE
     kemal.add_route "GET", "/" do |env|
-      "hello #{env.params["message"]}"
+      "hello #{env.params.query["message"]}"
     end
     request = HTTP::Request.new("GET", "/?message=world")
     io_with_context = create_request_and_return_io(kemal, request)
@@ -26,7 +26,7 @@ describe "Kemal::RouteHandler" do
   it "routes request with multiple query strings" do
     kemal = Kemal::RouteHandler::INSTANCE
     kemal.add_route "GET", "/" do |env|
-      "hello #{env.params["message"]} time #{env.params["time"]}"
+      "hello #{env.params.query["message"]} time #{env.params.query["time"]}"
     end
     request = HTTP::Request.new("GET", "/?message=world&time=now")
     io_with_context = create_request_and_return_io(kemal, request)
@@ -37,7 +37,7 @@ describe "Kemal::RouteHandler" do
   it "route parameter has more precedence than query string arguments" do
     kemal = Kemal::RouteHandler::INSTANCE
     kemal.add_route "GET", "/:message" do |env|
-      "hello #{env.params["message"]}"
+      "hello #{env.params.url["message"]}"
     end
     request = HTTP::Request.new("GET", "/world?message=coco")
     io_with_context = create_request_and_return_io(kemal, request)
@@ -48,8 +48,8 @@ describe "Kemal::RouteHandler" do
   it "parses simple JSON body" do
     kemal = Kemal::RouteHandler::INSTANCE
     kemal.add_route "POST", "/" do |env|
-      name = env.params["name"]
-      age = env.params["age"]
+      name = env.params.json["name"]
+      age = env.params.json["age"]
       "Hello #{name} Age #{age}"
     end
 
@@ -68,7 +68,7 @@ describe "Kemal::RouteHandler" do
   it "parses JSON with string array" do
     kemal = Kemal::RouteHandler::INSTANCE
     kemal.add_route "POST", "/" do |env|
-      skills = env.params["skills"] as Array
+      skills = env.params.json["skills"] as Array
       "Skills #{skills.each.join(',')}"
     end
 
@@ -87,7 +87,7 @@ describe "Kemal::RouteHandler" do
   it "parses JSON with json object array" do
     kemal = Kemal::RouteHandler::INSTANCE
     kemal.add_route "POST", "/" do |env|
-      skills = env.params["skills"] as Array
+      skills = env.params.json["skills"] as Array
       skills_from_languages = skills.map do |skill|
         skill = skill as Hash
         skill["language"]

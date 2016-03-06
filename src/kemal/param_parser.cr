@@ -5,16 +5,34 @@ require "json"
 # context.
 alias AllParamTypes = Nil | String | Int64 | Float64 | Bool | Hash(String, JSON::Type) | Array(JSON::Type)
 
+class Kemal::ParamContainer
+  getter url
+  getter query
+  getter body
+  getter json
+
+  def initialize(@url, @query, @body, @json)
+  end
+
+  def all
+    @url.merge(@query).merge(@body).merge(@json)
+  end
+end
+
 class Kemal::ParamParser
   URL_ENCODED_FORM = "application/x-www-form-urlencoded"
   APPLICATION_JSON = "application/json"
 
   def initialize(@request)
-    @params = {} of String => AllParamTypes
+    @url = {} of String => String
+    @query = {} of String => String
+    @body = {} of String => String
+    @json = {} of String => AllParamTypes
   end
 
-  def parse
+  def params
     parse_request
+    Kemal::ParamContainer.new(@url, @query, @body, @json)
   end
 
   def parse_request
@@ -22,22 +40,21 @@ class Kemal::ParamParser
     parse_body
     parse_json
     parse_url_params
-    @params
   end
 
   def parse_body
     return if (@request.headers["Content-Type"]? =~ /#{URL_ENCODED_FORM}/).nil?
-    parse_part(@request.body)
+    @body = parse_part(@request.body)
   end
 
   def parse_query
-    parse_part(@request.query)
+    @query = parse_part(@request.query)
   end
 
   def parse_url_params
     if params = @request.url_params
       params.each do |key, value|
-        @params[key] = value
+        @url[key as String] = value as String
       end
     end
   end
@@ -52,18 +69,21 @@ class Kemal::ParamParser
     body = @request.body as String
     case json = JSON.parse(body).raw
     when Hash
-      json.each do |k, v|
-        @params[k as String] = v as AllParamTypes
+      json.each do |key, value|
+        @json[key as String] = value as AllParamTypes
       end
     when Array
-      @params["_json"] = json
+      @json["_json"] = json
     end
   end
 
   def parse_part(part)
-    return unless part
-    HTTP::Params.parse(part) do |key, value|
-      @params[key] ||= value
+    part_params = {} of String => String
+    if part
+      HTTP::Params.parse(part) do |key, value|
+        part_params[key as String] ||= value as String
+      end
     end
+    part_params
   end
 end
