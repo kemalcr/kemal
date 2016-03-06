@@ -87,6 +87,24 @@ describe "ParamParser" do
     end
   end
 
+  context "when content type is application/msgpack" do
+    it "parses requests body" do
+      packer = MessagePack::Packer.new
+      packer.write({"foo": "bar"})
+      io = MemoryIO.new
+      io.set_encoding "UTF-8"
+      io.write(packer.to_slice)
+      request = HTTP::Request.new(
+        "POST",
+        "/",
+        body: io.to_s,
+        headers: HTTP::Headers{"Content-Type": "application/msgpack"},
+      )
+      params = Kemal::ParamParser.new(request).parse
+      params.should eq({"foo" => "bar"})
+    end
+  end
+
   context "when content type is incorrect" do
     it "does not parse request body" do
       route = Route.new "POST", "/" do |env|
