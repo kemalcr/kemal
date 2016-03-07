@@ -3,19 +3,31 @@ require "./spec_helper"
 describe "ParamParser" do
   it "parses query params" do
     route = Route.new "POST", "/" do |env|
-      hasan = env.params["hasan"]
+      hasan = env.params.query["hasan"]
       "Hello #{hasan}"
     end
     request = HTTP::Request.new("POST", "/?hasan=cemal")
-    params = Kemal::ParamParser.new(request).parse
-    params["hasan"].should eq "cemal"
+    query_params = Kemal::ParamParser.new(request).query
+    query_params["hasan"].should eq "cemal"
+  end
+
+  it "parses url params" do
+    kemal = Kemal::RouteHandler::INSTANCE
+    kemal.add_route "POST", "/hello/:hasan" do |env|
+      "hello #{env.params.url["hasan"]}"
+    end
+    request = HTTP::Request.new("POST", "/hello/cemal")
+    # Radix tree MUST be run to parse url params.
+    io_with_context = create_request_and_return_io(kemal, request)
+    url_params = Kemal::ParamParser.new(request).url
+    url_params["hasan"].should eq "cemal"
   end
 
   it "parses request body" do
     route = Route.new "POST", "/" do |env|
-      name = env.params["name"]
-      age = env.params["age"]
-      hasan = env.params["hasan"]
+      name = env.params.query["name"]
+      age = env.params.query["age"]
+      hasan = env.params.body["hasan"]
       "Hello #{name} #{hasan} #{age}"
     end
 
@@ -26,8 +38,11 @@ describe "ParamParser" do
       headers: HTTP::Headers{"Content-Type": "application/x-www-form-urlencoded"},
     )
 
-    params = Kemal::ParamParser.new(request).parse
-    params.should eq({"hasan" => "cemal", "name" => "serdar", "age" => "99"})
+    query_params = Kemal::ParamParser.new(request).query
+    query_params.should eq({"hasan" => "cemal"})
+
+    body_params = Kemal::ParamParser.new(request).body
+    body_params.should eq({"name" => "serdar", "age" => "99"})
   end
 
   context "when content type is application/json" do
@@ -41,8 +56,8 @@ describe "ParamParser" do
         headers: HTTP::Headers{"Content-Type": "application/json"},
       )
 
-      params = Kemal::ParamParser.new(request).parse
-      params.should eq({"name": "Serdar"})
+      json_params = Kemal::ParamParser.new(request).json
+      json_params.should eq({"name": "Serdar"})
     end
 
     it "parses request body for array" do
@@ -55,8 +70,8 @@ describe "ParamParser" do
         headers: HTTP::Headers{"Content-Type": "application/json"},
       )
 
-      params = Kemal::ParamParser.new(request).parse
-      params.should eq({"_json": [1]})
+      json_params = Kemal::ParamParser.new(request).json
+      json_params.should eq({"_json": [1]})
     end
 
     it "parses request body and query params" do
@@ -69,8 +84,11 @@ describe "ParamParser" do
         headers: HTTP::Headers{"Content-Type": "application/json"},
       )
 
-      params = Kemal::ParamParser.new(request).parse
-      params.should eq({"foo": "bar", "_json": [1]})
+      query_params = Kemal::ParamParser.new(request).query
+      query_params.should eq({"foo": "bar"})
+
+      json_params = Kemal::ParamParser.new(request).json
+      json_params.should eq({"_json": [1]})
     end
 
     it "handles no request body" do
@@ -82,17 +100,26 @@ describe "ParamParser" do
         headers: HTTP::Headers{"Content-Type": "application/json"},
       )
 
-      params = Kemal::ParamParser.new(request).parse
-      params.should eq({} of String => AllParamTypes)
+      url_params = Kemal::ParamParser.new(request).url
+      url_params.should eq({} of String => String)
+
+      query_params = Kemal::ParamParser.new(request).query
+      query_params.should eq({} of String => String)
+
+      body_params = Kemal::ParamParser.new(request).body
+      body_params.should eq({} of String => String)
+
+      json_params = Kemal::ParamParser.new(request).json
+      json_params.should eq({} of String => AllParamTypes)
     end
   end
 
   context "when content type is incorrect" do
     it "does not parse request body" do
       route = Route.new "POST", "/" do |env|
-        name = env.params["name"]
-        age = env.params["age"]
-        hasan = env.params["hasan"]
+        name = env.params.body["name"]
+        age = env.params.body["age"]
+        hasan = env.params.query["hasan"]
         "Hello #{name} #{hasan} #{age}"
       end
 
@@ -103,8 +130,11 @@ describe "ParamParser" do
         headers: HTTP::Headers{"Content-Type": "text/plain"},
       )
 
-      params = Kemal::ParamParser.new(request).parse
-      params.should eq({"hasan" => "cemal"})
+      query_params = Kemal::ParamParser.new(request).query
+      query_params.should eq({"hasan" => "cemal"})
+
+      body_params = Kemal::ParamParser.new(request).body
+      body_params.should eq({} of String => String)
     end
   end
 end

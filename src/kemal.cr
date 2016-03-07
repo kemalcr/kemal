@@ -18,7 +18,7 @@ at_exit do
 
   # This route serves the built-in images for not_found and exceptions.
   get "/__kemal__/:image" do |env|
-    image = env.params["image"]
+    image = env.params.url["image"]
     file_path = File.expand_path("libs/kemal/images/#{image}", Dir.current)
     if File.exists? file_path
       env.response.headers.add "Content-Type", "application/octet-stream"
