@@ -8,14 +8,14 @@ Accessing the HTTP request/response environment (query params, body, content_typ
 ```ruby
   # Matches /hello/kemal
   get "/hello/:name" do |env|
-    name = env.params["name"]
+    name = env.params.url["name"]
     "Hello back to #{name}"
   end
 
   # Matches /resize?width=200&height=200
   get "/resize" do |env|
-    width = env.params["width"]
-    height = env.params["height"]
+    width = env.params.query["width"]
+    height = env.params.query["height"]
   end
 
   # Easily access JSON payload from the params.
@@ -23,8 +23,8 @@ Accessing the HTTP request/response environment (query params, body, content_typ
   # The payload
   # {"name": "Serdar", "likes": ["Ruby", "Crystal"]}
   post "/json_params" do |env|
-    name = env.params["name"] as String
-    likes = env.params["likes"] as Array
+    name = env.params.json["name"] as String
+    likes = env.params.json["likes"] as Array
     "#{name} likes #{likes.each.join(',')}"
   end
 
