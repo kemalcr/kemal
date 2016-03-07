@@ -7,7 +7,7 @@ You can use ERB-like built-in [ECR](http://crystal-lang.org/api/ECR.html) to ren
 
 ```ruby
 get '/:name' do |env|
-  name = env.params["name"]
+  name = env.params.url["name"]
   render "src/views/hello.ecr"
 end
 ```
