@@ -7,6 +7,11 @@ at_exit do
   config.setup
   config.add_handler Kemal::RouteHandler::INSTANCE
 
+  if Kemal.exceptions_raised?
+    Kemal.log_exceptions(config.logger)
+    abort("")
+  end
+
   server = HTTP::Server.new(config.host_binding.not_nil!.to_slice, config.port, config.handlers)
   server.ssl = config.ssl
 
