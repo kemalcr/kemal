@@ -5,11 +5,12 @@ class Kemal::CommonErrorHandler < HTTP::Handler
     begin
       call_next context
     rescue ex : Kemal::Exceptions::RouteNotFound
-      Kemal.config.logger.write("Exception: #{ex.to_s}\n")
+      Kemal.config.logger.write("Exception: #{ex.inspect_with_backtrace.colorize(:red)}\n")
       return render_404(context)
     rescue ex
-      Kemal.config.logger.write("Exception: #{ex.to_s}\n")
-      return render_500(context, ex.to_s)
+      Kemal.config.logger.write("Exception: #{ex.inspect_with_backtrace.colorize(:red)}\n")
+      verbosity = Kemal.config.env == "production" ? false : true
+      return render_500(context, ex.inspect_with_backtrace, verbosity)
     end
   end
 end
