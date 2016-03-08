@@ -46,7 +46,13 @@ def render_404(context)
 end
 
 # Template for 500 Internal Server Error
-def render_500(context, ex)
+def render_500(context, backtrace, verbosity)
+  message = if verbosity
+              "<pre>#{backtrace}</pre>"
+            else
+              "<p>Something wrong with the server :(</p>"
+            end
+
   template = <<-HTML
       <!DOCTYPE html>
       <html>
@@ -55,11 +61,14 @@ def render_500(context, ex)
         body { text-align:center;font-family:helvetica,arial;font-size:22px;
           color:#888;margin:20px}
         #c {margin:0 auto;width:500px;text-align:left}
+        pre {text-align:left;font-size:14px;color:#fff;background-color:#222;
+          font-family:Operator,"Source Code Pro",Menlo,Monaco,Inconsolata,monospace;
+          line-height:1.5;padding:10px;border-radius:2px;overflow:scroll}
         </style>
       </head>
       <body>
         <h2>Kemal has encountered an error. (500)</h2>
-        <p>#{ex}</p>
+        #{message}
       </body>
       </html>
   HTML
