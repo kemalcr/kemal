@@ -1,3 +1,5 @@
+require "socket"
+
 module Kemal
   class Config
     INSTANCE = Config.new
@@ -44,6 +46,7 @@ module Kemal
       setup_logging
       setup_error_handler
       setup_public_folder
+      check_port
     end
 
     def setup_logging
@@ -53,6 +56,16 @@ module Kemal
                   Kemal::NullLogHandler.new(@env)
                 end
       HANDLERS.insert(0, @logger.not_nil!)
+    end
+
+    def check_port
+      begin
+        TCPSocket.new(@host_binding, @port).close
+        logger.write "#{@port} port is used by another process. Please select a different port.\n"
+        exit
+      rescue
+        true
+      end
     end
 
     private def setup_error_handler
