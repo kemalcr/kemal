@@ -108,27 +108,6 @@ describe "Kemal::RouteHandler" do
     client_response.body.should eq("Skills ruby,crystal")
   end
 
-  # Removed until there is a way to test multiple middlewares
-  # it "renders 404 on not found" do
-  #  kemal = Kemal::RouteHandler::INSTANCE
-  #  request = HTTP::Request.new("GET", "/?message=world")
-  #  io_with_context = create_request_and_return_io(kemal, request)
-  #  client_response = HTTP::Client::Response.from_io(io_with_context, decompress: false)
-  #  client_response.status_code.should eq 404
-  # end
-
-  # it "renders 500 on exception" do
-  #   kemal = Kemal::RouteHandler::INSTANCE
-  #   kemal.add_route "GET", "/" do
-  #     raise "Exception"
-  #   end
-  #   request = HTTP::Request.new("GET", "/?message=world")
-  #   io_with_context = create_request_and_return_io(kemal, request)
-  #   client_response = HTTP::Client::Response.from_io(io_with_context, decompress: false)
-  #   client_response.status_code.should eq 500
-  #   client_response.body.includes?("Exception").should eq true
-  # end
-  #
   it "checks for _method param in POST request to simulate PUT" do
     kemal = Kemal::RouteHandler::INSTANCE
     kemal.add_route "PUT", "/" do |env|

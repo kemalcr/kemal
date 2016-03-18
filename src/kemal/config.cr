@@ -57,7 +57,7 @@ module Kemal
 
     private def setup_error_handler
       if @always_rescue
-        @error_handler ||= Kemal::CommonErrorHandler::INSTANCE
+        @error_handler ||= Kemal::CommonExceptionHandler::INSTANCE
         HANDLERS.insert(1, @error_handler.not_nil!)
       end
     end

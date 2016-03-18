@@ -17,6 +17,7 @@ def render_403(context)
       </body>
       </html>
   HTML
+  context.response.content_type = "text/html"
   context.response.status_code = 403
   context.response.print template
   context
@@ -40,6 +41,7 @@ def render_404(context)
       </body>
       </html>
   HTML
+  context.response.content_type = "text/html"
   context.response.status_code = 404
   context.response.print template
   context
@@ -72,6 +74,7 @@ def render_500(context, backtrace, verbosity)
       </body>
       </html>
   HTML
+  context.response.content_type = "text/html"
   context.response.status_code = 500
   context.response.print template
   context
@@ -96,6 +99,7 @@ def render_415(context, message)
           </body>
           </html>
       HTML
+  context.response.content_type = "text/html"
   context.response.status_code = 415
   context.response.print template
   context
@@ -120,6 +124,7 @@ def render_400(context, message)
           </body>
           </html>
       HTML
+  context.response.content_type = "text/html"
   context.response.status_code = 400
   context.response.print template
   context
