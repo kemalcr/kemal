@@ -7,3 +7,5 @@ ws "/" do |socket|
     socket.send "Echo back from server #{message}"
   end
 end
+
+Kemal.run
