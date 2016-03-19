@@ -23,12 +23,14 @@ end
 ws "/socket" do |socket|
   socket.send "Hello from Kemal!"
 end
+
+Kemal.run
 ```
 
-Build and run!
+Start your application!
 
 ```
-crystal run src/kemal_sample.cr
+crystal src/kemal_sample.cr
 ```
 Go to *http://localhost:3000*
 
