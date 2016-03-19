@@ -20,6 +20,8 @@ basic_auth "username", "password"
 get "/" do
   "This won't render without correct username and password."
 end
+
+Kemal.run
 ```
 
 ## Custom Logger

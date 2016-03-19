@@ -1,11 +1,11 @@
 ---
 layout: doc
-title: "Filters" 
+title: "Filters"
 ---
 
 Before filters are evaluated before each request within the same context as the routes. They can modify the request and response.
 
-_Importante note: This should **not** be used by plugins/addons, instead they should do all their work in their own middleware._
+_Important note: This should **not** be used by plugins/addons, instead they should do all their work in their own middleware._
 
 Available filters:
 

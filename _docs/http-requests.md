@@ -40,3 +40,4 @@ Accessing the HTTP request/response environment (query params, body, content_typ
     env.add_header "Accept-Language", "tr"
     env.add_header "Authorization", "Token 12345"
   end
+```

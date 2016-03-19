@@ -79,6 +79,8 @@ require "kemal"
 get "/" do
   "Hello World!"
 end
+
+Kemal.run
 ```
 
 ## 5. Run your awesome web project.
