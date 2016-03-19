@@ -2,7 +2,8 @@ module Kemal
   class Config
     INSTANCE = Config.new
     HANDLERS = [] of HTTP::Handler
-    property host_binding, ssl, port, env, public_folder, logging, always_rescue, error_handler, serve_static
+    property host_binding, ssl, port, env, public_folder, logging,
+      always_rescue, error_handler, serve_static, run
 
     def initialize
       @host_binding = "0.0.0.0"
@@ -14,6 +15,7 @@ module Kemal
       @logger = nil
       @always_rescue = true
       @error_handler = nil
+      @run = false
     end
 
     def logger
