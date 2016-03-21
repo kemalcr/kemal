@@ -1,6 +1,5 @@
 require "spec"
-require "../src/kemal/*"
-require "../src/kemal/middleware/*"
+require "../src/*"
 
 include Kemal
 
@@ -35,10 +34,24 @@ def create_ws_request_and_return_io(handler, request)
   io
 end
 
+def call_request_on_app(request)
+  io = MemoryIO.new
+  response = HTTP::Server::Response.new(io)
+  context = HTTP::Server::Context.new(request, response)
+  Kemal::RouteHandler::INSTANCE.call(context)
+  response.close
+  io.rewind
+  HTTP::Client::Response.from_io(io, decompress: false)
+end
+
 Spec.before_each do
   config = Kemal.config
   config.env = "development"
-  config.setup_logging
-  config.handlers.clear
+  config.setup
+  config.add_handler Kemal::RouteHandler::INSTANCE
+end
+
+Spec.after_each do
+  Kemal.config.handlers.clear
   Kemal::RouteHandler::INSTANCE.tree = Radix::Tree.new
 end

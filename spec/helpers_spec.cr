@@ -4,7 +4,7 @@ describe "Macros" do
   describe "#basic_auth" do
     it "adds HTTPBasicAuthHandler" do
       basic_auth "serdar", "123"
-      Kemal.config.handlers.size.should eq 1
+      Kemal.config.handlers.size.should eq 5
     end
   end
 
@@ -18,7 +18,7 @@ describe "Macros" do
   describe "#add_handler" do
     it "adds a custom handler" do
       add_handler CustomTestHandler.new
-      Kemal.config.handlers.size.should eq 1
+      Kemal.config.handlers.size.should eq 5
     end
   end
 
@@ -30,7 +30,7 @@ describe "Macros" do
     it "sets a custom logger" do
       config = Kemal::Config::INSTANCE
       logger CustomLogHandler.new("production")
-      config.handlers.first.should be_a(CustomLogHandler)
+      config.handlers.last.should be_a(CustomLogHandler)
       config.logger.should be_a(CustomLogHandler)
     end
   end
