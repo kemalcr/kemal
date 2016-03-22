@@ -8,7 +8,7 @@ module Kemal
     config.setup
     config.add_handler Kemal::RouteHandler::INSTANCE
 
-    server = HTTP::Server.new(config.host_binding.not_nil!.to_slice, config.port, config.handlers)
+    server = HTTP::Server.new(config.host_binding.not_nil!, config.port, config.handlers)
     server.ssl = config.ssl
 
     Signal::INT.trap {
