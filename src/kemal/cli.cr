@@ -35,6 +35,10 @@ module Kemal
           puts opts
           exit 0
         end
+        unless @config.on_options.nil?
+          c = @config.on_options.not_nil!
+          c.call opts
+        end
       end
     end
 
