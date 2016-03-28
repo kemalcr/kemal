@@ -27,7 +27,7 @@ before_get "/foo" do |env|
   context.response.content_type = "application/json"
 end
 
-get '/foo' do |env|
+get "/foo" do |env|
   puts env.response.content_type # => "application/json"
   {"name": "Kemal"}.to_json
 end
@@ -41,17 +41,17 @@ before_all "/foo" do |env|
   context.response.content_type = "application/json"
 end
 
-get '/foo' do |env|
+get "/foo" do |env|
   puts env.response.content_type # => "application/json"
   {"name": "Kemal"}.to_json
 end
 
-put '/foo' do |env|
+put "/foo" do |env|
   puts env.response.content_type # => "application/json"
   {"name": "Kemal"}.to_json
 end
 
-post '/foo' do |env|
+post "/foo" do |env|
   puts env.response.content_type # => "application/json"
   {"name": "Kemal"}.to_json
 end
