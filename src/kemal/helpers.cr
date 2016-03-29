@@ -15,6 +15,12 @@ macro render(filename, *args)
   Kilt.render({{filename}}, {{*args}})
 end
 
+macro return_with(env, status_code = 200, response = "")
+  {{env}}.response.status_code = {{status_code}}
+  {{env}}.response.print {{response}}
+  next
+end
+
 def add_handler(handler)
   Kemal.config.add_handler handler
 end
@@ -45,6 +51,7 @@ def logger(logger)
   Kemal.config.logger = logger
   Kemal.config.add_handler logger
 end
+
 
 def serve_static(status)
   Kemal.config.serve_static = status
