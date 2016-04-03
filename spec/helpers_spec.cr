@@ -34,4 +34,37 @@ describe "Macros" do
       config.logger.should be_a(CustomLogHandler)
     end
   end
+
+  describe "#return_with" do
+    it "can break block with return_with macro" do
+      get "/non-breaking" do |env|
+        "hello"
+        "world"
+      end
+      request = HTTP::Request.new("GET", "/non-breaking")
+      client_response = call_request_on_app(request)
+      client_response.status_code.should eq(200)
+      client_response.body.should eq("world")
+
+      get "/breaking" do |env|
+        return_with env, 404, "hello"
+        "world"
+      end
+      request = HTTP::Request.new("GET", "/breaking")
+      client_response = call_request_on_app(request)
+      client_response.status_code.should eq(404)
+      client_response.body.should eq("hello")
+    end
+
+    it "can break block with return_with macro using default values" do
+      get "/" do |env|
+        return_with env
+        "world"
+      end
+      request = HTTP::Request.new("GET", "/")
+      client_response = call_request_on_app(request)
+      client_response.status_code.should eq(200)
+      client_response.body.should eq("")
+    end
+  end
 end
