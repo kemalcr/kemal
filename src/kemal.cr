@@ -34,7 +34,3 @@ module Kemal
     server.listen
   end
 end
-
-at_exit do
-  Kemal.run if Kemal.config.run
-end
