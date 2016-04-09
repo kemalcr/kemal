@@ -8,12 +8,12 @@ module Kemal
     config.setup
     config.add_handler Kemal::RouteHandler::INSTANCE
 
-    server = HTTP::Server.new(config.host_binding.not_nil!, config.port, config.handlers)
-    server.ssl = config.ssl
+    config.server = HTTP::Server.new(config.host_binding.not_nil!, config.port, config.handlers)
+    config.server.ssl = config.ssl
 
     Signal::INT.trap {
       config.logger.write "Kemal is going to take a rest!\n"
-      server.close
+      config.server.close
       exit
     }
 
@@ -31,6 +31,6 @@ module Kemal
     end
 
     config.logger.write "[#{config.env}] Kemal is ready to lead at #{config.scheme}://#{config.host_binding}:#{config.port}\n"
-    server.listen
+    config.server.listen
   end
 end
