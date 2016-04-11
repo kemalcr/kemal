@@ -43,12 +43,12 @@ class MyCustomLogger < Kemal::BaseLogHandler
 end
 ```
 
-You need to register your custom logger with `logger` macro.
+You need to register your custom logger with `logger` config property.
 
 ```ruby
 require "kemal"
 
-logger MyCustomLogger.new
+Kemal.config.logger = MyCustomLogger.new(Kemal.config.env)
 ...
 ```
 
