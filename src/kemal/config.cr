@@ -50,7 +50,7 @@ module Kemal
     end
 
     def setup_logging
-      @logger = if @logging
+      @logger ||= if @logging
                   Kemal::CommonLogHandler.new(@env)
                 else
                   Kemal::NullLogHandler.new(@env)
