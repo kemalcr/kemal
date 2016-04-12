@@ -3,8 +3,8 @@ version: 0.11.1
 
 dependencies:
   radix:
-    github: luislavena/radix
-    version: 0.1.1
+    github: sdogruyol/radix
+    branch: master
   kilt:
     github: jeromegn/kilt
     version: 0.3.3
