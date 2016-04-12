@@ -186,5 +186,5 @@ describe "Kemal::Middleware::Filters" do
 end
 
 class FilterTest
-  property modified
+  property modified : String?
 end

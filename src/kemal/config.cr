@@ -5,7 +5,7 @@ module Kemal
     @ssl : OpenSSL::SSL::Context
 
     property host_binding, ssl, port, env, public_folder, logging,
-      always_rescue, error_handler, serve_static, run
+      always_rescue, serve_static, run
 
     def initialize
       @host_binding = "0.0.0.0"
@@ -15,8 +15,8 @@ module Kemal
       @public_folder = "./public"
       @logging = true
       @logger = nil
+      @error_handler = nil
       @always_rescue = true
-      @error_handler = uninitialized Kemal::CommonExceptionHandler
       @run = false
       @ssl = uninitialized OpenSSL::SSL::Context
     end
@@ -62,7 +62,7 @@ module Kemal
 
     private def setup_error_handler
       if @always_rescue
-        @error_handler ||= Kemal::CommonExceptionHandler::INSTANCE
+        @error_handler ||= Kemal::CommonExceptionHandler.new
         HANDLERS.insert(1, @error_handler.not_nil!)
       end
     end
