@@ -2,9 +2,11 @@
 # It takes 3 parameters: Method, path and a block to specify
 # what action to be done if the route is matched.
 class Kemal::Route
-  getter handler : (HTTP::Server::Context -> )
-  getter method
+  getter handler
+  @handler : HTTP::Server::Context -> String
+  @method : String
 
-  def initialize(@method : String, @path : String, &@handler : HTTP::Server::Context -> )
+  def initialize(@method, @path : String, &handler )
+    @handler = ->(context : HTTP::Server::Context){ handler.call(context).to_s }
   end
 end
