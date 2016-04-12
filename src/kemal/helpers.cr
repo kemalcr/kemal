@@ -52,7 +52,6 @@ def logger(logger)
   Kemal.config.add_handler logger
 end
 
-
 def serve_static(status)
   Kemal.config.serve_static = status
 end

@@ -9,7 +9,7 @@ class Kemal::RouteHandler < HTTP::Handler
   property tree
 
   def initialize
-    @tree = Radix::Tree.new
+    @tree = Radix::Tree(Route).new
   end
 
   def call(context)

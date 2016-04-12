@@ -6,7 +6,7 @@ module Kemal::Middleware
 
     # This middleware is lazily instantiated and added to the handlers as soon as a call to `after_X` or `before_X` is made.
     def initialize
-      @tree = Radix::Tree.new
+      @tree = Radix::Tree(Array(Kemal::Middleware::Block)).new
       Kemal.config.add_handler(self)
     end
 
@@ -68,7 +68,7 @@ module Kemal::Middleware
   end
 
   class Block
-    property block
+    property block : (HTTP::Server::Context -> ) 
 
     def initialize(&@block : HTTP::Server::Context -> _)
     end

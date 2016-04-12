@@ -1,7 +1,7 @@
 # Opening HTTP::Request to add override_method property
 class HTTP::Request
   property override_method
-  property url_params
+  property url_params : Hash(String, String)?
 
   def override_method
     @override_method ||= check_for_method_override!
