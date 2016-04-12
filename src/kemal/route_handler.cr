@@ -19,7 +19,7 @@ class Kemal::RouteHandler < HTTP::Handler
 
   # Adds a given route to routing tree. As an exception each `GET` route additionaly defines
   # a corresponding `HEAD` route.
-  def add_route(method, path, &handler : HTTP::Server::Context -> String)
+  def add_route(method, path, &handler : HTTP::Server::Context -> _)
     add_to_radix_tree method, path, Route.new(method, path, &handler)
     add_to_radix_tree("HEAD", path, Route.new("HEAD", path, &handler)) if method == "GET"
   end
