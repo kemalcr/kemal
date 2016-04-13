@@ -2,7 +2,7 @@ module Kemal
   class Config
     INSTANCE = Config.new
     HANDLERS = [] of HTTP::Handler
-    @ssl : OpenSSL::SSL::Context
+    @ssl : OpenSSL::SSL::Context?
 
     property host_binding, ssl, port, env, public_folder, logging,
       always_rescue, serve_static, run
@@ -18,7 +18,7 @@ module Kemal
       @error_handler = nil
       @always_rescue = true
       @run = false
-      @ssl = uninitialized OpenSSL::SSL::Context
+      @ssl = nil
     end
 
     def logger

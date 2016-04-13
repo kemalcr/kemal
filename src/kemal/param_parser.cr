@@ -9,7 +9,7 @@ class Kemal::ParamParser
   URL_ENCODED_FORM = "application/x-www-form-urlencoded"
   APPLICATION_JSON = "application/json"
 
-  def initialize(@request : HTTP::Request, @url_params : String? = nil , @override_method : String? = nil)
+  def initialize(@request : HTTP::Request)
     @url = {} of String => String
     @query = {} of String => String
     @body = {} of String => String

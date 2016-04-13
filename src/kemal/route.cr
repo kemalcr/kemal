@@ -7,6 +7,6 @@ class Kemal::Route
   @method : String
 
   def initialize(@method, @path : String, &handler : HTTP::Server::Context -> _)
-    @handler = ->(context : HTTP::Server::Context){ handler.call(context).to_s }
+    @handler = ->(context : HTTP::Server::Context) { handler.call(context).to_s }
   end
 end

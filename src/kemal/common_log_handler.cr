@@ -2,7 +2,7 @@ require "colorize"
 require "http"
 
 class Kemal::CommonLogHandler < Kemal::BaseLogHandler
-  @handler : IO::FileDescriptor+
+  @handler : IO::FileDescriptor
   getter handler
 
   def initialize(@env)
