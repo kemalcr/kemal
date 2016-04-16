@@ -2,9 +2,11 @@ module Kemal
   class Config
     INSTANCE = Config.new
     HANDLERS = [] of HTTP::Handler
+    @ssl : OpenSSL::SSL::Context?
+    @server : HTTP::Server?
 
     property host_binding, ssl, port, env, public_folder, logging,
-      always_rescue, error_handler, serve_static, server
+      always_rescue, serve_static, server
 
     def initialize
       @host_binding = "0.0.0.0"
@@ -14,9 +16,11 @@ module Kemal
       @public_folder = "./public"
       @logging = true
       @logger = nil
-      @always_rescue = true
       @error_handler = nil
-      @server = uninitialized HTTP::Server
+      @always_rescue = true
+      @run = false
+      @ssl = nil
+      @server = nil
     end
 
     def logger
@@ -51,16 +55,16 @@ module Kemal
 
     def setup_logging
       @logger ||= if @logging
-                  Kemal::CommonLogHandler.new(@env)
-                else
-                  Kemal::NullLogHandler.new(@env)
-                end
+                    Kemal::CommonLogHandler.new(@env)
+                  else
+                    Kemal::NullLogHandler.new(@env)
+                  end
       HANDLERS.insert(0, @logger.not_nil!)
     end
 
     private def setup_error_handler
       if @always_rescue
-        @error_handler ||= Kemal::CommonExceptionHandler::INSTANCE
+        @error_handler ||= Kemal::CommonExceptionHandler.new
         HANDLERS.insert(1, @error_handler.not_nil!)
       end
     end

@@ -13,7 +13,7 @@ class HTTP::Server
     end
 
     def route_lookup
-      @route_lookup ||= Kemal::RouteHandler::INSTANCE.lookup_route(@request.override_method as String, @request.path)
+      Kemal::RouteHandler::INSTANCE.lookup_route(@request.override_method as String, @request.path)
     end
 
     def route_defined?

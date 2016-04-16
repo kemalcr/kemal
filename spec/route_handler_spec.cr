@@ -20,7 +20,7 @@ describe "Kemal::RouteHandler" do
   end
 
   it "routes request with multiple query strings" do
-    get  "/" do |env|
+    get "/" do |env|
       "hello #{env.params.query["message"]} time #{env.params.query["time"]}"
     end
     request = HTTP::Request.new("GET", "/?message=world&time=now")
@@ -155,5 +155,4 @@ describe "Kemal::RouteHandler" do
     client_response.status_code.should eq(302)
     client_response.headers.has_key?("Location").should eq(true)
   end
-
 end

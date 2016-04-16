@@ -53,5 +53,5 @@ end
 
 Spec.after_each do
   Kemal.config.handlers.clear
-  Kemal::RouteHandler::INSTANCE.tree = Radix::Tree.new
+  Kemal::RouteHandler::INSTANCE.tree = Radix::Tree(Route).new
 end

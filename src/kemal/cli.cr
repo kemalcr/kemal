@@ -2,10 +2,13 @@ require "option_parser"
 
 module Kemal
   class CLI
+    @config : Kemal::Config
+    @key_file : String
+
     def initialize
       @ssl_enabled = false
-      @key_file = nil
-      @cert_file = nil
+      @key_file = ""
+      @cert_file = ""
       @config = Kemal.config
       parse
       configure_ssl

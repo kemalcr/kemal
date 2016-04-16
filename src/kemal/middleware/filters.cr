@@ -6,7 +6,7 @@ module Kemal::Middleware
 
     # This middleware is lazily instantiated and added to the handlers as soon as a call to `after_X` or `before_X` is made.
     def initialize
-      @tree = Radix::Tree.new
+      @tree = Radix::Tree(Array(Kemal::Middleware::Block)).new
       Kemal.config.add_handler(self)
     end
 
@@ -23,7 +23,7 @@ module Kemal::Middleware
 
     # :nodoc: This shouldn't be called directly, it's not private because I need to call it for testing purpose since I can't call the macros in the spec.
     # It adds the block for the corresponding verb/path/type combination to the tree.
-    def _add_route_filter(verb, path, type, &block : HTTP::Server::Context -> _)
+    def _add_route_filter(verb, path, type, &block : HTTP::Server::Context -> String)
       lookup = lookup_filters_for_path_type(verb, path, type)
       if lookup.found? && lookup.payload.is_a?(Array(Block))
         (lookup.payload as Array(Block)) << Block.new(&block)
@@ -33,12 +33,12 @@ module Kemal::Middleware
     end
 
     # This can be called directly but it's simpler to just use the macros, it will check if another filter is not already defined for this verb/path/type and proceed to call `add_route_filter`
-    def before(verb, path = "*", &block : HTTP::Server::Context -> _)
+    def before(verb, path = "*", &block : HTTP::Server::Context -> String)
       _add_route_filter verb, path, :before, &block
     end
 
     # This can be called directly but it's simpler to just use the macros, it will check if another filter is not already defined for this verb/path/type and proceed to call `add_route_filter`
-    def after(verb, path = "*", &block : HTTP::Server::Context -> _)
+    def after(verb, path = "*", &block : HTTP::Server::Context -> String)
       _add_route_filter verb, path, :after, &block
     end
 
@@ -68,9 +68,9 @@ module Kemal::Middleware
   end
 
   class Block
-    property block
+    property block : (HTTP::Server::Context -> String)
 
-    def initialize(&@block : HTTP::Server::Context -> _)
+    def initialize(&@block : HTTP::Server::Context -> String)
     end
 
     def call(context)
@@ -86,7 +86,7 @@ end
 ALL_METHODS = %w(get post put patch delete all)
 {% for type in ["before", "after"] %}
   {% for method in ALL_METHODS %}
-    def {{type.id}}_{{method.id}}(path = "*", &block : HTTP::Server::Context -> _)
+    def {{type.id}}_{{method.id}}(path = "*", &block : HTTP::Server::Context -> String)
      Kemal::Middleware::Filter::INSTANCE.{{type.id}}({{method}}.upcase, path, &block)
     end
   {% end %}

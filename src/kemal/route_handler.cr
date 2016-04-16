@@ -9,7 +9,7 @@ class Kemal::RouteHandler < HTTP::Handler
   property tree
 
   def initialize
-    @tree = Radix::Tree.new
+    @tree = Radix::Tree(Route).new
   end
 
   def call(context)
@@ -33,7 +33,7 @@ class Kemal::RouteHandler < HTTP::Handler
   def process_request(context)
     raise Kemal::Exceptions::RouteNotFound.new(context) unless context.route_defined?
     route = context.route_lookup.payload as Route
-    context.response.print(route.handler.call(context).to_s)
+    context.response.print(route.handler.call(context))
     context
   end
 
