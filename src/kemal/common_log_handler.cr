@@ -1,4 +1,3 @@
-require "colorize"
 require "http"
 
 class Kemal::CommonLogHandler < Kemal::BaseLogHandler
@@ -20,20 +19,7 @@ class Kemal::CommonLogHandler < Kemal::BaseLogHandler
     call_next(context)
     elapsed = Time.now - time
     elapsed_text = elapsed_text(elapsed)
-
-    if @env == "production"
-      status_code = " #{context.response.status_code} "
-      method = context.request.method
-    else
-      statusColor = color_for_status(context.response.status_code)
-      methodColor = color_for_method(context.request.method)
-
-      status_code = " #{context.response.status_code} ".colorize.back(statusColor).fore(:white)
-      method = context.request.method.colorize(methodColor)
-    end
-
-    output_message = "#{time} |#{status_code}| #{method} #{context.request.resource} - #{elapsed_text}\n"
-    write output_message
+    write "#{time} #{context.response.status_code} #{context.request.method} #{context.request.resource} - #{elapsed_text}\n"
     context
   end
 
@@ -55,39 +41,6 @@ class Kemal::CommonLogHandler < Kemal::BaseLogHandler
       @handler.write message.to_slice
     else
       @handler.print message
-    end
-  end
-
-  private def color_for_status(code)
-    if code >= 200 && code < 300
-      return :green
-    elsif code >= 300 && code < 400
-      return :magenta
-    elsif code >= 400 && code < 500
-      return :yellow
-    else
-      return :light_blue
-    end
-  end
-
-  private def color_for_method(method)
-    case method
-    when "GET"
-      return :blue
-    when "POST"
-      return :cyan
-    when "PUT"
-      return :yellow
-    when "DELETE"
-      return :red
-    when "PATCH"
-      return :green
-    when "HEAD"
-      return :magenta
-    when "OPTIONS"
-      return :light_blue
-    else
-      return :white
     end
   end
 end
