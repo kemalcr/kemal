@@ -1,4 +1,4 @@
-# Kemal::WebSocketHandler is used for each define WebSocket route.
+# Kemal::WebSocketHandler is used for building a WebSocket route.
 # For each WebSocket route a new handler is created and registered to global handlers.
 class Kemal::WebSocketHandler < HTTP::WebSocketHandler
   def initialize(@path : String, &@proc : HTTP::WebSocket, HTTP::Server::Context -> Void)

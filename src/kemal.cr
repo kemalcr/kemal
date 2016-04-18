@@ -2,6 +2,8 @@ require "./kemal/*"
 require "./kemal/middleware/*"
 
 module Kemal
+
+  # The command to run a `Kemal` application.
   def self.run
     Kemal::CLI.new
     config = Kemal.config
@@ -11,6 +13,7 @@ module Kemal
     config.server = HTTP::Server.new(config.host_binding.not_nil!, config.port, config.handlers)
     config.server.not_nil!.ssl = config.ssl
 
+    # Test environment doesn't need to have signal trap, built-in images, and logging.
     unless config.env == "test"
       Signal::INT.trap {
         config.logger.write "Kemal is going to take a rest!\n"

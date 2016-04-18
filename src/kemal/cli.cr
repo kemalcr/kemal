@@ -1,6 +1,7 @@
 require "option_parser"
 
 module Kemal
+  # Handles all the initialization from the command line.
   class CLI
     @config : Kemal::Config
     @key_file : String
