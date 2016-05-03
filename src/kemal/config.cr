@@ -48,12 +48,12 @@ module Kemal
     end
 
     def setup
-      setup_logging
+      setup_log_handler
       setup_error_handler
-      setup_public_folder
+      setup_static_file_handler
     end
 
-    def setup_logging
+    def setup_log_handler
       @logger ||= if @logging
                     Kemal::CommonLogHandler.new(@env)
                   else
@@ -69,7 +69,7 @@ module Kemal
       end
     end
 
-    private def setup_public_folder
+    private def setup_static_file_handler
       HANDLERS.insert(2, Kemal::StaticFileHandler.new(@public_folder)) if @serve_static
     end
   end
