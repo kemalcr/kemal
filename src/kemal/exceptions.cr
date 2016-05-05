@@ -6,10 +6,9 @@ module Kemal::Exceptions
   end
 
   class CustomException < Exception
-    getter context
 
-    def initialize(@context)
-      super "Rendered error with #{@context.response.status_code}"
+    def initialize(context)
+      super "Rendered error with #{context.response.status_code}"
     end
   end
 end
