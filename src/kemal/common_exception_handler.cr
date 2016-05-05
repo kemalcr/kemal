@@ -10,8 +10,6 @@ module Kemal
       rescue Kemal::Exceptions::CustomException
         status_code = context.response.status_code
         if Kemal.config.error_handlers.has_key?(status_code)
-          context.response.reset
-          context.response.content_type = "text/html"
           context.response.print Kemal.config.error_handlers[status_code].call(context)
           return context
         end

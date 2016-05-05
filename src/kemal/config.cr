@@ -7,7 +7,7 @@ module Kemal
     @server : HTTP::Server?
 
     property host_binding, ssl, port, env, public_folder, logging,
-      always_rescue, serve_static, server, error_handler
+      always_rescue, serve_static, server
 
     def initialize
       @host_binding = "0.0.0.0"
