@@ -5,17 +5,21 @@ module Kemal
     def call(context)
       begin
         call_next(context)
-      rescue ex : Kemal::Exceptions::RouteNotFound
+      rescue Kemal::Exceptions::RouteNotFound
         return Kemal.config.error_handlers[404].call(context)
-      rescue ex1 : Kemal::Exceptions::CustomException
-        status_code = ex1.context.response.status_code
-        return Kemal.config.error_handlers[status_code].call(context) if Kemal.config.error_handlers.key?(status_code)
-      rescue ex2
-        Kemal.config.error_handlers[500].call(context) if Kemal.config.error_handlers.key?(500)
+      rescue Kemal::Exceptions::CustomException
+        status_code = context.response.status_code
+        if Kemal.config.error_handlers.has_key?(status_code)
+          context.response.reset
+          context.response.content_type = "text/html"
+          context.response.print Kemal.config.error_handlers[status_code].call(context)
+          return context
+        end
+      rescue ex : Exception
         context.response.content_type = "text/html"
-        Kemal.config.logger.write("Exception: #{ex2.inspect_with_backtrace}\n")
+        Kemal.config.logger.write("Exception: #{ex.inspect_with_backtrace}\n")
         verbosity = Kemal.config.env == "production" ? false : true
-        return render_500(context, ex2.inspect_with_backtrace, verbosity)
+        return render_500(context, ex.inspect_with_backtrace, verbosity)
       end
     end
   end
