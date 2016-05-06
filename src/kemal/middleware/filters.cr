@@ -15,6 +15,9 @@ module Kemal::Middleware
       return call_next(context) unless context.route_defined?
       call_block_for_path_type("ALL", context.request.path, :before, context)
       call_block_for_path_type(context.request.override_method, context.request.path, :before, context)
+      if Kemal.config.error_handlers.has_key?(context.response.status_code)
+        raise Kemal::Exceptions::CustomException.new(context)
+      end
       call_next(context)
       call_block_for_path_type(context.request.override_method, context.request.path, :after, context)
       call_block_for_path_type("ALL", context.request.path, :after, context)
