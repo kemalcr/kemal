@@ -1,7 +1,8 @@
 module Kemal
   class Config
-    INSTANCE = Config.new
-    HANDLERS = [] of HTTP::Handler
+    INSTANCE       = Config.new
+    HANDLERS       = [] of HTTP::Handler
+    ERROR_HANDLERS = {} of Int32 => HTTP::Server::Context -> String
     @ssl : OpenSSL::SSL::Context?
     @server : HTTP::Server?
 
@@ -19,8 +20,6 @@ module Kemal
       @error_handler = nil
       @always_rescue = true
       @run = false
-      @ssl = nil
-      @server = nil
     end
 
     def logger
@@ -45,6 +44,14 @@ module Kemal
 
     def add_ws_handler(handler : HTTP::WebSocketHandler)
       HANDLERS << handler
+    end
+
+    def error_handlers
+      ERROR_HANDLERS
+    end
+
+    def add_error_handler(status_code, &handler : HTTP::Server::Context -> _)
+      ERROR_HANDLERS[status_code] = ->(context : HTTP::Server::Context) { handler.call(context).to_s }
     end
 
     def setup

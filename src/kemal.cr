@@ -2,7 +2,6 @@ require "./kemal/*"
 require "./kemal/middleware/*"
 
 module Kemal
-
   # The command to run a `Kemal` application.
   def self.run
     Kemal::CLI.new
@@ -12,6 +11,10 @@ module Kemal
 
     config.server = HTTP::Server.new(config.host_binding.not_nil!, config.port, config.handlers)
     config.server.not_nil!.ssl = config.ssl
+
+    error 404 do |env|
+      render_404(env)
+    end
 
     # Test environment doesn't need to have signal trap, built-in images, and logging.
     unless config.env == "test"
