@@ -35,7 +35,7 @@ describe "Config" do
     ARGV.push("FOOBAR")
     $test_option = nil
 
-    config.on_options = ->(parser : OptionParser) {
+    config.extra_options = ->(parser : OptionParser) {
       parser.on("--test TEST_OPTION", "Test an option") do |opt|
         $test_option = opt
       end
