@@ -5,7 +5,6 @@ require "kilt"
 # get '/' do
 #   render 'hello.ecr'
 # end
-
 macro render(filename, layout)
   content = render {{filename}}
   render {{layout}}
@@ -15,6 +14,13 @@ macro render(filename, *args)
   Kilt.render({{filename}}, {{*args}})
 end
 
+macro return_with(env, status_code = 200, response = "")
+  {{env}}.response.status_code = {{status_code}}
+  {{env}}.response.print {{response}}
+  next
+end
+
+# Adds given HTTP::Handler+ to handlers.
 def add_handler(handler)
   Kemal.config.add_handler handler
 end
@@ -25,6 +31,8 @@ def basic_auth(username, password)
   add_handler auth_handler
 end
 
+# Sets public folder from which the static assets will be served.
+# By default this is `/public` not `src/public`.
 def public_folder(path)
   Kemal.config.public_folder = path
 end

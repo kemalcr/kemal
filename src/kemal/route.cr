@@ -3,8 +3,10 @@
 # what action to be done if the route is matched.
 class Kemal::Route
   getter handler
-  getter method
+  @handler : HTTP::Server::Context -> String
+  @method : String
 
-  def initialize(@method, @path, &@handler : HTTP::Server::Context -> _)
+  def initialize(@method, @path : String, &handler : HTTP::Server::Context -> _)
+    @handler = ->(context : HTTP::Server::Context) { handler.call(context).to_s }
   end
 end

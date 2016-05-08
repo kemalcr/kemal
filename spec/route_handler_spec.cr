@@ -20,7 +20,7 @@ describe "Kemal::RouteHandler" do
   end
 
   it "routes request with multiple query strings" do
-    get  "/" do |env|
+    get "/" do |env|
       "hello #{env.params.query["message"]} time #{env.params.query["time"]}"
     end
     request = HTTP::Request.new("GET", "/?message=world&time=now")

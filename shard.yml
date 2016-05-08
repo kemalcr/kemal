@@ -4,7 +4,7 @@ version: 0.11.1
 dependencies:
   radix:
     github: luislavena/radix
-    version: 0.1.1
+    version: 0.3.0
   kilt:
     github: jeromegn/kilt
     version: 0.3.3

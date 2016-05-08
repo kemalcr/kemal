@@ -6,7 +6,7 @@ module Kemal::Middleware
 
     # This middleware is lazily instantiated and added to the handlers as soon as a call to `after_X` or `before_X` is made.
     def initialize
-      @tree = Radix::Tree.new
+      @tree = Radix::Tree(Array(Kemal::Middleware::Block)).new
       Kemal.config.add_handler(self)
     end
 
@@ -15,6 +15,9 @@ module Kemal::Middleware
       return call_next(context) unless context.route_defined?
       call_block_for_path_type("ALL", context.request.path, :before, context)
       call_block_for_path_type(context.request.override_method, context.request.path, :before, context)
+      if Kemal.config.error_handlers.has_key?(context.response.status_code)
+        raise Kemal::Exceptions::CustomException.new(context)
+      end
       call_next(context)
       call_block_for_path_type(context.request.override_method, context.request.path, :after, context)
       call_block_for_path_type("ALL", context.request.path, :after, context)
@@ -68,9 +71,10 @@ module Kemal::Middleware
   end
 
   class Block
-    property block
+    property block : HTTP::Server::Context -> String
 
-    def initialize(&@block : HTTP::Server::Context -> _)
+    def initialize(&block : HTTP::Server::Context -> _)
+      @block = ->(context : HTTP::Server::Context) { block.call(context).to_s}
     end
 
     def call(context)

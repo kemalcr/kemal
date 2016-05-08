@@ -13,7 +13,7 @@ module Kemal::Middleware
     AUTH_MESSAGE          = "Could not verify your access level for that URL.\nYou have to login with proper credentials"
     HEADER_LOGIN_REQUIRED = "Basic realm=\"Login Required\""
 
-    def initialize(@username, @password)
+    def initialize(@username : String?, @password : String?)
     end
 
     def call(context)

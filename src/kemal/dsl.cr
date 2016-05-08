@@ -6,6 +6,10 @@ HTTP_METHODS = %w(get post put patch delete options)
   end
 {% end %}
 
-def ws(path, &block : HTTP::WebSocket -> _)
+def ws(path, &block : HTTP::WebSocket, HTTP::Server::Context -> Void)
   Kemal::WebSocketHandler.new path, &block
+end
+
+def error(status_code, &block : HTTP::Server::Context -> _)
+  Kemal.config.add_error_handler status_code, &block
 end
