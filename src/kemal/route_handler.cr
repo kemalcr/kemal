@@ -13,7 +13,7 @@ class Kemal::RouteHandler < HTTP::Handler
   end
 
   def call(context)
-    context.response.content_type = "text/html"
+    context.response.content_type = "text/html" unless context.response.headers.has_key?("Content-Type")
     process_request(context)
   end
 
