@@ -6,7 +6,10 @@ module Kemal
       begin
         call_next(context)
       rescue Kemal::Exceptions::RouteNotFound
-        return Kemal.config.error_handlers[404].call(context)
+        context.response.content_type = "text/html"
+        context.response.status_code = 404
+        context.response.print Kemal.config.error_handlers[404].call(context)
+        return context
       rescue Kemal::Exceptions::CustomException
         status_code = context.response.status_code
         if Kemal.config.error_handlers.has_key?(status_code)

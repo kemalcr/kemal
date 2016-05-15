@@ -1,5 +1,5 @@
 # Template for 404 Not Found
-def render_404(context)
+def render_404
   template = <<-HTML
       <!DOCTYPE html>
       <html>
@@ -16,10 +16,6 @@ def render_404(context)
       </body>
       </html>
   HTML
-  context.response.content_type = "text/html"
-  context.response.status_code = 404
-  context.response.print template
-  context
 end
 
 # Template for 500 Internal Server Error
