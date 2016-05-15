@@ -3,6 +3,10 @@ layout: doc
 title: "Deployment"
 ---
 
+## Heroku
+
+You can use [heroku-buildpack-crystal](https://github.com/zamith/heroku-buildpack-crystal) to deploy your Kemal application to Heroku.
+
 ## Cross-compilation
 
 You can cross-compile a Kemal app by using this [guide](http://crystal-lang.org/docs/syntax_and_semantics/cross-compilation.html).
