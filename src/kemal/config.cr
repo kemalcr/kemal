@@ -19,7 +19,6 @@ module Kemal
       @logger = nil
       @error_handler = nil
       @always_rescue = true
-      @run = false
     end
 
     def logger
