@@ -3,7 +3,7 @@ module Kemal
     INSTANCE       = Config.new
     HANDLERS       = [] of HTTP::Handler
     ERROR_HANDLERS = {} of Int32 => HTTP::Server::Context -> String
-    @ssl : OpenSSL::SSL::Context?
+    @ssl : OpenSSL::SSL::Context::Server?
     @server : HTTP::Server?
 
     property host_binding, ssl, port, env, public_folder, logging,
