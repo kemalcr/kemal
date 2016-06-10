@@ -46,11 +46,13 @@ And you should use `content` variable (like `yield` in Rails) in layout file.
 Since Crystal does not allow using variables in macro literals, you need to generate
 another *helper macro* to make the code easier to read and write.
 
+{% raw %}
 ```
 macro my_renderer(filename)
   render "my/app/view/base/path/#{{{filename}}}.ecr", "my/app/view/base/path/layouts/layout.ecr"
 end
 ```
+{% endraw %}
 
 And now you can use your new renderer.
 
