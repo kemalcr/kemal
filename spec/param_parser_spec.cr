@@ -11,6 +11,16 @@ describe "ParamParser" do
     query_params["hasan"].should eq "cemal"
   end
 
+  it "parses multiple values for query params" do
+    route = Route.new "POST", "/" do |env|
+      hasan = env.params.query["hasan"]
+      "Hello #{hasan}"
+    end
+    request = HTTP::Request.new("POST", "/?hasan=cemal&hasan=lamec")
+    query_params = Kemal::ParamParser.new(request).query
+    query_params["hasan"].should eq ["cemal", "lamec"]
+  end
+
   it "parses url params" do
     kemal = Kemal::RouteHandler::INSTANCE
     kemal.add_route "POST", "/hello/:hasan" do |env|
@@ -43,6 +53,23 @@ describe "ParamParser" do
 
     body_params = Kemal::ParamParser.new(request).body
     body_params.should eq({"name" => "serdar", "age" => "99"})
+  end
+
+  it "parses multiple values in request body" do
+    route = Route.new "POST", "/" do |env|
+      hasan = env.params.body["hasan"]
+      "Hello #{hasan}"
+    end
+
+    request = HTTP::Request.new(
+      "POST",
+      "/",
+      body: "hasan=cemal&hasan=lamec",
+      headers: HTTP::Headers{"Content-Type": "application/x-www-form-urlencoded"},
+    )
+
+    body_params = Kemal::ParamParser.new(request).body
+    body_params.should eq({"hasan" => ["cemal", "lamec"]})
   end
 
   context "when content type is application/json" do
