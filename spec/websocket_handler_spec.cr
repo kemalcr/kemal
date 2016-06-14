@@ -4,9 +4,9 @@ describe "Kemal::WebSocketHandler" do
   it "doesn't match on wrong route" do
     handler = Kemal::WebSocketHandler.new "/" { }
     headers = HTTP::Headers{
-      "Upgrade":           "websocket",
-      "Connection":        "Upgrade",
-      "Sec-WebSocket-Key": "dGhlIHNhbXBsZSBub25jZQ==",
+      "Upgrade" =>           "websocket",
+      "Connection" =>        "Upgrade",
+      "Sec-WebSocket-Key" => "dGhlIHNhbXBsZSBub25jZQ==",
     }
     request = HTTP::Request.new("GET", "/asd", headers)
     io_with_context = create_request_and_return_io(handler, request)
@@ -17,9 +17,9 @@ describe "Kemal::WebSocketHandler" do
   it "matches on given route" do
     handler = Kemal::WebSocketHandler.new "/" { }
     headers = HTTP::Headers{
-      "Upgrade":           "websocket",
-      "Connection":        "Upgrade",
-      "Sec-WebSocket-Key": "dGhlIHNhbXBsZSBub25jZQ==",
+      "Upgrade" =>           "websocket",
+      "Connection" =>        "Upgrade",
+      "Sec-WebSocket-Key" => "dGhlIHNhbXBsZSBub25jZQ==",
     }
     request = HTTP::Request.new("GET", "/", headers)
     io_with_context = create_ws_request_and_return_io(handler, request)
