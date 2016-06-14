@@ -45,8 +45,8 @@ module Kemal
         puts "SSL Key Not Found"; exit unless @key_file
         puts "SSL Certificate Not Found"; exit unless @cert_file
         ssl = Kemal::Middleware::SSL.new
-        ssl.set_key_file @key_file.not_nil!.to_slice
-        ssl.set_cert_file @cert_file.not_nil!.to_slice
+        ssl.set_key_file @key_file.not_nil!
+        ssl.set_cert_file @cert_file.not_nil!
         Kemal.config.ssl = ssl.context
       end
     end

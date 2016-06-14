@@ -45,16 +45,16 @@ describe "ParamParser" do
       "POST",
       "/?hasan=cemal",
       body: "name=serdar&age=99",
-      headers: HTTP::Headers{"Content-Type": "application/x-www-form-urlencoded"},
+      headers: HTTP::Headers{"Content-Type" => "application/x-www-form-urlencoded"},
     )
 
     query_params = Kemal::ParamParser.new(request).query
-    {"hasan": "cemal"}.each do |k, v|
+    {"hasan" => "cemal"}.each do |k, v|
       query_params[k].should eq(v)
     end
 
     body_params = Kemal::ParamParser.new(request).body
-    {"name": "serdar", "age": "99"}.each do |k, v|
+    {"name" => "serdar", "age" => "99"}.each do |k, v|
       body_params[k].should eq(v)
     end
   end
@@ -69,7 +69,7 @@ describe "ParamParser" do
       "POST",
       "/",
       body: "hasan=cemal&hasan=lamec",
-      headers: HTTP::Headers{"Content-Type": "application/x-www-form-urlencoded"},
+      headers: HTTP::Headers{"Content-Type" => "application/x-www-form-urlencoded"},
     )
 
     body_params = Kemal::ParamParser.new(request).body
@@ -84,11 +84,11 @@ describe "ParamParser" do
         "POST",
         "/",
         body: "{\"name\": \"Serdar\"}",
-        headers: HTTP::Headers{"Content-Type": "application/json"},
+        headers: HTTP::Headers{"Content-Type" => "application/json"},
       )
 
       json_params = Kemal::ParamParser.new(request).json
-      json_params.should eq({"name": "Serdar"})
+      json_params.should eq({"name" => "Serdar"})
     end
 
     it "parses request body for array" do
@@ -98,11 +98,11 @@ describe "ParamParser" do
         "POST",
         "/",
         body: "[1]",
-        headers: HTTP::Headers{"Content-Type": "application/json"},
+        headers: HTTP::Headers{"Content-Type" => "application/json"},
       )
 
       json_params = Kemal::ParamParser.new(request).json
-      json_params.should eq({"_json": [1]})
+      json_params.should eq({"_json" => [1]})
     end
 
     it "parses request body and query params" do
@@ -112,16 +112,16 @@ describe "ParamParser" do
         "POST",
         "/?foo=bar",
         body: "[1]",
-        headers: HTTP::Headers{"Content-Type": "application/json"},
+        headers: HTTP::Headers{"Content-Type" => "application/json"},
       )
 
       query_params = Kemal::ParamParser.new(request).query
-      {"foo": "bar"}.each do |k, v|
+      {"foo" => "bar"}.each do |k, v|
         query_params[k].should eq(v)
       end
 
       json_params = Kemal::ParamParser.new(request).json
-      json_params.should eq({"_json": [1]})
+      json_params.should eq({"_json" => [1]})
     end
 
     it "handles no request body" do
@@ -130,7 +130,7 @@ describe "ParamParser" do
       request = HTTP::Request.new(
         "GET",
         "/",
-        headers: HTTP::Headers{"Content-Type": "application/json"},
+        headers: HTTP::Headers{"Content-Type" => "application/json"},
       )
 
       url_params = Kemal::ParamParser.new(request).url
@@ -160,7 +160,7 @@ describe "ParamParser" do
         "POST",
         "/?hasan=cemal",
         body: "name=serdar&age=99",
-        headers: HTTP::Headers{"Content-Type": "text/plain"},
+        headers: HTTP::Headers{"Content-Type" => "text/plain"},
       )
 
       query_params = Kemal::ParamParser.new(request).query

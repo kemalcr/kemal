@@ -6,7 +6,7 @@ describe "Kemal::Middleware::HTTPBasicAuth" do
     request = HTTP::Request.new(
       "GET",
       "/",
-      headers: HTTP::Headers{"Authorization": "Basic c2VyZGFyOjEyMw=="},
+      headers: HTTP::Headers{"Authorization" => "Basic c2VyZGFyOjEyMw=="},
     )
 
     io_with_context = create_request_and_return_io(auth_handler, request)
@@ -19,7 +19,7 @@ describe "Kemal::Middleware::HTTPBasicAuth" do
     request = HTTP::Request.new(
       "GET",
       "/",
-      headers: HTTP::Headers{"Authorization": "NotBasic"},
+      headers: HTTP::Headers{"Authorization" => "NotBasic"},
     )
     io_with_context = create_request_and_return_io(auth_handler, request)
     client_response = HTTP::Client::Response.from_io(io_with_context, decompress: false)
