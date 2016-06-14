@@ -18,7 +18,7 @@ describe "ParamParser" do
     end
     request = HTTP::Request.new("POST", "/?hasan=cemal&hasan=lamec")
     query_params = Kemal::ParamParser.new(request).query
-    query_params["hasan"].should eq ["cemal", "lamec"]
+    query_params.fetch_all("hasan").should eq ["cemal", "lamec"]
   end
 
   it "parses url params" do
@@ -49,10 +49,14 @@ describe "ParamParser" do
     )
 
     query_params = Kemal::ParamParser.new(request).query
-    query_params.should eq({"hasan" => "cemal"})
+    {"hasan": "cemal"}.each do |k, v|
+      query_params[k].should eq(v)
+    end
 
     body_params = Kemal::ParamParser.new(request).body
-    body_params.should eq({"name" => "serdar", "age" => "99"})
+    {"name": "serdar", "age": "99"}.each do |k, v|
+      body_params[k].should eq(v)
+    end
   end
 
   it "parses multiple values in request body" do
@@ -69,7 +73,7 @@ describe "ParamParser" do
     )
 
     body_params = Kemal::ParamParser.new(request).body
-    body_params.should eq({"hasan" => ["cemal", "lamec"]})
+    body_params.fetch_all("hasan").should eq(["cemal", "lamec"])
   end
 
   context "when content type is application/json" do
@@ -112,7 +116,9 @@ describe "ParamParser" do
       )
 
       query_params = Kemal::ParamParser.new(request).query
-      query_params.should eq({"foo": "bar"})
+      {"foo": "bar"}.each do |k, v|
+        query_params[k].should eq(v)
+      end
 
       json_params = Kemal::ParamParser.new(request).json
       json_params.should eq({"_json": [1]})
@@ -131,10 +137,10 @@ describe "ParamParser" do
       url_params.should eq({} of String => String)
 
       query_params = Kemal::ParamParser.new(request).query
-      query_params.should eq({} of String => String)
+      query_params.to_s.should eq("")
 
       body_params = Kemal::ParamParser.new(request).body
-      body_params.should eq({} of String => String)
+      body_params.to_s.should eq("")
 
       json_params = Kemal::ParamParser.new(request).json
       json_params.should eq({} of String => AllParamTypes)
@@ -158,10 +164,10 @@ describe "ParamParser" do
       )
 
       query_params = Kemal::ParamParser.new(request).query
-      query_params.should eq({"hasan" => "cemal"})
+      query_params["hasan"].should eq("cemal")
 
       body_params = Kemal::ParamParser.new(request).body
-      body_params.should eq({} of String => String)
+      body_params.to_s.should eq("")
     end
   end
 end
