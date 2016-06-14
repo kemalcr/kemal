@@ -11,8 +11,8 @@ class Kemal::ParamParser
 
   def initialize(@request : HTTP::Request)
     @url = {} of String => String
-    @query = {} of String => String
-    @body = {} of String => String
+    @query = HTTP::Params.new({} of String => Array(String))
+    @body = HTTP::Params.new({} of String => Array(String))
     @json = {} of String => AllParamTypes
     @url_parsed = false
     @query_parsed = false
@@ -68,12 +68,6 @@ class Kemal::ParamParser
   end
 
   def parse_part(part)
-    part_params = {} of String => String
-    if part
-      HTTP::Params.parse(part) do |key, value|
-        part_params[key as String] ||= value as String
-      end
-    end
-    part_params
+    HTTP::Params.parse(part || "")
   end
 end
