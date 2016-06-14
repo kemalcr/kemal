@@ -49,7 +49,7 @@ describe "Kemal::RouteHandler" do
       "POST",
       "/",
       body: json_payload.to_json,
-      headers: HTTP::Headers{"Content-Type": "application/json"},
+      headers: HTTP::Headers{"Content-Type" => "application/json"},
     )
     client_response = call_request_on_app(request)
     client_response.body.should eq("Hello Serdar Age 26")
@@ -66,7 +66,7 @@ describe "Kemal::RouteHandler" do
       "POST",
       "/",
       body: json_payload.to_json,
-      headers: HTTP::Headers{"Content-Type": "application/json"},
+      headers: HTTP::Headers{"Content-Type" => "application/json"},
     )
     client_response = call_request_on_app(request)
     client_response.body.should eq("Skills ruby,crystal")
@@ -87,7 +87,7 @@ describe "Kemal::RouteHandler" do
       "POST",
       "/",
       body: json_payload.to_json,
-      headers: HTTP::Headers{"Content-Type": "application/json"},
+      headers: HTTP::Headers{"Content-Type" => "application/json"},
     )
 
     client_response = call_request_on_app(request)
@@ -102,7 +102,7 @@ describe "Kemal::RouteHandler" do
       "POST",
       "/",
       body: "_method=PUT",
-      headers: HTTP::Headers{"Content-Type": "application/x-www-form-urlencoded"}
+      headers: HTTP::Headers{"Content-Type" => "application/x-www-form-urlencoded"}
     )
     client_response = call_request_on_app(request)
     client_response.body.should eq("Hello World from PUT")
@@ -116,7 +116,7 @@ describe "Kemal::RouteHandler" do
       "POST",
       "/",
       body: "_method=PATCH",
-      headers: HTTP::Headers{"Content-Type": "application/x-www-form-urlencoded; charset=UTF-8"}
+      headers: HTTP::Headers{"Content-Type" => "application/x-www-form-urlencoded; charset=UTF-8"}
     )
     client_response = call_request_on_app(request)
     client_response.body.should eq("Hello World from PATCH")
@@ -131,7 +131,7 @@ describe "Kemal::RouteHandler" do
       "POST",
       "/",
       body: "_method=DELETE",
-      headers: HTTP::Headers{"Content-Type": "application/x-www-form-urlencoded; charset=UTF-8"}
+      headers: HTTP::Headers{"Content-Type" => "application/x-www-form-urlencoded; charset=UTF-8"}
     )
     client_response = call_request_on_app(request)
     client_response.body.should eq("Hello World from DELETE")
