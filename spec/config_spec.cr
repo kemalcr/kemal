@@ -23,6 +23,12 @@ describe "Config" do
     config.host_binding.should eq "127.0.0.1"
   end
 
+  it "sets ssl context" do
+    config = Kemal.config
+    config.ssl = OpenSSL::SSL::Context::Server.new
+    config.ssl.should be_a OpenSSL::SSL::Context::Server
+  end
+
   it "adds a custom handler" do
     config = Kemal.config
     config.add_handler CustomTestHandler.new
