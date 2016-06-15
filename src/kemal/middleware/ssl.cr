@@ -3,7 +3,7 @@ module Kemal::Middleware
     getter context
 
     def initialize
-      @context = OpenSSL::SSL::Context.new
+      @context = OpenSSL::SSL::Context::Server.new
     end
 
     def set_key_file(key_file)

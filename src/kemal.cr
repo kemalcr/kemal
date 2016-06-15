@@ -10,7 +10,7 @@ module Kemal
     config.add_handler Kemal::RouteHandler::INSTANCE
 
     config.server = HTTP::Server.new(config.host_binding.not_nil!, config.port, config.handlers)
-    config.server.not_nil!.ssl = config.ssl
+    config.server.not_nil!.tls = config.ssl
 
     unless Kemal.config.error_handlers.has_key?(404)
       error 404 do |env|
