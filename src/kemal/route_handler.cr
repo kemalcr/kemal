@@ -32,7 +32,7 @@ class Kemal::RouteHandler < HTTP::Handler
   # Processes the route if it's a match. Otherwise renders 404.
   def process_request(context)
     raise Kemal::Exceptions::RouteNotFound.new(context) unless context.route_defined?
-    route = context.route_lookup.payload as Route
+    route = context.route_lookup.payload.as(Route)
     content = route.handler.call(context)
     if Kemal.config.error_handlers.has_key?(context.response.status_code)
       raise Kemal::Exceptions::CustomException.new(context)

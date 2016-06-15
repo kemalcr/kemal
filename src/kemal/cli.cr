@@ -3,7 +3,6 @@ require "option_parser"
 module Kemal
   # Handles all the initialization from the command line.
   class CLI
-
     def initialize
       @ssl_enabled = false
       @key_file = ""
