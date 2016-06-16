@@ -57,3 +57,7 @@ end
 def serve_static(status)
   Kemal.config.serve_static = status
 end
+
+def headers(env, additional_headers)
+  env.response.headers.merge!(additional_headers)
+end

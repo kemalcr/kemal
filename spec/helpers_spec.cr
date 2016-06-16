@@ -67,4 +67,21 @@ describe "Macros" do
       client_response.body.should eq("")
     end
   end
+
+  describe "#headers" do
+    it "can add headers" do
+      get "/headers" do |env|
+        env.response.headers.add "Content-Type", "image/png"
+        headers env, {
+          "Access-Control-Allow-Origin" => "*",
+          "Content-Type" => "text/plain"
+        }
+      end
+
+      request = HTTP::Request.new("GET", "/headers")
+      response = call_request_on_app(request)
+      response.headers["Access-Control-Allow-Origin"].should eq("*")
+      response.headers["Content-Type"].should eq("text/plain")
+    end
+  end
 end
