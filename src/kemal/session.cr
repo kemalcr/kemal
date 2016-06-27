@@ -3,6 +3,17 @@ require "secure_random"
 module Kemal
   # Kemal's default session is in-memory only and holds simple String values only.
   # The client-side cookie stores a random ID.
+  #
+  # Kemal handlers can access the session like so:
+  #
+  #   get("/") do |env|
+  #     env.session["abc"] = "xyz"
+  #     uid = env.session["user_id"]?
+  #   end
+  #
+  # Note that only String values are allowed.
+  #
+  # Sessions are pruned hourly after 48 hours of inactivity.
   class Sessions
     NAME = "SessionId"
 
@@ -44,6 +55,11 @@ module Kemal
         @last_access_at = Time.now.epoch_ms
         @store[key] = value
       end
+
+      def delete(key : String)
+        @last_access_at = Time.now.epoch_ms
+        @store.delete(key)
+      end
     end
 
     getter! id : String
@@ -74,6 +90,10 @@ module Kemal
 
     def []?(key : String)
       STORE[@id]?.try &.[key]?
+    end
+
+    def delete(key : String)
+      STORE[@id]?.try &.delete(key)
     end
 
     def self.prune!(before = (Time.now - Kemal::Sessions::TTL).epoch_ms)

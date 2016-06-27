@@ -7,6 +7,7 @@ describe "Session" do
     get "/" do |env|
       sess = env.session
       existing = sess["token"]?
+      sess.delete("token")
       sid = sess.id
       sess["token"] = "abc"
       "Hello"
