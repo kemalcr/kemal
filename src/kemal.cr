@@ -12,6 +12,8 @@ module Kemal
     config.server = HTTP::Server.new(config.host_binding.not_nil!, config.port, config.handlers)
     config.server.not_nil!.tls = config.ssl
 
+    Kemal::Sessions.run_reaper!
+
     unless Kemal.config.error_handlers.has_key?(404)
       error 404 do |env|
         render_404
