@@ -16,12 +16,13 @@ module Kemal::Middleware
     PARAMETER_NAME = "authenticity_token"
 
     def call(context)
+      unless context.session["csrf"]?
+        context.session["csrf"] = SecureRandom.hex(16)
+      end
+
       return call_next(context) if ALLOWED_METHODS.includes?(context.request.method)
 
       req = context.request
-      current_token = context.session["csrf"]? || begin
-        context.session["csrf"] = SecureRandom.hex(16)
-      end
       submitted = if req.headers[HEADER]?
         req.headers[HEADER]
       elsif context.params.body[PARAMETER_NAME]?
@@ -29,6 +30,7 @@ module Kemal::Middleware
       else
         "nothing"
       end
+      current_token = context.session["csrf"]
 
       if current_token == submitted
         # reset the token so it can't be used again
