@@ -19,5 +19,10 @@ class HTTP::Server
     def route_defined?
       route_lookup.found?
     end
+
+    def session
+      @session ||= Kemal::Sessions.new(self)
+      @session.not_nil!
+    end
   end
 end
