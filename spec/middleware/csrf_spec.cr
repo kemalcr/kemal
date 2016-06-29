@@ -55,7 +55,7 @@ describe "Kemal::Middleware::CSRF" do
       body: "hasan=lamec",
       headers: HTTP::Headers{"Content-Type" => "application/x-www-form-urlencoded",
                              "Set-Cookie" => client_response.headers["Set-Cookie"],
-                             "http-x-csrf-token" => current_token })
+                             "x-csrf-token" => current_token })
     io, context = process_request(handler, request)
     client_response = HTTP::Client::Response.from_io(io, decompress: false)
     client_response.status_code.should eq 404

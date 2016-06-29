@@ -11,7 +11,7 @@ module Kemal::Middleware
   # where an attacker can re-submit a form.
   #
   class CSRF < HTTP::Handler
-    HEADER = "HTTP_X_CSRF_TOKEN"
+    HEADER = "X_CSRF_TOKEN"
     ALLOWED_METHODS = %w[GET HEAD OPTIONS TRACE]
     PARAMETER_NAME = "authenticity_token"
 
