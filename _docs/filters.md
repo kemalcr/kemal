@@ -24,7 +24,7 @@ When using `before_all` and `after_all` keep in mind that they will be evaluated
 ```ruby
 before_get "/foo" do |env|
   puts "Setting response content type"
-  context.response.content_type = "application/json"
+  env.response.content_type = "application/json"
 end
 
 get "/foo" do |env|
@@ -38,7 +38,7 @@ end
 ```ruby
 before_all "/foo" do |env|
   puts "Setting response content type"
-  context.response.content_type = "application/json"
+  env.response.content_type = "application/json"
 end
 
 get "/foo" do |env|
