@@ -1,16 +1,22 @@
 require "./spec_helper"
 
 describe "Kemal::CommonExceptionHandler" do
-  # it "renders 404 on route not found" do
-  #   get "/" do |env|
-  #     "Hello"
-  #   end
-  #
-  #   request = HTTP::Request.new("GET", "/asd")
-  #   client_response = call_request_on_app(request)
-  #   client_response.status_code.should eq 404
-  # end
-  #
+  it "renders 404 on route not found" do
+    get "/" do |env|
+      "Hello"
+    end
+
+    request = HTTP::Request.new("GET", "/asd")
+    io = MemoryIO.new
+    response = HTTP::Server::Response.new(io)
+    context = HTTP::Server::Context.new(request, response)
+    Kemal::CommonExceptionHandler::INSTANCE.call(context)
+    response.close
+    io.rewind
+    response = HTTP::Client::Response.from_io(io, decompress: false)
+    response.status_code.should eq 404
+  end
+
   # it "renders custom error" do
   #   error 403 do
   #     "403 error"
@@ -21,8 +27,15 @@ describe "Kemal::CommonExceptionHandler" do
   #   end
   #
   #   request = HTTP::Request.new("GET", "/")
-  #   client_response = call_request_on_app(request)
-  #   client_response.status_code.should eq 403
-  #   client_response.body.should eq "403 error"
+  #   io = MemoryIO.new
+  #   response = HTTP::Server::Response.new(io)
+  #   context = HTTP::Server::Context.new(request, response)
+  #   Kemal::RouteHandler::INSTANCE.call(context)
+  #   Kemal::CommonExceptionHandler::INSTANCE.call(context)
+  #   response.close
+  #   io.rewind
+  #   response = HTTP::Client::Response.from_io(io, decompress: false)
+  #   response.status_code.should eq 403
+  #   response.body.should eq "403 error"
   # end
 end
