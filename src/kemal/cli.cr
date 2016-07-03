@@ -8,6 +8,7 @@ module Kemal
       @key_file = ""
       @cert_file = ""
       @config = Kemal.config
+      read_env
       parse
       configure_ssl
     end
@@ -19,9 +20,6 @@ module Kemal
         end
         opts.on("-p PORT", "--port PORT", "Port to listen for connections (defaults to 3000)") do |opt_port|
           @config.port = opt_port.to_i
-        end
-        opts.on("-e ENV", "--environment ENV", "Environment [development, production] (defaults to development). Set `production` to boost performance") do |env|
-          @config.env = env
         end
         opts.on("-s", "--ssl", "Enables SSL") do
           @ssl_enabled = true
@@ -48,6 +46,10 @@ module Kemal
         ssl.set_cert_file @cert_file.not_nil!
         Kemal.config.ssl = ssl.context
       end
+    end
+
+    def read_env
+      @config.env = ENV.fetch("KEMAL_ENV", "development")
     end
   end
 end
