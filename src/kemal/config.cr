@@ -7,7 +7,7 @@ module Kemal
     @server : HTTP::Server?
 
     property host_binding, ssl, port, env, public_folder, logging,
-      always_rescue, serve_static, server
+      always_rescue, serve_static, server, extra_options
 
     def initialize
       @host_binding = "0.0.0.0"
@@ -66,6 +66,9 @@ module Kemal
                     Kemal::NullLogHandler.new(@env)
                   end
       HANDLERS.insert(0, @logger.not_nil!)
+    end
+
+    def extra_options(&@extra_options : OptionParser ->)
     end
 
     private def setup_error_handler

@@ -34,6 +34,7 @@ module Kemal
           puts opts
           exit 0
         end
+        @config.extra_options.try &.call(opts)
       end
     end
 
