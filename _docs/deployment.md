@@ -5,7 +5,7 @@ title: "Deployment"
 
 ## Heroku
 
-You can use [heroku-buildpack-crystal](https://github.com/zamith/heroku-buildpack-crystal) to deploy your Kemal application to Heroku.
+You can use [heroku-buildpack-crystal](https://github.com/crystal-lang/heroku-buildpack-crystal) to deploy your Kemal application to Heroku.
 
 ## Cross-compilation
 
