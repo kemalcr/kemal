@@ -28,4 +28,19 @@ describe "Config" do
     config.add_handler CustomTestHandler.new
     config.handlers.size.should eq(5)
   end
+
+  it "adds custom options" do
+    config = Kemal.config
+    ARGV.push("--test")
+    ARGV.push("FOOBAR")
+    test_option = nil
+
+    config.extra_options do |parser|
+      parser.on("--test TEST_OPTION", "Test an option") do |opt|
+        test_option = opt
+      end
+    end
+    Kemal::CLI.new
+    test_option.should eq("FOOBAR")
+  end
 end
