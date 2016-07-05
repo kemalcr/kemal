@@ -19,7 +19,6 @@ class Kemal::CommonLogHandler < Kemal::BaseLogHandler
     call_next(context)
     elapsed_text = elapsed_text(Time.now - time)
     @handler << time << " " << context.response.status_code << " " << context.request.method << " " << context.request.resource << " " << elapsed_text << "\n"
-    @handler.rewind
     context
   end
 
