@@ -61,9 +61,9 @@ module Kemal
 
     def setup_log_handler
       @logger ||= if @logging
-                    Kemal::CommonLogHandler.new(@env)
+                    Kemal::CommonLogHandler.new
                   else
-                    Kemal::NullLogHandler.new(@env)
+                    Kemal::NullLogHandler.new
                   end
       HANDLERS.insert(0, @logger.not_nil!)
     end

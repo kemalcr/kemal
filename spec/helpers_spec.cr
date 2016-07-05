@@ -29,7 +29,7 @@ describe "Macros" do
     end
     it "sets a custom logger" do
       config = Kemal::Config::INSTANCE
-      logger CustomLogHandler.new("production")
+      logger CustomLogHandler.new
       config.handlers.last.should be_a(CustomLogHandler)
       config.logger.should be_a(CustomLogHandler)
     end

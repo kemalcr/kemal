@@ -4,14 +4,8 @@ class Kemal::CommonLogHandler < Kemal::BaseLogHandler
   @handler : IO::FileDescriptor
   getter handler
 
-  def initialize(@env)
-    @handler = if @env == "production"
-                 handler = File.new("kemal.log", "a")
-                 handler.flush_on_newline = true
-                 handler
-               else
-                 STDOUT
-               end
+  def initialize
+    @handler = STDOUT
   end
 
   def call(context)
