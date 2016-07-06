@@ -30,9 +30,9 @@ Accessing the HTTP request/response environment (query params, body, content_typ
 
   # Set the content as application/json and return JSON
   get "/user.json" do |env|
-    kemal = {name: "Kemal", language: "Crystal"}
+    user = {name: "Kemal", language: "Crystal"}
     env.response.content_type = "application/json"
-    kemal.to_json
+    user
   end
 
   # Add headers to your response
