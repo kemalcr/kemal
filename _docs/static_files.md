@@ -32,3 +32,11 @@ Open index.html and add
  </body>
 </html>
 ```
+
+## Disabling Static File Serving
+
+By default `Kemal` serves static files from `public` folder. If you don't need static file serving at all(for example an API won't gonna need it) you can disable it like
+
+```crystal
+serve_static false
+```
