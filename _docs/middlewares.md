@@ -24,6 +24,21 @@ end
 Kemal.run
 ```
 
+### CSRF
+
+This middleware adds CSRF protection to your application.
+
+Returns 403 "Forbidden" unless the current CSRF token is submitted
+with any non-GET/HEAD request.
+
+Without CSRF protection, your app is vulnerable to replay attacks
+where an attacker can re-submit a form.
+
+```ruby
+csrf_handler = Kemal::Middleware::CSRF.new
+Kemal.config.add_handler csrf_handler
+```
+
 ## Custom Logger
 
 You can easily replace the built-in logger of `Kemal`. There's only one requirement which is that
