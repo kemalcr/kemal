@@ -1,16 +1,18 @@
 require "kilt"
 
-CONTENTS = {} of String => MemoryIO -> String
+CONTENT_FOR_BLOCKS = Hash(String, Proc(String)).new
 
-def content_for(name : String, &block : MemoryIO -> String)
-  puts "Called content_for"
-  CONTENTS[name] = block
-  # CONTENTS[name] = block
+macro content_for(key)
+  CONTENT_FOR_BLOCKS[{{key}}] = ->() {
+    __kilt_io__ = MemoryIO.new
+    {{ yield }}
+    __kilt_io__.to_s
+  }
+  nil
 end
 
-def yield_content(name)
-  puts "Called yield_content"
-  CONTENTS[name].call
+macro yield_content(key)
+  CONTENT_FOR_BLOCKS[{{key}}].call
 end
 
 # Uses built-in ECR to render views.
@@ -20,12 +22,7 @@ end
 # end
 macro render(filename, layout)
   content = render {{filename}}
-  if CONTENTS.size > 0
-    puts "CONTENTS greater than 0"
-    render {{layout}}
-  else
-    render {{layout}}
-  end
+  render {{layout}}
 end
 
 macro render(filename, *args)
@@ -37,9 +34,6 @@ macro return_with(env, status_code = 200, response = "")
   {{env}}.response.print {{response}}
   next
 end
-
-
-
 
 # Adds given HTTP::Handler+ to handlers.
 def add_handler(handler)
