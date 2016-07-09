@@ -9,7 +9,7 @@ github_username:  sdogruyol
 
 # Build settings
 markdown:         redcarpet
-highlighter:      pygments
+highlighter:      rouge
 permalink:        /blog/:year/:month/:day/:title/
 
 collections:
