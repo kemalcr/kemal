@@ -1,5 +1,20 @@
 require "kilt"
 
+CONTENT_FOR_BLOCKS = Hash(String, Proc(String)).new
+
+macro content_for(key)
+  CONTENT_FOR_BLOCKS[{{key}}] = ->() {
+    __kilt_io__ = MemoryIO.new
+    {{ yield }}
+    __kilt_io__.to_s
+  }
+  nil
+end
+
+macro yield_content(key)
+  CONTENT_FOR_BLOCKS[{{key}}].call
+end
+
 # Uses built-in ECR to render views.
 # # Usage
 # get '/' do

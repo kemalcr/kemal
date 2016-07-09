@@ -34,4 +34,15 @@ describe "Views" do
     client_response = call_request_on_app(request)
     client_response.body.should contain("<html>Hello world")
   end
+
+  it "renders layout with content_for" do
+    get "/view/:name" do |env|
+      name = env.params.url["name"]
+      render "spec/asset/hello_with_content_for.ecr", "spec/asset/layout_with_yield.ecr"
+    end
+    request = HTTP::Request.new("GET", "/view/world")
+    client_response = call_request_on_app(request)
+    client_response.body.should contain("<html>Hello world")
+    client_response.body.should contain("<h1>Hello from otherside</h1>")
+  end
 end
