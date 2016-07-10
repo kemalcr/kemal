@@ -1,6 +1,6 @@
 require "kilt"
 
-CONTENT_FOR_BLOCKS = Hash(String, Proc(String)).new
+CONTENT_FOR_BLOCKS = Hash(String, Tuple(String, Proc(String))).new
 
 # <tt>content_for</tt> is a set of helpers that allows you to capture
 # blocks inside views to be rendered later during the request. The most
@@ -31,20 +31,27 @@ CONTENT_FOR_BLOCKS = Hash(String, Proc(String)).new
 # Then you can put <tt><%= yield_content :scripts_and_styles %></tt> on your
 # layout, inside the <head> tag, and each view can call <tt>content_for</tt>
 # setting the appropriate set of tags that should be added to the layout.
-macro content_for(key)
-  CONTENT_FOR_BLOCKS[{{key}}] = ->() {
+macro content_for(key, file = __FILE__)
+  proc = ->() {
     __kilt_io__ = MemoryIO.new
     {{ yield }}
     __kilt_io__.to_s
   }
+
+  CONTENT_FOR_BLOCKS[{{key}}] = Tuple.new {{file}}, proc
   nil
 end
 
 macro yield_content(key)
-  CONTENT_FOR_BLOCKS[{{key}}].call if CONTENT_FOR_BLOCKS.has_key?({{key}})
+  if CONTENT_FOR_BLOCKS.has_key?({{key}})
+    __caller_filename__ = CONTENT_FOR_BLOCKS[{{key}}][0]
+    proc = CONTENT_FOR_BLOCKS[{{key}}][1]
+    proc.call if __content_filename__ == __caller_filename__
+  end
 end
 
 macro render(filename, layout)
+  __content_filename__ = {{filename}}
   content = render {{filename}}
   render {{layout}}
 end
