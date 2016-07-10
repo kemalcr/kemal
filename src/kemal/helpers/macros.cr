@@ -41,7 +41,7 @@ macro content_for(key)
 end
 
 macro yield_content(key)
-  CONTENT_FOR_BLOCKS[{{key}}].call
+  CONTENT_FOR_BLOCKS[{{key}}].call if CONTENT_FOR_BLOCKS.has_key?({{key}})
 end
 
 macro render(filename, layout)
