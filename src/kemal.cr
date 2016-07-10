@@ -1,4 +1,5 @@
 require "./kemal/*"
+require "./kemal/helpers/*"
 require "./kemal/middleware/*"
 
 module Kemal
