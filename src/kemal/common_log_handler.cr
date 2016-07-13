@@ -16,6 +16,10 @@ class Kemal::CommonLogHandler < Kemal::BaseLogHandler
     context
   end
 
+  def write(message)
+    @handler << message
+  end
+
   private def elapsed_text(elapsed)
     minutes = elapsed.total_minutes
     return "#{minutes.round(2)}m" if minutes >= 1
