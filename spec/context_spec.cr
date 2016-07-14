@@ -40,4 +40,32 @@ describe "Context" do
     client_response = call_request_on_app(request)
     client_response.headers["Accept-Language"].should eq "tr"
   end
+
+  it "can store variables" do
+    before_get "/" do |env|
+      env.set "before_get", "Kemal"
+      env.set "before_get_int", 123
+      env.set "before_get_float", 3.5
+    end
+
+    get "/" do |env|
+      env.set "key", "value"
+      {
+        key: env.get("key"),
+        before_get: env.get("before_get"),
+        before_get_int: env.get("before_get_int"),
+        before_get_float: env.get("before_get_float")
+      }
+    end
+    request = HTTP::Request.new("GET", "/")
+    io = MemoryIO.new
+    response = HTTP::Server::Response.new(io)
+    context = HTTP::Server::Context.new(request, response)
+    Kemal::Middleware::Filter::INSTANCE.call(context)
+    Kemal::RouteHandler::INSTANCE.call(context)
+    context.store["key"].should eq "value"
+    context.store["before_get"].should eq "Kemal"
+    context.store["before_get_int"].should eq 123
+    context.store["before_get_float"].should eq 3.5
+  end
 end

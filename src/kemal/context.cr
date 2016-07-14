@@ -2,6 +2,9 @@
 # information such as params, content_type e.g
 class HTTP::Server
   class Context
+    alias StoreTypes =  Nil | String | Int32 | Float64 | Bool
+    getter store = {} of String => StoreTypes
+
     def params
       @request.url_params ||= route_lookup.params
       @params ||= Kemal::ParamParser.new(@request)
@@ -23,6 +26,14 @@ class HTTP::Server
     def session
       @session ||= Kemal::Sessions.new(self)
       @session.not_nil!
+    end
+
+    def get(name)
+      @store[name]
+    end
+
+    def set(name, value)
+      @store[name] = value
     end
   end
 end
