@@ -42,6 +42,7 @@ macro content_for(key, file = __FILE__)
   nil
 end
 
+# Yields content for the given key if a content_for block exists for that key.
 macro yield_content(key)
   if CONTENT_FOR_BLOCKS.has_key?({{key}})
     __caller_filename__ = CONTENT_FOR_BLOCKS[{{key}}][0]
@@ -50,16 +51,25 @@ macro yield_content(key)
   end
 end
 
+# Render view with a layout as the superview.
+#
+#   render "src/views/index.ecr", "src/views/layout.ecr"
+#
 macro render(filename, layout)
   __content_filename__ = {{filename}}
   content = render {{filename}}
   render {{layout}}
 end
 
-macro render(filename, *args)
-  Kilt.render({{filename}}, {{*args}})
+# Render view with the given filename.
+macro render(filename)
+  Kilt.render({{filename}})
 end
 
+# Halt execution with the current context.
+# Returns 200 and an empty response by default.
+#
+#   return_with env, status_code: 403, response: "Forbidden"
 macro return_with(env, status_code = 200, response = "")
   {{env}}.response.status_code = {{status_code}}
   {{env}}.response.print {{response}}
