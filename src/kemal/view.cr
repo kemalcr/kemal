@@ -48,7 +48,6 @@ def render_500(context, backtrace, verbosity)
       </body>
       </html>
   HTML
-  context.response.content_type = "text/html"
   context.response.status_code = 500
   context.response.print template
   context

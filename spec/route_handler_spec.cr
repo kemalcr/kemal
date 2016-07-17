@@ -155,20 +155,4 @@ describe "Kemal::RouteHandler" do
     client_response.status_code.should eq(302)
     client_response.headers.has_key?("Location").should eq(true)
   end
-
-  it "sets default Content-Type to context html" do
-    get "/" do |env|
-      "Hello World from GET"
-    end
-    request = HTTP::Request.new("GET", "/")
-    client_response = call_request_on_app(request)
-    client_response.content_type.should eq("text/html")
-  end
-
-  it "sets X-Powered-By to Kemal" do
-    get "/" { }
-    request = HTTP::Request.new("GET", "/")
-    client_response = call_request_on_app(request)
-    client_response.headers["X-Powered-By"].should eq("Kemal")
-  end
 end

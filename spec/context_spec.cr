@@ -1,15 +1,6 @@
 require "./spec_helper"
 
 describe "Context" do
-  it "has a default content type" do
-    get "/" do |env|
-      "Hello"
-    end
-    request = HTTP::Request.new("GET", "/")
-    client_response = call_request_on_app(request)
-    client_response.headers["Content-Type"].should eq("text/html")
-  end
-
   it "sets content type" do
     get "/" do |env|
       env.response.content_type = "application/json"

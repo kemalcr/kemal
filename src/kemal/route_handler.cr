@@ -13,8 +13,6 @@ module Kemal
     end
 
     def call(context)
-      context.response.headers.add "X-Powered-By", "Kemal"
-      context.response.content_type = "text/html" unless context.response.headers.has_key?("Content-Type")
       process_request(context)
     end
 

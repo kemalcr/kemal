@@ -58,33 +58,38 @@ module Kemal
       ERROR_HANDLERS[status_code] = ->(context : HTTP::Server::Context) { handler.call(context).to_s }
     end
 
+    def extra_options(&@extra_options : OptionParser ->)
+    end
+
     def setup
+      setup_init_handler
       setup_log_handler
       setup_error_handler
       setup_static_file_handler
     end
 
-    def setup_log_handler
+    private def setup_init_handler
+      HANDLERS.insert(0, Kemal::InitHandler::INSTANCE)
+    end
+
+    private def setup_log_handler
       @logger ||= if @logging
                     Kemal::CommonLogHandler.new
                   else
                     Kemal::NullLogHandler.new
                   end
-      HANDLERS.insert(0, @logger.not_nil!)
-    end
-
-    def extra_options(&@extra_options : OptionParser ->)
+      HANDLERS.insert(1, @logger.not_nil!)
     end
 
     private def setup_error_handler
       if @always_rescue
         @error_handler ||= Kemal::CommonExceptionHandler.new
-        HANDLERS.insert(1, @error_handler.not_nil!)
+        HANDLERS.insert(2, @error_handler.not_nil!)
       end
     end
 
     private def setup_static_file_handler
-      HANDLERS.insert(2, Kemal::StaticFileHandler.new(@public_folder)) if @serve_static
+      HANDLERS.insert(3, Kemal::StaticFileHandler.new(@public_folder)) if @serve_static
     end
   end
 

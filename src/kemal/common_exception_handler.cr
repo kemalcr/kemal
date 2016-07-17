@@ -7,12 +7,10 @@ module Kemal
       begin
         call_next(context)
       rescue Kemal::Exceptions::RouteNotFound
-        context.response.content_type = "text/html"
         call_exception_with_status_code(context, 404)
       rescue Kemal::Exceptions::CustomException
         call_exception_with_status_code(context, context.response.status_code)
       rescue ex : Exception
-        context.response.content_type = "text/html"
         Kemal.config.logger.write("Exception: #{ex.inspect_with_backtrace}\n")
         return call_exception_with_status_code(context, 500) if Kemal.config.error_handlers.has_key?(500)
         verbosity = Kemal.config.env == "production" ? false : true
