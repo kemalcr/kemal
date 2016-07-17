@@ -5,9 +5,9 @@ module Kemal
     INSTANCE = new
 
     def call(context)
-      context.response.content_type = "text/html"
       context.response.headers.add "X-Powered-By", "Kemal"
       call_next context
+      context.response.content_type = "text/html"
     end
   end
 end
