@@ -166,7 +166,7 @@ describe "Kemal::RouteHandler" do
   end
 
   it "sets X-Powered-By to Kemal" do
-    get "/" {}
+    get "/" { }
     request = HTTP::Request.new("GET", "/")
     client_response = call_request_on_app(request)
     client_response.headers["X-Powered-By"].should eq("Kemal")

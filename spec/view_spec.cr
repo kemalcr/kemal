@@ -46,7 +46,7 @@ describe "Views" do
     client_response = call_request_on_app(request)
     client_response.body.should contain("Hello world")
     client_response.body.should contain("serdar")
-    client_response.body.should contain("kemal")  
+    client_response.body.should contain("kemal")
   end
 
   it "renders layout with content_for" do

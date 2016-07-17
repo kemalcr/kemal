@@ -74,7 +74,7 @@ describe "Macros" do
         env.response.headers.add "Content-Type", "image/png"
         headers env, {
           "Access-Control-Allow-Origin" => "*",
-          "Content-Type" => "text/plain"
+          "Content-Type"                => "text/plain",
         }
       end
 

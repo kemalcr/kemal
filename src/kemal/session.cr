@@ -19,7 +19,7 @@ module Kemal
 
     # I hate websites which require daily login so the default
     # inactivity timeout is 48 hours.
-    TTL  = 48.hours
+    TTL = 48.hours
 
     # In-memory, ephemeral datastore only.
     #
