@@ -1,3 +1,6 @@
+# Kemal DSL is defined here and it's baked into global scope.
+# The DSL currently consists of HTTP verbs(get post put patch delete options),
+# WebSocket(ws) and custom error handler(error).
 HTTP_METHODS = %w(get post put patch delete options)
 
 {% for method in HTTP_METHODS %}

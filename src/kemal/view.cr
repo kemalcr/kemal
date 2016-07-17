@@ -1,3 +1,6 @@
+# This file contains the built-in view templates that Kemal uses.
+# Currently it contains templates for 404 and 500 error codes.
+
 # Template for 404 Not Found
 def render_404
   template = <<-HTML
