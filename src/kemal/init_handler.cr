@@ -7,7 +7,7 @@ module Kemal
     def call(context)
       context.response.headers.add "X-Powered-By", "Kemal"
       call_next context
-      context.response.content_type = "text/html"
+      context.response.content_type = "text/html" unless context.response.headers.has_key?("Content-Type")
     end
   end
 end
