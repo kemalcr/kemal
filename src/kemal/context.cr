@@ -1,8 +1,10 @@
-# Context is the environment which holds request/response specific
-# information such as params, content_type e.g
+# HTTP::Server::Context is the class which holds HTTP::Request and HTTP::Server::Response alongside with
+# information such as request params, request/response content_type, session e.g
+#
+# Instances of this class are passed to an `HTTP::Server` handler.
 class HTTP::Server
   class Context
-    alias StoreTypes =  Nil | String | Int32 | Float64 | Bool
+    alias StoreTypes = Nil | String | Int32 | Float64 | Bool
     getter store = {} of String => StoreTypes
 
     def params

@@ -1,3 +1,4 @@
+# Exceptions for 404 and custom errors are defined here.
 module Kemal::Exceptions
   class RouteNotFound < Exception
     def initialize(context)
