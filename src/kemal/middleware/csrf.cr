@@ -1,5 +1,4 @@
 require "secure_random"
-require "http"
 
 module Kemal::Middleware
   # This middleware adds CSRF protection to your application.
@@ -11,9 +10,9 @@ module Kemal::Middleware
   # where an attacker can re-submit a form.
   #
   class CSRF < HTTP::Handler
-    HEADER = "X_CSRF_TOKEN"
-    ALLOWED_METHODS = %w[GET HEAD OPTIONS TRACE]
-    PARAMETER_NAME = "authenticity_token"
+    HEADER          = "X_CSRF_TOKEN"
+    ALLOWED_METHODS = %w(GET HEAD OPTIONS TRACE)
+    PARAMETER_NAME  = "authenticity_token"
 
     def call(context)
       unless context.session["csrf"]?
@@ -24,12 +23,12 @@ module Kemal::Middleware
 
       req = context.request
       submitted = if req.headers[HEADER]?
-        req.headers[HEADER]
-      elsif context.params.body[PARAMETER_NAME]?
-        context.params.body[PARAMETER_NAME]
-      else
-        "nothing"
-      end
+                    req.headers[HEADER]
+                  elsif context.params.body[PARAMETER_NAME]?
+                    context.params.body[PARAMETER_NAME]
+                  else
+                    "nothing"
+                  end
       current_token = context.session["csrf"]
 
       if current_token == submitted
@@ -41,6 +40,5 @@ module Kemal::Middleware
         context.response.print "Forbidden"
       end
     end
-
   end
 end
