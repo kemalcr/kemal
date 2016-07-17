@@ -1,4 +1,5 @@
 module Kemal::Middleware
+  # This middleware adds SSL / TLS support.
   class SSL
     getter context
 
