@@ -40,3 +40,20 @@ end
 def headers(env, additional_headers)
   env.response.headers.merge!(additional_headers)
 end
+
+# Send a file with given path and default `application/octet-stream` mime_type.
+#
+#   send_file env, "./path/to/file"
+#
+# Optionally you can override the mime_type
+#
+#   send_file env, "./path/to/file", "image/jpeg"
+def send_file(env, path : String, mime_type : String? = nil)
+  file_path = File.expand_path(path, Dir.current)
+  mime_type = "application/octet-stream" unless mime_type
+  env.response.headers.add "Content-Type", mime_type
+  env.response.content_length = File.size(file_path)
+  File.open(file_path) do |file|
+    IO.copy(file, env.response)
+  end
+end

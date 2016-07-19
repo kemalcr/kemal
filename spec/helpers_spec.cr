@@ -84,4 +84,30 @@ describe "Macros" do
       response.headers["Content-Type"].should eq("text/plain")
     end
   end
+
+  describe "#send_file" do
+    it "sends file with given path and default mime-type" do
+      get "/" do |env|
+        send_file env, "./spec/asset/hello.ecr"
+      end
+
+      request = HTTP::Request.new("GET", "/")
+      response = call_request_on_app(request)
+      response.status_code.should eq(200)
+      response.headers["Content-Type"].should eq("application/octet-stream")
+      response.headers["Content-Length"].should eq("20")
+    end
+
+    it "sends file with given path and given mime-type" do
+      get "/" do |env|
+        send_file env, "./spec/asset/hello.ecr", "image/jpeg"
+      end
+
+      request = HTTP::Request.new("GET", "/")
+      response = call_request_on_app(request)
+      response.status_code.should eq(200)
+      response.headers["Content-Type"].should eq("image/jpeg")
+      response.headers["Content-Length"].should eq("20")
+    end
+  end
 end
