@@ -35,11 +35,7 @@ module Kemal
         image = env.params.url["image"]
         file_path = File.expand_path("libs/kemal/images/#{image}", Dir.current)
         if File.exists? file_path
-          env.response.headers.add "Content-Type", "application/octet-stream"
-          env.response.content_length = File.size(file_path)
-          File.open(file_path) do |file|
-            IO.copy(file, env.response)
-          end
+          send_file env, file_path
         end
       end
 
