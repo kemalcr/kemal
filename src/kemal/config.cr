@@ -74,7 +74,7 @@ module Kemal
 
     private def setup_log_handler
       @logger ||= if @logging
-                    Kemal::CommonLogHandler.new
+                    Kemal::CommonLogHandler.new(STDOUT)
                   else
                     Kemal::NullLogHandler.new
                   end

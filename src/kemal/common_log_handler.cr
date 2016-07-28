@@ -1,10 +1,9 @@
 module Kemal
   class CommonLogHandler < Kemal::BaseLogHandler
-    @handler : IO::FileDescriptor
-    getter handler
+    @handler : IO
 
-    def initialize
-      @handler = STDOUT
+    def initialize(io : IO)
+      @handler = io
     end
 
     def call(context)

@@ -9,7 +9,13 @@ class CustomTestHandler < HTTP::Handler
   end
 end
 
-class CustomLogHandler < Kemal::BaseLogHandler; end
+class CustomLogHandler < Kemal::BaseLogHandler
+  def call(context)
+  end
+
+  def write(message)
+  end
+end
 
 def create_request_and_return_io(handler, request)
   io = MemoryIO.new
