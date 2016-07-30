@@ -37,8 +37,8 @@ Accessing the HTTP request/response context (query params, body, content_type, h
 
   # Add headers to your response
   get "/headers" do |env|
-    env.add_header "Accept-Language", "tr"
-    env.add_header "Authorization", "Token 12345"
+    env.response.headers["Accept-Language"] = "tr"
+    env.response.headers["Authorization"] = "Token 12345"
   end
 ```
 
