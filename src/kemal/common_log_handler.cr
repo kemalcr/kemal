@@ -2,7 +2,7 @@ module Kemal
   class CommonLogHandler < Kemal::BaseLogHandler
     @handler : IO
 
-    def initialize(io : IO)
+    def initialize(io : IO = STDOUT)
       @handler = io
     end
 
