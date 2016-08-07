@@ -73,7 +73,7 @@ module Kemal
         id = SecureRandom.hex
       end
 
-      ctx.response.cookies[NAME] = id
+      ctx.response.cookies << HTTP::Cookie.new(name: NAME, value: id, http_only: true)
       @id = id
     end
 
