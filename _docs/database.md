@@ -3,11 +3,11 @@ layout: doc
 title: "Database Connection"
 ---
 
-Kemal supports database connection in an easy and extensible way. Kemal uses a connection pool to handle all the connections meaning it's scalable by default.
+Kemal supports database connection in an easy and extensible way.
 
-Currently Kemal supports Postgresql and MySQL with:
+Currently you can use the drivers for Postgresql and MySQL with:
 
-- [kemal-pg](https://github.com/sdogruyol/kemal-pg)
-- [kemal-mysql](https://github.com/sdogruyol/kemal-mysql)
+- [crystal-pg](https://github.com/will/crystal-pg)
+- [crystal-mysql](https://github.com/waterlink/crystal-mysql)
 
 You can check the relevant repo for samples and more info.
