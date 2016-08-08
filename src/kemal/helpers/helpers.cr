@@ -51,7 +51,7 @@ end
 def send_file(env, path : String, mime_type : String? = nil)
   file_path = File.expand_path(path, Dir.current)
   mime_type = "application/octet-stream" unless mime_type
-  env.response.headers.add "Content-Type", mime_type
+  env.response.content_type = mime_type
   env.response.content_length = File.size(file_path)
   File.open(file_path) do |file|
     IO.copy(file, env.response)
