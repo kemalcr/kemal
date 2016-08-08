@@ -69,7 +69,7 @@ end
 def send_file(env, data : Slice(UInt8), mime_type : String? = nil)
   mime_type ||= "application/octet-stream"
 
-  env.response.headers.add "Content-Type", mime_type
+  env.response.content_type = mime_type
   env.response.content_length = data.bytesize
   env.response.write data
 end
