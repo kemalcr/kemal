@@ -109,5 +109,17 @@ describe "Macros" do
       response.headers["Content-Type"].should eq("image/jpeg")
       response.headers["Content-Length"].should eq("20")
     end
+
+    it "sends file with binary stream" do
+      get "/" do |env|
+        send_file env, "Serdar".to_slice
+      end
+
+      request = HTTP::Request.new("GET", "/")
+      response = call_request_on_app(request)
+      response.status_code.should eq(200)
+      response.headers["Content-Type"].should eq("application/octet-stream")
+      response.headers["Content-Length"].should eq("6")
+    end
   end
 end

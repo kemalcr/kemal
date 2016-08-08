@@ -50,7 +50,7 @@ end
 #   send_file env, "./path/to/file", "image/jpeg"
 def send_file(env, path : String, mime_type : String? = nil)
   file_path = File.expand_path(path, Dir.current)
-  mime_type = "application/octet-stream" unless mime_type
+  mime_type ||= "application/octet-stream" 
   env.response.content_type = mime_type
   env.response.content_length = File.size(file_path)
   File.open(file_path) do |file|
@@ -65,10 +65,8 @@ end
 # Optionally you can override the mime_type
 #
 #   send_file env, data_slice, "image/jpeg"
-
 def send_file(env, data : Slice(UInt8), mime_type : String? = nil)
   mime_type ||= "application/octet-stream"
-
   env.response.content_type = mime_type
   env.response.content_length = data.bytesize
   env.response.write data
