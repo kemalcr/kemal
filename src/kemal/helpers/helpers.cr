@@ -60,11 +60,11 @@ end
 
 # Send a file with given data and default `application/octet-stream` mime_type.
 #
-#   send_file env, "./path/to/file"
+#   send_file env, data_slice
 #
 # Optionally you can override the mime_type
 #
-#   send_file env, "./path/to/file", "image/jpeg"
+#   send_file env, data_slice, "image/jpeg"
 
 def send_file(env, data : Slice(UInt8), mime_type : String? = nil)
   mime_type ||= "application/octet-stream"
