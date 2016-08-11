@@ -91,6 +91,20 @@ describe "ParamParser" do
       json_params.should eq({"name" => "Serdar"})
     end
 
+    it "parses request body when passed charset" do
+      route = Route.new "POST", "/" { }
+
+      request = HTTP::Request.new(
+        "POST",
+        "/",
+        body: "{\"name\": \"Serdar\"}",
+        headers: HTTP::Headers{"Content-Type" => "application/json; charset=utf-8"},
+      )
+
+      json_params = Kemal::ParamParser.new(request).json
+      json_params.should eq({"name" => "Serdar"})
+    end
+
     it "parses request body for array" do
       route = Route.new "POST", "/" { }
 
