@@ -55,7 +55,7 @@ module Kemal
     # If request body is a JSON Array it's added into `params` as `_json` and can be accessed
     # like params["_json"]
     def parse_json
-      return unless @request.body && @request.headers["Content-Type"]? == APPLICATION_JSON
+      return unless @request.body && @request.headers["Content-Type"]?.try(&.[APPLICATION_JSON]?)
 
       body = @request.body.as(String)
       case json = JSON.parse(body).raw
