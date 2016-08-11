@@ -58,4 +58,4 @@ get "/" do |env|
 end
 ```
 
-This renders `Kemal is cool` when a request is made to `/` :)
+This renders `Kemal cool = true` when a request is made to `/` :)
