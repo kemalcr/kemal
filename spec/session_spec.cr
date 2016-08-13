@@ -16,8 +16,6 @@ describe "Session" do
     # make first request without any cookies/session
     request = HTTP::Request.new("GET", "/")
     response = call_request_on_app(request)
-    # dup headers due to Crystal#2920
-    headers = response.headers.dup
 
     # verify we got a cookie and session ID
     cookie = response.headers["Set-Cookie"]?
@@ -27,7 +25,7 @@ describe "Session" do
     existing.should be_nil
 
     # make second request with cookies to get session
-    request = HTTP::Request.new("GET", "/", headers)
+    request = HTTP::Request.new("GET", "/", response.headers)
     response = call_request_on_app(request)
 
     # verify we got cookies and we could see values set
