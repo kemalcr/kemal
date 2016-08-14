@@ -21,12 +21,6 @@ module Kemal
     end
 
     private def elapsed_text(elapsed)
-      minutes = elapsed.total_minutes
-      return "#{minutes.round(2)}m" if minutes >= 1
-
-      seconds = elapsed.total_seconds
-      return "#{seconds.round(2)}s" if seconds >= 1
-
       millis = elapsed.total_milliseconds
       return "#{millis.round(2)}ms" if millis >= 1
 
