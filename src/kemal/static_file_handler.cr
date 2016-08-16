@@ -17,7 +17,7 @@ module Kemal
       when ".css"          then "text/css"
       when ".js"           then "application/javascript"
       when ".png"          then "image/png"
-      when ".jpg", ".jpeg" then "image/jpg"
+      when ".jpg", ".jpeg" then "image/jpeg"
       when ".gif"          then "image/gif"
       when ".svg"          then "image/svg+xml"
       else                      "application/octet-stream"
