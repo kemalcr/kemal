@@ -1,3 +1,10 @@
 # Next
 
-- KEMAL_ENV respects to Kemal.config.env and needs to be explicitly set.
+- Add context store
+- `KEMAL_ENV` respects to `Kemal.config.env` and needs to be explicitly set.
+- `Kemal::InitHandler` is introduced. Adds initial configuration, headers like `X-Powered-By`.
+- Add `send_file` to helpers.
+- Add mime types.
+- Fix parsing JSON params when "charset" is present in "Content-Type" header.
+- Use http-only cookie for session 
+- Inject STDOUT by default in CommonLogHandler
