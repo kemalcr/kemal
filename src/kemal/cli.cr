@@ -50,7 +50,7 @@ module Kemal
     end
 
     def read_env
-      @config.env = ENV.fetch("KEMAL_ENV", "development")
+      @config.env = ENV["KEMAL_ENV"] if ENV.has_key?("KEMAL_ENV")
     end
   end
 end
