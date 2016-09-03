@@ -1,4 +1,4 @@
-# Next
+# 0.15.0 (03-09-2016)
 
 - Add context store
 - `KEMAL_ENV` respects to `Kemal.config.env` and needs to be explicitly set.

@@ -1,10 +1,10 @@
 name: kemal
-version: 0.14.1
+version: 0.15.0
 
 dependencies:
   radix:
     github: luislavena/radix
-    version: 0.3.0
+    version: 0.3.1
   kilt:
     github: jeromegn/kilt
     version: 0.3.3
