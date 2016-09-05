@@ -9,7 +9,6 @@ module Kemal
     HANDLERS       = [] of HTTP::Handler
     ERROR_HANDLERS = {} of Int32 => HTTP::Server::Context -> String
     @ssl : OpenSSL::SSL::Context::Server?
-    @server : HTTP::Server?
 
     property host_binding, ssl, port, env, public_folder, logging,
       always_rescue, serve_static, server, extra_options
@@ -24,6 +23,7 @@ module Kemal
       @logger = nil
       @error_handler = nil
       @always_rescue = true
+      @server = uninitialized HTTP::Server
     end
 
     def logger

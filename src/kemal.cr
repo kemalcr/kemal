@@ -11,8 +11,8 @@ module Kemal
     config.setup
     config.add_handler Kemal::RouteHandler::INSTANCE
 
-    config.server = HTTP::Server.new(config.host_binding.not_nil!, config.port, config.handlers)
-    config.server.not_nil!.tls = config.ssl
+    config.server = HTTP::Server.new(config.host_binding, config.port, config.handlers)
+    config.server.tls = config.ssl
 
     Kemal::Sessions.run_reaper!
 
@@ -26,7 +26,7 @@ module Kemal
     unless config.env == "test"
       Signal::INT.trap {
         config.logger.write "Kemal is going to take a rest!\n"
-        config.server.not_nil!.close
+        config.server.close
         exit
       }
 
@@ -40,7 +40,7 @@ module Kemal
       end
 
       config.logger.write "[#{config.env}] Kemal is ready to lead at #{config.scheme}://#{config.host_binding}:#{config.port}\n"
-      config.server.not_nil!.listen
+      config.server.listen
     end
   end
 end
