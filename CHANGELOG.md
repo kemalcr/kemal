@@ -1,3 +1,11 @@
+# Next
+
+- Add `gzip` helper to enable / disable gzip compression on responses.
+
+# 0.15.1 (05-09-2015)
+
+- Don't forget to call_next on NullLogHandler
+
 # 0.15.0 (03-09-2016)
 
 - Add context store
