@@ -32,7 +32,7 @@ def logger(logger)
 end
 
 # Enables / Disables static file serving.
-def serve_static(status)
+def serve_static(status : (Bool | Hash))
   Kemal.config.serve_static = status
 end
 
