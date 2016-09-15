@@ -50,7 +50,7 @@ end
 #   send_file env, "./path/to/file", "image/jpeg"
 def send_file(env, path : String, mime_type : String? = nil)
   file_path = File.expand_path(path, Dir.current)
-  mime_type ||= "application/octet-stream" 
+  mime_type ||= "application/octet-stream"
   env.response.content_type = mime_type
   env.response.content_length = File.size(file_path)
   File.open(file_path) do |file|
@@ -70,4 +70,11 @@ def send_file(env, data : Slice(UInt8), mime_type : String? = nil)
   env.response.content_type = mime_type
   env.response.content_length = data.bytesize
   env.response.write data
+end
+
+# Configures an `HTTP::Server::Response` to compress the response
+# output, either using gzip or deflate, depending on the `Accept-Encoding` request header.
+# It's disabled by default.
+def gzip(status : Bool = false)
+  add_handler HTTP::DeflateHandler.new if status
 end

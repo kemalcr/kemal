@@ -9,7 +9,7 @@ module Kemal
       return call_next(context) if context.request.path.not_nil! == "/"
       super
     end
-    
+
     def mime_type(path)
       case File.extname(path)
       when ".txt"          then "text/plain"
@@ -23,6 +23,5 @@ module Kemal
       else                      "application/octet-stream"
       end
     end
-    
   end
 end

@@ -122,4 +122,15 @@ describe "Macros" do
       response.headers["Content-Length"].should eq("6")
     end
   end
+
+  describe "#gzip" do
+    it "adds HTTP::DeflateHandler to handlers" do
+      gzip true
+      Kemal.config.handlers.last.is_a?(HTTP::DeflateHandler).should eq true
+    end
+
+    it "doesn't add HTTP::DeflateHandler to handlers by default" do
+      Kemal.config.handlers.last.is_a?(HTTP::DeflateHandler).should eq false
+    end
+  end
 end
