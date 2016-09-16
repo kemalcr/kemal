@@ -12,7 +12,9 @@ module Kemal
     config.add_handler Kemal::RouteHandler::INSTANCE
 
     config.server = HTTP::Server.new(config.host_binding, config.port, config.handlers)
+    {% if ! flag?(:without_openssl) %}
     config.server.tls = config.ssl
+    {% end %}
 
     Kemal::Sessions.run_reaper!
 
