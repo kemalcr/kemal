@@ -39,6 +39,7 @@ module Kemal
     end
 
     def configure_ssl
+    {% if ! flag?(:without_openssl) %}
       if @ssl_enabled
         puts "SSL Key Not Found"; exit unless @key_file
         puts "SSL Certificate Not Found"; exit unless @cert_file
@@ -47,6 +48,7 @@ module Kemal
         ssl.set_cert_file @cert_file.not_nil!
         Kemal.config.ssl = ssl.context
       end
+    {% end %}
     end
 
     def read_env

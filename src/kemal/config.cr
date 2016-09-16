@@ -8,7 +8,11 @@ module Kemal
     INSTANCE       = Config.new
     HANDLERS       = [] of HTTP::Handler
     ERROR_HANDLERS = {} of Int32 => HTTP::Server::Context -> String
+    {% if flag?(:without_openssl) %}
+    @ssl : Bool?
+    {% else %}
     @ssl : OpenSSL::SSL::Context::Server?
+    {% end %}
 
     property host_binding, ssl, port, env, public_folder, logging,
       always_rescue, serve_static, server, extra_options
