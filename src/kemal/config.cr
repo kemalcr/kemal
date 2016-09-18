@@ -15,13 +15,13 @@ module Kemal
     {% end %}
 
     property host_binding, ssl, port, env, public_folder, logging,
-      always_rescue, serve_static, server, extra_options
+      always_rescue, serve_static : (Bool | Hash(String, Bool)), server, extra_options
 
     def initialize
       @host_binding = "0.0.0.0"
       @port = 3000
       @env = "development"
-      @serve_static = true
+      @serve_static = {"dir_listing" => false, "gzip" => true}
       @public_folder = "./public"
       @logging = true
       @logger = nil
@@ -93,7 +93,7 @@ module Kemal
     end
 
     private def setup_static_file_handler
-      HANDLERS.insert(3, Kemal::StaticFileHandler.new(@public_folder)) if @serve_static
+      HANDLERS.insert(3, Kemal::StaticFileHandler.new(@public_folder)) if @serve_static.is_a?(Hash)
     end
   end
 
