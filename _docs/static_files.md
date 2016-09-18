@@ -33,10 +33,24 @@ Open index.html and add
 </html>
 ```
 
-## Disabling Static File Serving
+## Static File Options
 
-By default `Kemal` serves static files from `public` folder. If you don't need static file serving at all(for example an API won't gonna need it) you can disable it like
+### Disabling Static Files
+
+By default `Kemal` serves static files from `public` folder. 
+If you don't need static file serving at all(for example an API won't gonna need it) you can disable it like
 
 ```crystal
 serve_static false
+```
+
+### Modifying Other Options
+
+By default `Kemal` gzips most files, skipping only very small files, or those which don't benefit from gzipping.
+If you are running `Kemal` behind a proxy, you may wish to disable this feature. `Kemal` is also able
+to do basic directory listing. This feature is disabled by default. Both of these options are available by
+passing a hash to `serve_static`
+
+```crystal
+serve_static({"gzip" => true, "dir_listing" => false})
 ```
