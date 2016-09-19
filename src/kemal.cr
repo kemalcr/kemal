@@ -5,11 +5,12 @@ require "./kemal/middleware/*"
 
 module Kemal
   # The command to run a `Kemal` application.
-  def self.run
+  def self.run(port = nil)
     Kemal::CLI.new
     config = Kemal.config
     config.setup
     config.add_handler Kemal::RouteHandler::INSTANCE
+    config.port = port if port
 
     config.server = HTTP::Server.new(config.host_binding, config.port, config.handlers)
     {% if ! flag?(:without_openssl) %}
