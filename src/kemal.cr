@@ -5,6 +5,8 @@ require "./kemal/middleware/*"
 
 module Kemal
   # The command to run a `Kemal` application.
+  # The port can be given to `#run` but is optionnal.
+  # If not given Kemal will use the default config port (`Kemal::Config#port`)
   def self.run(port = nil)
     Kemal::CLI.new
     config = Kemal.config
