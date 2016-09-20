@@ -1,6 +1,8 @@
 # Next
 
 - Add `gzip` helper to enable / disable gzip compression on responses.
+- Static file caching with etag and gzip (thanks @crisward)
+- `Kemal.run` now accepts port to listen.
 
 # 0.15.1 (05-09-2015)
 

@@ -5,8 +5,8 @@ require "./kemal/middleware/*"
 
 module Kemal
   # The command to run a `Kemal` application.
-  # The port can be given to `#run` but is optionnal.
-  # If not given Kemal will use the default config port (`Kemal::Config#port`)
+  # The port can be given to `#run` but is optional.
+  # If not given Kemal will use `Kemal::Config#port`
   def self.run(port = nil)
     Kemal::CLI.new
     config = Kemal.config
@@ -15,7 +15,7 @@ module Kemal
     config.port = port if port
 
     config.server = HTTP::Server.new(config.host_binding, config.port, config.handlers)
-    {% if ! flag?(:without_openssl) %}
+    {% if !flag?(:without_openssl) %}
     config.server.tls = config.ssl
     {% end %}
 
