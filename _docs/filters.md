@@ -29,7 +29,7 @@ end
 
 get "/foo" do |env|
   puts env.response.content_type # => "application/json"
-  {"name": "Kemal"}
+  {"name": "Kemal"}.to_json
 end
 ```
 
@@ -43,17 +43,17 @@ end
 
 get "/foo" do |env|
   puts env.response.content_type # => "application/json"
-  {"name": "Kemal"}
+  {"name": "Kemal"}.to_json
 end
 
 put "/foo" do |env|
   puts env.response.content_type # => "application/json"
-  {"name": "Kemal"}
+  {"name": "Kemal"}.to_json
 end
 
 post "/foo" do |env|
   puts env.response.content_type # => "application/json"
-  {"name": "Kemal"}
+  {"name": "Kemal"}.to_json
 end
 
 ```

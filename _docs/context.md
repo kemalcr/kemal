@@ -30,7 +30,7 @@ Accessing the HTTP request/response context (query params, body, content_type, h
 
   # Set the content as application/json and return JSON
   get "/user.json" do |env|
-    user = {name: "Kemal", language: "Crystal"}
+    user = {name: "Kemal", language: "Crystal"}.to_json
     env.response.content_type = "application/json"
     user
   end
