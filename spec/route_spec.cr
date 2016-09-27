@@ -14,4 +14,14 @@ describe "Route" do
       client_response.body.should eq("Route 2")
     end
   end
+
+  it "returns json without #to_json if Content-Type is application/json" do
+    get "/" do |env|
+      env.response.content_type = "application/json"
+      {name: "Serdar", skills: ["Crystal", "Ruby"]}
+    end
+    request = HTTP::Request.new("GET", "/")
+    client_response = call_request_on_app(request)
+    client_response.body.should eq("{name: \"Serdar\", skills: [\"Crystal\", \"Ruby\"]}")
+  end
 end

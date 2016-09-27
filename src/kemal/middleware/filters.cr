@@ -74,7 +74,10 @@ module Kemal::Middleware
     property block : HTTP::Server::Context -> String
 
     def initialize(&block : HTTP::Server::Context -> _)
-      @block = ->(context : HTTP::Server::Context) { block.call(context).to_s }
+      @block = ->(context : HTTP::Server::Context) do 
+        block.call(context).to_s.to_json if context.request.headers["Content-Type"]? == "application/json"
+        block.call(context).to_s
+      end
     end
 
     def call(context)
