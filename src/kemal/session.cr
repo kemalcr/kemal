@@ -8,7 +8,7 @@ module Kemal
   #
   #   get("/") do |env|
   #     env.session["abc"] = "xyz"
-  #     uid = env.session["user_id"]?
+  #     uid = env.session["user_id"]?.as(Int32)
   #   end
   #
   # Note that only String values are allowed.
