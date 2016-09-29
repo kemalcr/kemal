@@ -53,4 +53,37 @@ describe "Session" do
     Kemal::Sessions.prune!
     s.size.should eq(0)
   end
+
+  it "supports many types" do
+    who = nil
+    age = nil
+    awesome = nil
+    velocity = nil
+    arr = nil
+    get "/" do |env|
+      sess = env.session
+      who = sess["who"]?
+      age = sess["age"]?
+      velocity = sess["velocity"]?
+      awesome = sess["awesome"]?
+      arr = sess["arr"]?
+      sess["who"] = "Kemal"
+      sess["age"] = 2016
+      sess["velocity"] = 9999.9
+      sess["awesome"] = true
+      sess["arr"] = [1, "Serdar", true, 90000.0]
+      "Hello"
+    end
+
+    request = HTTP::Request.new("GET", "/")
+    response = call_request_on_app(request)
+    request = HTTP::Request.new("GET", "/", response.headers)
+    response = call_request_on_app(request)
+
+    who.should eq "Kemal"
+    age.should eq 2016
+    velocity.should eq 9999.9
+    awesome.should eq true
+    arr.should eq [1, "Serdar", true, 90000.0]
+  end
 end

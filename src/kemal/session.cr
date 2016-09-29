@@ -16,7 +16,7 @@ module Kemal
   # Sessions are pruned hourly after 48 hours of inactivity.
   class Sessions
     # Session Types are String, Integer, Float and Boolean
-    alias SessionTypes = String | Int64 | Float64 | Bool
+    alias SessionTypes = String | Int32 | Float64 | Bool | Array(String | Int32 | Float64 | Bool)
 
     # In-memory, ephemeral datastore only.
     #
