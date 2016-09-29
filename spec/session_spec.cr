@@ -20,7 +20,7 @@ describe "Session" do
     # verify we got a cookie and session ID
     cookie = response.headers["Set-Cookie"]?
     cookie.should_not be_nil
-    response.cookies[Kemal::Sessions::NAME].value.should eq(sid)
+    response.cookies[Kemal.config.session["name"].as(String)].value.should eq(sid)
     lastsid = sid
     existing.should be_nil
 
@@ -33,7 +33,7 @@ describe "Session" do
     cookie2 = response.headers["Set-Cookie"]?
     cookie2.should_not be_nil
     cookie2.should eq(cookie)
-    response.cookies[Kemal::Sessions::NAME].value.should eq(lastsid)
+    response.cookies[Kemal.config.session["name"].as(String)].value.should eq(lastsid)
     existing.should eq("abc")
   end
 
