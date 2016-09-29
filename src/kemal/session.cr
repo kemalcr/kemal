@@ -17,6 +17,9 @@ module Kemal
   class Sessions
     NAME = "SessionId"
 
+    # Session Types are String, Integer, Float and Boolean
+    alias SessionTypes = String | Int64 | Float64 | Bool
+
     # I hate websites which require daily login so the default
     # inactivity timeout is 48 hours.
     TTL = 48.hours
@@ -38,7 +41,7 @@ module Kemal
 
       def initialize(@id)
         @last_access_at = Time.new.epoch_ms
-        @store = Hash(String, String).new
+        @store = Hash(String, SessionTypes).new
       end
 
       def [](key : String)
@@ -51,7 +54,7 @@ module Kemal
         @store[key]?
       end
 
-      def []=(key : String, value : String)
+      def []=(key : String, value : SessionTypes)
         @last_access_at = Time.now.epoch_ms
         @store[key] = value
       end
@@ -77,7 +80,7 @@ module Kemal
       @id = id
     end
 
-    def []=(key : String, value : String)
+    def []=(key : String, value : SessionTypes)
       store = STORE[id]? || begin
         STORE[id] = Session.new(id)
       end
