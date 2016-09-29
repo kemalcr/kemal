@@ -47,7 +47,7 @@ describe "Kemal::Middleware::CSRF" do
     client_response = HTTP::Client::Response.from_io(io, decompress: false)
     client_response.status_code.should eq 403
 
-    current_token = context.session["csrf"]
+    current_token = context.session["csrf"].as(String)
 
     handler = Kemal::Middleware::CSRF.new
     request = HTTP::Request.new("POST", "/",
