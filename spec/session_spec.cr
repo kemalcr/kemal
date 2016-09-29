@@ -59,7 +59,6 @@ describe "Session" do
     age = nil
     awesome = nil
     velocity = nil
-    arr = nil
     get "/" do |env|
       sess = env.session
       who = sess["who"]?
@@ -71,7 +70,6 @@ describe "Session" do
       sess["age"] = 2016
       sess["velocity"] = 9999.9
       sess["awesome"] = true
-      sess["arr"] = [1, "Serdar", true, 90000.0]
       "Hello"
     end
 
@@ -84,6 +82,5 @@ describe "Session" do
     age.should eq 2016
     velocity.should eq 9999.9
     awesome.should eq true
-    arr.should eq [1, "Serdar", true, 90000.0]
   end
 end
