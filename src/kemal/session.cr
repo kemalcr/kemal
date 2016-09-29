@@ -15,14 +15,8 @@ module Kemal
   #
   # Sessions are pruned hourly after 48 hours of inactivity.
   class Sessions
-    NAME = "SessionId"
-
     # Session Types are String, Integer, Float and Boolean
     alias SessionTypes = String | Int64 | Float64 | Bool
-
-    # I hate websites which require daily login so the default
-    # inactivity timeout is 48 hours.
-    TTL = 48.hours
 
     # In-memory, ephemeral datastore only.
     #
@@ -68,7 +62,7 @@ module Kemal
     getter! id : String
 
     def initialize(ctx : HTTP::Server::Context)
-      id = ctx.request.cookies[NAME]?.try &.value
+      id = ctx.request.cookies[Kemal.config.session["name"].as(String)]?.try &.value
       if id && id.size == 32
         # valid
       else
@@ -76,7 +70,7 @@ module Kemal
         id = SecureRandom.hex
       end
 
-      ctx.response.cookies << HTTP::Cookie.new(name: NAME, value: id, http_only: true)
+      ctx.response.cookies << HTTP::Cookie.new(name: Kemal.config.session["name"].as(String), value: id, http_only: true)
       @id = id
     end
 
@@ -99,7 +93,7 @@ module Kemal
       STORE[@id]?.try &.delete(key)
     end
 
-    def self.prune!(before = (Time.now - Kemal::Sessions::TTL).epoch_ms)
+    def self.prune!(before = (Time.now - Kemal.config.session["expire_time"].as(Time::Span)).epoch_ms)
       Kemal::Sessions::STORE.delete_if { |id, entry| entry.last_access_at < before }
       nil
     end
