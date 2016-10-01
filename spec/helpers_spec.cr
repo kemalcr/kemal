@@ -135,7 +135,7 @@ describe "Macros" do
   end
 
   describe "#serve_static" do
-    it "should disble static file hosting" do
+    it "should disable static file hosting" do
       serve_static false
       Kemal.config.serve_static.should eq false
     end

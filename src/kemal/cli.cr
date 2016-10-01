@@ -39,7 +39,7 @@ module Kemal
     end
 
     def configure_ssl
-    {% if ! flag?(:without_openssl) %}
+      {% if !flag?(:without_openssl) %}
       if @ssl_enabled
         puts "SSL Key Not Found"; exit unless @key_file
         puts "SSL Certificate Not Found"; exit unless @cert_file
