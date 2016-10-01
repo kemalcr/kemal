@@ -2,6 +2,7 @@
 # Kemal [![Build Status](https://travis-ci.org/sdogruyol/kemal.svg?branch=master)](https://travis-ci.org/sdogruyol/kemal)
 
 [![Join the chat at https://gitter.im/sdogruyol/kemal](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/sdogruyol/kemal?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+[![crystal-docs.org](https://crystal-docs.org/badge.svg)](https://crystal-docs.org/sdogruyol/kemal) 
 
 Lightning Fast, Super Simple web framework for [Crystal](http://www.crystal-lang.org).
 Inspired by [Sinatra](http://www.sinatrarb.com/) but with superior performance and built-in WebSocket support.
