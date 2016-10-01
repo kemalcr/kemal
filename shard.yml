@@ -8,5 +8,9 @@ dependencies:
   kilt:
     github: jeromegn/kilt
     version: 0.3.3
+  multipart:
+    github: RX14/multipart.cr
+    version: 0.1.0
+
 author:
   - Serdar Dogruyol <dogruyolserdar@gmail.com>

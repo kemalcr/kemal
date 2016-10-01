@@ -78,3 +78,20 @@ end
 def gzip(status : Bool = false)
   add_handler HTTP::DeflateHandler.new if status
 end
+
+# Parses a multipart/form-data request. This is really useful for file uploads.
+# Consider the example below taking two image uploads as image1, image2. To get the relevant data
+# for each field you can use simple `if/switch` conditional.
+#
+#   post "/upload" do |env|
+#     parse_multipart(env) do |field, data|
+#       image1 = data if field == "image1"
+#       image2 = data if field == "image2"
+#       "Upload complete"
+#     end
+#   end
+def parse_multipart(env)
+  HTTP::FormData.parse(env.request) do |field, data|
+    yield field, data
+  end
+end
