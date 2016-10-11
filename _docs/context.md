@@ -64,7 +64,8 @@ This renders `Kemal cool = true` when a request is made to `/` :)
 
 Some common request information is available at `env.request.*`:
 
-- **method** - the HTTP method (e.g. "GET", "POST")
+- **method** - the HTTP method
+  - e.g. `GET`, `POST`, ...
 - **headers** - a hash containing relevant request header information
 - **body** - the request body
 - **version** - the HTTP version
