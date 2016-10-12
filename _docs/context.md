@@ -59,3 +59,20 @@ end
 ```
 
 This renders `Kemal cool = true` when a request is made to `/` :)
+
+## Request Properties
+
+Some common request information is available at `env.request.*`:
+
+- **method** - the HTTP method
+  - e.g. `GET`, `POST`, ...
+- **headers** - a hash containing relevant request header information
+- **body** - the request body
+- **version** - the HTTP version
+  - e.g. `HTTP/1.1`
+- **path** - the uri path
+  - e.g. `http://kemalcr.com/docs/context?lang=cr` => `/docs/context`
+- **resource** - the uri path and query params
+  - e.g. `http://kemalcr.com/docs/context?lang=cr` => `/docs/context?lang=cr`
+- **cookies**
+  - e.g. `env.request.cookies["cookie_name"].value`
