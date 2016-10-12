@@ -91,7 +91,7 @@ end
 #     end
 #   end
 def parse_multipart(env)
-  HTTP::FormData.parse(env.request) do |field, data|
-    yield field, data
+  HTTP::FormData.parse(env.request) do |field, data, meta, headers|
+    yield field, data, meta, headers
   end
 end
