@@ -80,6 +80,7 @@ module Kemal
       etag = %{W/"#{File.lstat(file_path).mtime.epoch.to_s}"}
       context.response.headers["ETag"] = etag
       return false if !context.request.headers["If-None-Match"]? || context.request.headers["If-None-Match"] != etag
+      context.response.headers.delete "Content-Type"
       context.response.content_length = 0
       context.response.status_code = 304 # not modified
       return true
