@@ -1,3 +1,19 @@
+# 0.16.1 (12-10-2016)
+
+- Improved Multipart support with more info on parsed files. `parse_multipart(env)` now yields
+an `UploadFile` object which has the following properties `field`,`data`,`meta`,`headers.	
+
+```crystal
+post "/upload" do |env|
+  parse_multipart(env) do |f|
+    image1 = f.data if f.field == "image1"
+    image2 = f.data if f.field == "image2"
+    puts f.meta
+    puts f.headers
+    "Upload complete"
+  end
+end
+
 # 0.16.0
 
 - Multipart support <3 (thanks @RX14). Now you can handle file uploads.
@@ -24,7 +40,7 @@ Kemal.config.session["expire_time"] = 48.hours
 - Static file caching with etag and gzip (thanks @crisward)
 - `Kemal.run` now accepts port to listen.
 
-# 0.15.1 (05-09-2015)
+# 0.15.1 (05-09-2016)
 
 - Don't forget to call_next on NullLogHandler
 
