@@ -41,8 +41,14 @@ module Kemal
     def configure_ssl
       {% if !flag?(:without_openssl) %}
       if @ssl_enabled
-        puts "SSL Key Not Found"; exit unless @key_file
-        puts "SSL Certificate Not Found"; exit unless @cert_file
+        unless @key_file
+          puts "SSL Key Not Found"
+          exit
+        end
+        unless @cert_file
+          puts "SSL Certificate Not Found"
+          exit
+        end
         ssl = Kemal::Middleware::SSL.new
         ssl.set_key_file @key_file.not_nil!
         ssl.set_cert_file @cert_file.not_nil!
