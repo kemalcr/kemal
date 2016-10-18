@@ -33,6 +33,23 @@ describe "ParamParser" do
     url_params["hasan"].should eq "cemal"
   end
 
+  it "decodes url params" do
+    kemal = Kemal::RouteHandler::INSTANCE
+    kemal.add_route "POST", "/hello/:email/:money/:spanish" do |env|
+      email = env.params.url["email"]
+      money = env.params.url["money"]
+      spanish = env.params.url["spanish"]
+      "Hello, #{email}. You have #{money}. The spanish word of the day is #{spanish}."
+    end
+    request = HTTP::Request.new("POST", "/hello/sam%2Bspec%40gmail.com/%2419.99/a%C3%B1o")
+    # Radix tree MUST be run to parse url params.
+    io_with_context = create_request_and_return_io(kemal, request)
+    url_params = Kemal::ParamParser.new(request).url
+    url_params["email"].should eq "sam+spec@gmail.com"
+    url_params["money"].should eq "$19.99"
+    url_params["spanish"].should eq "año"
+  end
+
   it "parses request body" do
     route = Route.new "POST", "/" do |env|
       name = env.params.query["name"]
