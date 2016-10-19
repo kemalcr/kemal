@@ -1,4 +1,5 @@
 require "json"
+require "uri"
 
 module Kemal
   # ParamParser parses the request contents including query_params and body
@@ -21,8 +22,10 @@ module Kemal
       @json_parsed = false
     end
 
-    private def decode_url_param(value : String)
-      value.size == 0 ? value : HTTP::Params.parse(value).first[0]?
+    private def unescape_url_param(value : String)
+      value.size == 0 ? value : URI.unescape(value)
+    rescue
+      value
     end
 
     {% for method in %w(url query body json) %}
@@ -49,7 +52,7 @@ module Kemal
     def parse_url
       if params = @request.url_params
         params.each do |key, value|
-          @url[key.as(String)] = decode_url_param(value).as(String)
+          @url[key.as(String)] = unescape_url_param(value).as(String)
         end
       end
     end
