@@ -6,7 +6,16 @@ module Kemal
   class StaticFileHandler < HTTP::StaticFileHandler
     @public_dir : String
     @fallthrough : Bool
+    @gzip : Bool
+    @dir_listing : Bool
     @set_headers : (HTTP::Server::Response, String -> Void)?
+
+    def initialize(public_dir : String, options : Hash(Symbol, Bool))
+      @public_dir = File.expand_path(public_dir)
+      @fallthrough = options.fetch(:fallthrough, true)
+      @gzip = options.fetch(:gzip, true)
+      @dir_listing = options.fetch(:dir_listing, false)
+    end
 
     def set_headers(callback)
       @set_headers = callback
@@ -25,7 +34,6 @@ module Kemal
         return
       end
 
-      config = Kemal.config.serve_static
       original_path = context.request.path.not_nil!
       is_dir_path = original_path.ends_with? "/"
       request_path = URI.unescape(original_path)
@@ -51,7 +59,7 @@ module Kemal
       end
 
       if Dir.exists?(file_path)
-        if config.is_a?(Hash) && config["dir_listing"] == true
+        if @dir_listing
           context.response.content_type = "text/html"
           directory_listing(context.response, request_path, file_path)
         else
@@ -67,12 +75,12 @@ module Kemal
         @set_headers.try(&.call(context.response, file_path))
 
         File.open(file_path) do |file|
-          if request_headers.includes_word?("Accept-Encoding", "gzip") && config.is_a?(Hash) && config["gzip"] == true && filesize > minsize && self.zip_types(file_path)
+          if request_headers.includes_word?("Accept-Encoding", "gzip") && @gzip && filesize > minsize && self.zip_types(file_path)
             context.response.headers["Content-Encoding"] = "gzip"
             Zlib::Deflate.gzip(context.response) do |deflate|
               IO.copy(file, deflate)
             end
-          elsif request_headers.includes_word?("Accept-Encoding", "deflate") && config.is_a?(Hash) && config["gzip"]? == true && filesize > minsize && self.zip_types(file_path)
+          elsif request_headers.includes_word?("Accept-Encoding", "deflate") && @gzip && filesize > minsize && self.zip_types(file_path)
             context.response.headers["Content-Encoding"] = "deflate"
             Zlib::Deflate.new(context.response) do |deflate|
               IO.copy(file, deflate)

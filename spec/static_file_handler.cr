@@ -1,21 +1,45 @@
 require "./spec_helper"
 
-private def handle(request : HTTP::Request, fallthrough : Bool = true)
+private def handle(request : HTTP::Request)
+  handler_options = { :fallthrough => true }
   io = MemoryIO.new
   response = HTTP::Server::Response.new(io)
   context = HTTP::Server::Context.new(request, response)
-  handler = Kemal::StaticFileHandler.new "#{__DIR__}/static", fallthrough
+  handler = Kemal::StaticFileHandler.new "#{__DIR__}/static", handler_options
   handler.call context
   response.close
   io.rewind
   HTTP::Client::Response.from_io(io)
 end
 
-private def handle(request : HTTP::Request, fallthrough : Bool, callback)
+private def handle(request : HTTP::Request, fallthrough : Bool)
+  handler_options = { :fallthrough => fallthrough }
   io = MemoryIO.new
   response = HTTP::Server::Response.new(io)
   context = HTTP::Server::Context.new(request, response)
-  handler = Kemal::StaticFileHandler.new "#{__DIR__}/static", fallthrough
+  handler = Kemal::StaticFileHandler.new "#{__DIR__}/static", handler_options
+  handler.call context
+  response.close
+  io.rewind
+  HTTP::Client::Response.from_io(io)
+end
+
+private def handle(request : HTTP::Request, handler_options : Hash(Symbol, Bool))
+  io = MemoryIO.new
+  response = HTTP::Server::Response.new(io)
+  context = HTTP::Server::Context.new(request, response)
+  handler = Kemal::StaticFileHandler.new "#{__DIR__}/static", handler_options
+  handler.call context
+  response.close
+  io.rewind
+  HTTP::Client::Response.from_io(io)
+end
+
+private def handle(request : HTTP::Request, callback, handler_options = { :fallthrough => true })
+  io = MemoryIO.new
+  response = HTTP::Server::Response.new(io)
+  context = HTTP::Server::Context.new(request, response)
+  handler = Kemal::StaticFileHandler.new "#{__DIR__}/static", handler_options
   handler.set_headers(callback)
   handler.call context
   response.close
@@ -52,32 +76,28 @@ describe Kemal::StaticFileHandler do
   end
 
   it "should list directory's entries when config is set" do
-    serve_static({"gzip" => true, "dir_listing" => true})
-    response = handle HTTP::Request.new("GET", "/dir/")
+    response = handle(HTTP::Request.new("GET", "/dir/"), { :gzip => true, :dir_listing => true })
     response.status_code.should eq(200)
     response.body.should match(/test.txt/)
   end
 
   it "should gzip a file if config is true, headers accept gzip and file is > 880 bytes" do
-    serve_static({"gzip" => true, "dir_listing" => true})
     headers = HTTP::Headers{"Accept-Encoding" => "gzip, deflate, sdch, br"}
-    response = handle HTTP::Request.new("GET", "/dir/bigger.txt", headers)
+    response = handle(HTTP::Request.new("GET", "/dir/bigger.txt", headers), { :gzip => true, :dir_listing => true })
     response.status_code.should eq(200)
     response.headers["Content-Encoding"].should eq "gzip"
   end
 
   it "should not gzip a file if config is true, headers accept gzip and file is < 880 bytes" do
-    serve_static({"gzip" => true, "dir_listing" => true})
     headers = HTTP::Headers{"Accept-Encoding" => "gzip, deflate, sdch, br"}
-    response = handle HTTP::Request.new("GET", "/dir/test.txt", headers)
+    response = handle(HTTP::Request.new("GET", "/dir/test.txt", headers), { :gzip => true, :dir_listing => true  })
     response.status_code.should eq(200)
     response.headers["Content-Encoding"]?.should eq nil
   end
 
   it "should not gzip a file if config is false, headers accept gzip and file is > 880 bytes" do
-    serve_static({"gzip" => false, "dir_listing" => true})
     headers = HTTP::Headers{"Accept-Encoding" => "gzip, deflate, sdch, br"}
-    response = handle HTTP::Request.new("GET", "/dir/bigger.txt", headers)
+    response = handle(HTTP::Request.new("GET", "/dir/bigger.txt", headers), { :gzip => false, :dir_listing => true })
     response.status_code.should eq(200)
     response.headers["Content-Encoding"]?.should eq nil
   end
@@ -119,10 +139,10 @@ describe Kemal::StaticFileHandler do
       end
     end
 
-    response = handle(HTTP::Request.new("GET", "/dir/test.txt"), false, set_headers)
+    response = handle(HTTP::Request.new("GET", "/dir/test.txt"), set_headers, { :fallthrough => false })
     response.headers.has_key?("Access-Control-Allow-Origin").should be_false
 
-    response = handle(HTTP::Request.new("GET", "/dir/index.html"), false, set_headers)
+    response = handle(HTTP::Request.new("GET", "/dir/index.html"), set_headers, { :fallthrough => false })
     response.headers["Access-Control-Allow-Origin"].should eq("*")
   end
 end
