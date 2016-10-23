@@ -70,7 +70,7 @@ module Kemal
       setup_init_handler
       setup_log_handler
       setup_error_handler
-      setup_static_file_handler
+      # setup_static_file_handler
     end
 
     private def setup_init_handler

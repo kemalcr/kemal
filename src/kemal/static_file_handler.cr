@@ -4,6 +4,14 @@
 
 module Kemal
   class StaticFileHandler < HTTP::StaticFileHandler
+    @public_dir : String
+    @fallthrough : Bool
+    @set_headers : (HTTP::Server::Response, String -> Void)?
+
+    def set_headers(callback)
+      @set_headers = callback
+    end
+
     def call(context)
       return call_next(context) if context.request.path.not_nil! == "/"
 
@@ -55,6 +63,9 @@ module Kemal
         context.response.content_type = mime_type(file_path)
         request_headers = context.request.headers
         filesize = File.size(file_path)
+
+        @set_headers.try(&.call(context.response, file_path))
+
         File.open(file_path) do |file|
           if request_headers.includes_word?("Accept-Encoding", "gzip") && config.is_a?(Hash) && config["gzip"] == true && filesize > minsize && self.zip_types(file_path)
             context.response.headers["Content-Encoding"] = "gzip"

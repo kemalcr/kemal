@@ -1,10 +1,22 @@
 require "./spec_helper"
 
-private def handle(request, fallthrough = true)
+private def handle(request : HTTP::Request, fallthrough : Bool = true)
   io = MemoryIO.new
   response = HTTP::Server::Response.new(io)
   context = HTTP::Server::Context.new(request, response)
   handler = Kemal::StaticFileHandler.new "#{__DIR__}/static", fallthrough
+  handler.call context
+  response.close
+  io.rewind
+  HTTP::Client::Response.from_io(io)
+end
+
+private def handle(request : HTTP::Request, fallthrough : Bool, callback)
+  io = MemoryIO.new
+  response = HTTP::Server::Response.new(io)
+  context = HTTP::Server::Context.new(request, response)
+  handler = Kemal::StaticFileHandler.new "#{__DIR__}/static", fallthrough
+  handler.set_headers(callback)
   handler.call context
   response.close
   io.rewind
@@ -98,5 +110,19 @@ describe Kemal::StaticFileHandler do
       response.status_code.should eq(405)
       response.headers["Allow"].should eq("GET, HEAD")
     end
+  end
+
+  it "should handle setting custom headers" do
+    set_headers = Proc(HTTP::Server::Response, String, Void).new do |response, path|
+      if path =~ /\.html$/
+        response.headers.add("Access-Control-Allow-Origin", "*")
+      end
+    end
+
+    response = handle(HTTP::Request.new("GET", "/dir/test.txt"), false, set_headers)
+    response.headers.has_key?("Access-Control-Allow-Origin").should be_false
+
+    response = handle(HTTP::Request.new("GET", "/dir/index.html"), false, set_headers)
+    response.headers["Access-Control-Allow-Origin"].should eq("*")
   end
 end

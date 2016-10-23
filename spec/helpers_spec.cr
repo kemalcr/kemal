@@ -4,7 +4,7 @@ describe "Macros" do
   describe "#basic_auth" do
     it "adds HTTPBasicAuthHandler" do
       basic_auth "serdar", "123"
-      Kemal.config.handlers.size.should eq 6
+      Kemal.config.handlers.size.should eq 5
     end
   end
 
@@ -18,7 +18,7 @@ describe "Macros" do
   describe "#add_handler" do
     it "adds a custom handler" do
       add_handler CustomTestHandler.new
-      Kemal.config.handlers.size.should eq 6
+      Kemal.config.handlers.size.should eq 5
     end
   end
 
