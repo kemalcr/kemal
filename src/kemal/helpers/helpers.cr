@@ -31,11 +31,6 @@ def logger(logger)
   Kemal.config.add_handler logger
 end
 
-# Enables / Disables static file serving.
-def serve_static(status : (Bool | Hash))
-  Kemal.config.serve_static = status
-end
-
 # Helper for easily modifying response headers.
 def headers(env, additional_headers)
   env.response.headers.merge!(additional_headers)
