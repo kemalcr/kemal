@@ -4,7 +4,7 @@ describe "Macros" do
   describe "#basic_auth" do
     it "adds HTTPBasicAuthHandler" do
       basic_auth "serdar", "123"
-      Kemal.config.handlers.size.should eq 6
+      Kemal.config.handlers.size.should eq 5
     end
   end
 
@@ -18,7 +18,7 @@ describe "Macros" do
   describe "#add_handler" do
     it "adds a custom handler" do
       add_handler CustomTestHandler.new
-      Kemal.config.handlers.size.should eq 6
+      Kemal.config.handlers.size.should eq 5
     end
   end
 
@@ -131,23 +131,6 @@ describe "Macros" do
 
     it "doesn't add HTTP::DeflateHandler to handlers by default" do
       Kemal.config.handlers.last.is_a?(HTTP::DeflateHandler).should eq false
-    end
-  end
-
-  describe "#serve_static" do
-    it "should disable static file hosting" do
-      serve_static false
-      Kemal.config.serve_static.should eq false
-    end
-
-    it "should disble enable gzip and dir_listing" do
-      serve_static({"gzip" => true, "dir_listing" => true})
-      conf = Kemal.config.serve_static
-      conf.is_a?(Hash).should eq true
-      if conf.is_a?(Hash)
-        conf["gzip"].should eq true
-        conf["dir_listing"].should eq true
-      end
     end
   end
 end

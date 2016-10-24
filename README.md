@@ -55,7 +55,7 @@ These results were achieved with ```wrk``` on a Macbook Pro Late 2013. (**2Ghz i
 - Request/Response context, easy parameter handling
 - Middlewares
 - Built-in JSON support
-- Built-in static file serving
+- Static file serving (not enabled by default)
 - Built-in view templating via [Kilt](https://github.com/jeromegn/kilt)
 
 # Documentation

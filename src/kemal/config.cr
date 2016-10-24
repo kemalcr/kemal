@@ -15,13 +15,12 @@ module Kemal
     {% end %}
 
     property host_binding, ssl, port, env, public_folder, logging,
-      always_rescue, serve_static : (Bool | Hash(String, Bool)), server, session : Hash(String, Time::Span | String), extra_options
+      always_rescue, server, session : Hash(String, Time::Span | String), extra_options
 
     def initialize
       @host_binding = "0.0.0.0"
       @port = 3000
       @env = "development"
-      @serve_static = {"dir_listing" => false, "gzip" => true}
       @session = {"name" => "kemal_session", "expire_time" => 48.hours}
       @public_folder = "./public"
       @logging = true
@@ -70,7 +69,6 @@ module Kemal
       setup_init_handler
       setup_log_handler
       setup_error_handler
-      setup_static_file_handler
     end
 
     private def setup_init_handler
@@ -91,10 +89,6 @@ module Kemal
         @error_handler ||= Kemal::CommonExceptionHandler.new
         HANDLERS.insert(2, @error_handler.not_nil!)
       end
-    end
-
-    private def setup_static_file_handler
-      HANDLERS.insert(3, Kemal::StaticFileHandler.new(@public_folder)) if @serve_static.is_a?(Hash)
     end
   end
 
