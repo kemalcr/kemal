@@ -4,7 +4,7 @@
 # Instances of this class are passed to an `HTTP::Server` handler.
 class HTTP::Server
   class Context
-    alias StoreTypes = Nil | String | Int32 | Float64 | Bool
+    alias StoreTypes = Nil | String | Int32 | Int64 | Float64 | Bool
     getter store = {} of String => StoreTypes
 
     def params
