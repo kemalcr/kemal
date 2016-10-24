@@ -115,12 +115,16 @@ describe Kemal::StaticFileHandler do
       if path =~ /\.html$/
         response.headers.add("Access-Control-Allow-Origin", "*")
       end
+      response.headers.add("Content-Size", stat.size.to_s)
     end
     handler = get_handler({ :fallthrough => false })
     handler.set_headers(set_headers)
 
     response = handle HTTP::Request.new("GET", "/dir/test.txt"), handler
     response.headers.has_key?("Access-Control-Allow-Origin").should be_false
+    response.headers["Content-Size"].should eq(
+      File.stat("#{__DIR__}/static/dir/test.txt").size.to_s
+    )
 
     response = handle HTTP::Request.new("GET", "/dir/index.html"), handler
     response.headers["Access-Control-Allow-Origin"].should eq("*")
