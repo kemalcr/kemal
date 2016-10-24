@@ -8,7 +8,7 @@ module Kemal
     @fallthrough : Bool
     @gzip : Bool
     @dir_listing : Bool
-    @set_headers : (HTTP::Server::Response, String -> Void)?
+    @set_headers : (HTTP::Server::Response, String, File::Stat -> Void)?
 
     def initialize(public_dir : String, options : Hash(Symbol, Bool))
       @public_dir = File.expand_path(public_dir)
@@ -71,8 +71,9 @@ module Kemal
         context.response.content_type = mime_type(file_path)
         request_headers = context.request.headers
         filesize = File.size(file_path)
+        filestat = File.stat(file_path)
 
-        @set_headers.try(&.call(context.response, file_path))
+        @set_headers.try(&.call(context.response, file_path, filestat))
 
         File.open(file_path) do |file|
           if request_headers.includes_word?("Accept-Encoding", "gzip") && @gzip && filesize > minsize && self.zip_types(file_path)

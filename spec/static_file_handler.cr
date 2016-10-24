@@ -133,7 +133,7 @@ describe Kemal::StaticFileHandler do
   end
 
   it "should handle setting custom headers" do
-    set_headers = Proc(HTTP::Server::Response, String, Void).new do |response, path|
+    set_headers = Proc(HTTP::Server::Response, String, File::Stat, Void).new do |response, path, stat|
       if path =~ /\.html$/
         response.headers.add("Access-Control-Allow-Origin", "*")
       end
