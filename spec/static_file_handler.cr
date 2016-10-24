@@ -1,7 +1,7 @@
 require "./spec_helper"
 
 private def get_handler
-  Kemal::StaticFileHandler.new("#{__DIR__}/static", { :fallthrough => true })
+  get_handler({ :fallthrough => true })
 end
 
 private def get_handler(options : Hash(Symbol, Bool))
