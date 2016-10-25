@@ -8,7 +8,10 @@ module Kemal
     @method : String
 
     def initialize(@method, @path : String, &handler : HTTP::Server::Context -> _)
-      @handler = ->(context : HTTP::Server::Context) { handler.call(context).to_s }
+      @handler = ->(context : HTTP::Server::Context) do
+        handler.call(context).to_s.to_json if context.request.headers["Content-Type"]? == "application/json"
+        handler.call(context).to_s
+      end
     end
   end
 end
