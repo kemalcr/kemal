@@ -7,7 +7,7 @@ module Kemal::Middleware
     # This middleware is lazily instantiated and added to the handlers as soon as a call to `after_X` or `before_X` is made.
     def initialize
       @tree = Radix::Tree(Array(Kemal::Middleware::Block)).new
-      Kemal.config.add_handler(self)
+      Kemal.config.add_filter_handler(self)
     end
 
     # The call order of the filters is before_all -> before_x -> X -> after_x -> after_all

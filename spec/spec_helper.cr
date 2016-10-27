@@ -3,14 +3,9 @@ require "../src/*"
 
 include Kemal
 
-class CustomTestHandler < HTTP::Handler
-  def call(request)
-    call_next request
-  end
-end
-
 class CustomLogHandler < Kemal::BaseLogHandler
-  def call(context)
+  def call(env)
+    call_next env
   end
 
   def write(message)
@@ -44,20 +39,30 @@ def call_request_on_app(request)
   io = MemoryIO.new
   response = HTTP::Server::Response.new(io)
   context = HTTP::Server::Context.new(request, response)
-  Kemal::RouteHandler::INSTANCE.call(context)
+  main_handler = build_main_handler
+  main_handler.call context
   response.close
   io.rewind
   HTTP::Client::Response.from_io(io, decompress: false)
+end
+
+def build_main_handler
+  main_handler = Kemal.config.handlers.first
+  current_handler = main_handler
+  Kemal.config.handlers.each_with_index do |handler, index|
+    current_handler.next = handler
+    current_handler = handler
+  end
+  main_handler
 end
 
 Spec.before_each do
   config = Kemal.config
   config.env = "development"
   config.setup
-  config.add_handler Kemal::RouteHandler::INSTANCE
 end
 
 Spec.after_each do
-  Kemal.config.handlers.clear
+  Kemal.config.clear
   Kemal::RouteHandler::INSTANCE.tree = Radix::Tree(Route).new
 end

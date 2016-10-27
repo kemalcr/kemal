@@ -30,7 +30,7 @@ describe "Macros" do
     it "sets a custom logger" do
       config = Kemal::Config::INSTANCE
       logger CustomLogHandler.new
-      config.handlers.last.should be_a(CustomLogHandler)
+      config.handlers[4].should be_a(CustomLogHandler)
       config.logger.should be_a(CustomLogHandler)
     end
   end
@@ -77,7 +77,6 @@ describe "Macros" do
           "Content-Type"                => "text/plain",
         }
       end
-
       request = HTTP::Request.new("GET", "/headers")
       response = call_request_on_app(request)
       response.headers["Access-Control-Allow-Origin"].should eq("*")
@@ -126,11 +125,7 @@ describe "Macros" do
   describe "#gzip" do
     it "adds HTTP::DeflateHandler to handlers" do
       gzip true
-      Kemal.config.handlers.last.is_a?(HTTP::DeflateHandler).should eq true
-    end
-
-    it "doesn't add HTTP::DeflateHandler to handlers by default" do
-      Kemal.config.handlers.last.is_a?(HTTP::DeflateHandler).should eq false
+      Kemal.config.handlers[4].should be_a(HTTP::DeflateHandler)
     end
   end
 
