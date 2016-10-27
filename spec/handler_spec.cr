@@ -9,17 +9,14 @@ end
 
 describe "Handler" do
   it "adds custom handler before before_*" do
-    before_get "/" do |env|
+    filter_middleware = Kemal::Middleware::Filter.new
+    filter_middleware._add_route_filter("GET", "/", :before) do |env|
       env.response << " is"
     end
 
-    before_get "/" do |env|
+    filter_middleware._add_route_filter("GET", "/", :before) do |env|
       env.response << " so"
     end
-
-    before_all "/" do
-    end
-
     add_handler CustomTestHandler.new
 
     get "/" do |env|

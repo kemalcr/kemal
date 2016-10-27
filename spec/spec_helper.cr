@@ -65,5 +65,4 @@ end
 Spec.after_each do
   Kemal.config.clear
   Kemal::RouteHandler::INSTANCE.tree = Radix::Tree(Route).new
-  Kemal::Middleware::Filter::INSTANCE.tree = Radix::Tree(Array(Kemal::Middleware::Block)).new
 end
