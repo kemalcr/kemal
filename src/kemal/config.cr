@@ -58,15 +58,18 @@ module Kemal
     end
 
     def add_handler(handler : HTTP::Handler)
+      setup
       HANDLERS.insert @custom_handler_position, handler
       @custom_handler_position = @custom_handler_position + 1
     end
 
     def add_filter_handler(handler : HTTP::Handler)
+      setup
       HANDLERS.insert HANDLERS.size - 1, handler
     end
 
     def add_ws_handler(handler : HTTP::WebSocketHandler)
+      setup
       HANDLERS << handler
     end
 
