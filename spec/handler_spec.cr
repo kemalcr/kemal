@@ -19,6 +19,9 @@ describe "Handler" do
       env.response << " so"
     end
 
+    before_all "/" do
+    end
+
     add_handler CustomTestHandler.new
 
     get "/" do |env|

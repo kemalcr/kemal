@@ -5,11 +5,9 @@ module Kemal
   #   Kemal.config
   #
   class Config
-    INSTANCE        = Config.new
-    HANDLERS        = [] of HTTP::Handler
-    CUSTOM_HANDLERS = [] of HTTP::Handler
-    FILTER_HANDLERS = [] of HTTP::Handler
-    ERROR_HANDLERS  = {} of Int32 => HTTP::Server::Context -> String
+    INSTANCE       = Config.new
+    HANDLERS       = [] of HTTP::Handler
+    ERROR_HANDLERS = {} of Int32 => HTTP::Server::Context -> String
     {% if flag?(:without_openssl) %}
     @ssl : Bool?
     {% else %}
@@ -53,8 +51,6 @@ module Kemal
       @custom_handler_position = 4
       @default_handlers_setup = false
       HANDLERS.clear
-      CUSTOM_HANDLERS.clear
-      FILTER_HANDLERS.clear
     end
 
     def handlers
@@ -62,18 +58,16 @@ module Kemal
     end
 
     def add_handler(handler : HTTP::Handler)
-      CUSTOM_HANDLERS << handler
-      setup_custom_handlers
+      HANDLERS.insert @custom_handler_position, handler
+      @custom_handler_position = @custom_handler_position + 1
     end
 
     def add_filter_handler(handler : HTTP::Handler)
-      FILTER_HANDLERS << handler
-      setup_filter_handlers
+      HANDLERS.insert HANDLERS.size - 1, handler
     end
 
     def add_ws_handler(handler : HTTP::WebSocketHandler)
-      CUSTOM_HANDLERS << handler
-      setup_custom_handlers
+      HANDLERS << handler
     end
 
     def error_handlers
@@ -88,14 +82,12 @@ module Kemal
     end
 
     def setup
-      unless @default_handlers_setup
+      unless @default_handlers_setup && @router_included
         setup_init_handler
         setup_log_handler
         setup_error_handler
         setup_static_file_handler
         @default_handlers_setup = true
-      end
-      unless @router_included
         @router_included = true
         HANDLERS.insert(HANDLERS.size, Kemal::RouteHandler::INSTANCE)
       end
@@ -123,19 +115,6 @@ module Kemal
 
     private def setup_static_file_handler
       HANDLERS.insert(3, Kemal::StaticFileHandler.new(@public_folder)) if @serve_static.is_a?(Hash)
-    end
-
-    private def setup_custom_handlers
-      CUSTOM_HANDLERS.each do |handler|
-        HANDLERS.insert @custom_handler_position, handler
-        @custom_handler_position = @custom_handler_position + 1
-      end
-    end
-
-    private def setup_filter_handlers
-      FILTER_HANDLERS.each do |handler|
-        HANDLERS.insert HANDLERS.size - 1, handler
-      end
     end
   end
 
