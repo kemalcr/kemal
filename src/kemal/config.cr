@@ -29,6 +29,9 @@ module Kemal
       @error_handler = nil
       @always_rescue = true
       @server = uninitialized HTTP::Server
+      @router_included = false
+      @custom_handler_position = 4
+      @default_handlers_setup = false
     end
 
     def logger
@@ -43,15 +46,30 @@ module Kemal
       ssl ? "https" : "http"
     end
 
+    def clear
+      @router_included = false
+      @custom_handler_position = 4
+      @default_handlers_setup = false
+      HANDLERS.clear
+    end
+
     def handlers
       HANDLERS
     end
 
     def add_handler(handler : HTTP::Handler)
-      HANDLERS << handler
+      setup
+      HANDLERS.insert @custom_handler_position, handler
+      @custom_handler_position = @custom_handler_position + 1
+    end
+
+    def add_filter_handler(handler : HTTP::Handler)
+      setup
+      HANDLERS.insert HANDLERS.size - 1, handler
     end
 
     def add_ws_handler(handler : HTTP::WebSocketHandler)
+      setup
       HANDLERS << handler
     end
 
@@ -67,10 +85,15 @@ module Kemal
     end
 
     def setup
-      setup_init_handler
-      setup_log_handler
-      setup_error_handler
-      setup_static_file_handler
+      unless @default_handlers_setup && @router_included
+        setup_init_handler
+        setup_log_handler
+        setup_error_handler
+        setup_static_file_handler
+        @default_handlers_setup = true
+        @router_included = true
+        HANDLERS.insert(HANDLERS.size, Kemal::RouteHandler::INSTANCE)
+      end
     end
 
     private def setup_init_handler
