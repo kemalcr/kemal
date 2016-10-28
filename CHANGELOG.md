@@ -1,3 +1,15 @@
+# Next
+
+- Reimplemented Request middleware / filter routing. 
+
+Now all requests will first go through the Middleware stack then Filters (before_*) and will finally reach the matching route.
+
+Which is illustrated as,
+
+```
+Request -> Middleware -> Filter -> Route
+```
+
 # 0.16.1 (12-10-2016)
 
 - Improved Multipart support with more info on parsed files. `parse_multipart(env)` now yields
