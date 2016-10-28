@@ -21,7 +21,7 @@ sudo apt-get install crystal
 
 For other OSes and distros check the [official documentation](http://crystal-lang.org/docs/installation/on_debian_and_ubuntu.html).
 
-## 2. Installing Kemal
+## 2. Install Kemal
 
 You should create your application first:
 
@@ -53,7 +53,7 @@ Updating https://github.com/sdogruyol/kemal.git
 Installing kemal (master)
 ```
 
-## 3. Include Kemal into your project
+## 3. Add Kemal
 
 Open `your_app/src/your_app.cr` and require `kemal` to use Kemal.
 
@@ -61,7 +61,7 @@ Open `your_app/src/your_app.cr` and require `kemal` to use Kemal.
 require "kemal"
 ```
 
-## 4. Hack your project
+## 4. Have fun!
 
 Do some awesome stuff with awesome Kemal.
 
