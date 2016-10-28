@@ -2,7 +2,7 @@
 layout: default
 ---
 
-Kemal is nice, so we are nice!
+> Kemal is nice, so we are nice!
 
 There are a number of places to connect with community members at all experience levels.
 
