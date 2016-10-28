@@ -61,7 +61,7 @@ Open `your_app/src/your_app.cr` and require `kemal` to use Kemal.
 require "kemal"
 ```
 
-## 4. Have fun!
+## 4. Hack!
 
 Do some awesome stuff with awesome Kemal.
 
@@ -83,7 +83,7 @@ end
 Kemal.run
 ```
 
-## 5. Run your awesome web project.
+## 5. Run!
 
 ```
 crystal build --release src/your_app.cr
