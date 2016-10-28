@@ -24,22 +24,25 @@ layout: home
     <div class="col-md-6">
       <h1>Super Simple</h1>
 
-{% highlight ruby %}
-require "kemal"
+<div class="code_frame">
+  {% highlight ruby %}
+  require "kemal"
 
-# Matches GET "http://host:port/"
-get "/" do
-  "Hello World!"
-end
+  # Matches GET "http://host:port/"
+  get "/" do
+    "Hello World!"
+  end
 
-# Creates a WebSocket handler.
-# Matches "ws://host:port/socket"
-ws "/socket" do |socket|
-  socket.send "Hello from Kemal!"
-end
+  # Creates a WebSocket handler.
+  # Matches "ws://host:port/socket"
+  ws "/socket" do |socket|
+    socket.send "Hello from Kemal!"
+  end
 
-Kemal.run
-{% endhighlight %}
+  Kemal.run
+  {% endhighlight %}
+</div>
+
     </div>
 
     <div class="col-md-6">
