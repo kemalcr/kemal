@@ -19,6 +19,8 @@ collections:
 nav_bars:
   - title: "Documentation"
     url: "/docs/getting_started"
+  - title: "Community"
+    url: "/community"
   - title: "Github"
     url: "https://github.com/sdogruyol/kemal"
 
