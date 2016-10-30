@@ -3,7 +3,7 @@ layout: doc
 title: Sessions
 ---
 
-Kemal's default session is in-memory only and holds simple **String** values only.
+Kemal's default session is in-memory only and can hold values of the following types: `String | Int64 | Float64 | Bool`.
 The client-side cookie stores a random ID.
 
 Kemal handlers can access the session like so:
@@ -11,13 +11,15 @@ Kemal handlers can access the session like so:
 ```ruby
 get("/") do |env|
   env.session["abc"] = "xyz"
-  uid = env.session["user_id"]?
+  uid = env.session["user_id"]?.as(Int32)
 end
 ```
 
-Note that only String values are allowed.
+By default, sessions are pruned hourly after 48 hours of inactivity. This can be configured:
 
-Sessions are pruned hourly after 48 hours of inactivity.
+```ruby
+Kemal.config.session["expire_time"] = 24.hours
+```
 
 ## Changing the Session Cookie Name
 
