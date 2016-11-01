@@ -69,8 +69,8 @@ end
 # Halt execution with the current context.
 # Returns 200 and an empty response by default.
 #
-#   return_with env, status_code: 403, response: "Forbidden"
-macro return_with(env, status_code = 200, response = "")
+#   halt env, status_code: 403, response: "Forbidden"
+macro halt(env, status_code = 200, response = "")
   {{env}}.response.status_code = {{status_code}}
   {{env}}.response.print {{response}}
   next

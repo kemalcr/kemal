@@ -35,8 +35,8 @@ describe "Macros" do
     end
   end
 
-  describe "#return_with" do
-    it "can break block with return_with macro" do
+  describe "#halt" do
+    it "can break block with halt macro" do
       get "/non-breaking" do |env|
         "hello"
         "world"
@@ -47,7 +47,7 @@ describe "Macros" do
       client_response.body.should eq("world")
 
       get "/breaking" do |env|
-        return_with env, 404, "hello"
+        halt env, 404, "hello"
         "world"
       end
       request = HTTP::Request.new("GET", "/breaking")
@@ -56,9 +56,9 @@ describe "Macros" do
       client_response.body.should eq("hello")
     end
 
-    it "can break block with return_with macro using default values" do
+    it "can break block with halt macro using default values" do
       get "/" do |env|
-        return_with env
+        halt env
         "world"
       end
       request = HTTP::Request.new("GET", "/")

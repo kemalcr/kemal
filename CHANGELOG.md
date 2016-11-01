@@ -10,6 +10,8 @@ Which is illustrated as,
 Request -> Middleware -> Filter -> Route
 ```
 
+- Rename `return_with` as `halt`.
+
 # 0.16.1 (12-10-2016)
 
 - Improved Multipart support with more info on parsed files. `parse_multipart(env)` now yields
