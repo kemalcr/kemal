@@ -3,7 +3,7 @@ module Kemal
   # For each WebSocket route a new handler is created and registered to global handlers.
   class WebSocketHandler < HTTP::WebSocketHandler
     def initialize(@path : String, &@proc : HTTP::WebSocket, HTTP::Server::Context -> Void)
-      Kemal.config.add_ws_handler self
+      Kemal.config.add_handler self
     end
 
     def call(context)

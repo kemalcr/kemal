@@ -12,7 +12,6 @@ module Kemal
     Kemal::CLI.new
     config = Kemal.config
     config.setup
-    config.add_handler Kemal::RouteHandler::INSTANCE
     config.port = port if port
 
     config.server = HTTP::Server.new(config.host_binding, config.port, config.handlers)
