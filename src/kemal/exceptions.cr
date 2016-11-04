@@ -1,6 +1,6 @@
 # Exceptions for 404 and custom errors are defined here.
 module Kemal::Exceptions
-  class PathStartInvalidException < Exception
+  class InvalidPathStartException < Exception
     def initialize(method, path)
       super "Route declaration #{method} \"#{path}\" needs to start with '/', should be #{method} \"/#{path}\""
     end

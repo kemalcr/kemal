@@ -15,7 +15,7 @@ describe "Route" do
     end
 
     it "doesn't allow a route declaration start without /" do
-      expect_raises Kemal::Exceptions::PathStartInvalidException, "Route declaration get \"route\" needs to start with '/', should be get \"/route\"" do
+      expect_raises Kemal::Exceptions::InvalidPathStartException, "Route declaration get \"route\" needs to start with '/', should be get \"/route\"" do
         get "route" do |env|
           "Route 1"
         end
