@@ -11,6 +11,7 @@ Request -> Middleware -> Filter -> Route
 ```
 
 - Rename `return_with` as `halt`.
+- Route declaration must start with `/`.  Fixes [#242](https://github.com/sdogruyol/kemal/issues/242)
 
 # 0.16.1 (12-10-2016)
 

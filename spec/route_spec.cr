@@ -13,5 +13,13 @@ describe "Route" do
       client_response = call_request_on_app(request)
       client_response.body.should eq("Route 2")
     end
+
+    it "doesn't allow a route declaration start without /" do
+      expect_raises Kemal::Exceptions::PathStartInvalidException, "Route declaration get \"route\" needs to start with '/', should be get \"/route\"" do
+        get "route" do |env|
+          "Route 1"
+        end
+      end
+    end
   end
 end
