@@ -23,8 +23,8 @@ Accessing the HTTP request/response context (query params, body, content_type, h
   # The payload
   # {"name": "Serdar", "likes": ["Ruby", "Crystal"]}
   post "/json_params" do |env|
-    name = env.params.json["name"] as String
-    likes = env.params.json["likes"] as Array
+    name = env.params.json["name"].as(String)
+    likes = env.params.json["likes"].as(Array)
     "#{name} likes #{likes.each.join(',')}"
   end
 
