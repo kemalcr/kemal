@@ -31,10 +31,12 @@ class Kemal::Handler < HTTP::Handler
       if @@only_routes_tree
         only_found = @@only_routes_tree.find(radix_path(env.request.method, env.request.path)).found?
       end
+
       if @@exclude_routes_tree
         exclude_found = @@exclude_routes_tree.find(radix_path(env.request.method, env.request.path)).found?
       end
-      if only_found && !exclude_found
+
+      if !exclude_found || only_found
         return false
       else
         return true
