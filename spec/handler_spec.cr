@@ -15,9 +15,6 @@ class OnlyHandler < Kemal::Handler
     env.response.print "Only"
     call_next env
   end
-
-  def write(message)
-  end
 end
 
 class ExcludeHandler < Kemal::Handler

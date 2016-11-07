@@ -1,15 +1,7 @@
-# Extend HTTP::Handler so that certain macros are scoped to HTTP::Handler or
-# inheriting classes, and not part of the global scope
-class HTTP::Handler
+class Kemal::Handler < HTTP::Handler
   @@only_routes_tree = Radix::Tree(String).new
   @@exclude_routes_tree = Radix::Tree(String).new
 
-  private def radix_path(method : String, path)
-    "/#{method.downcase}#{path}"
-  end
-end
-
-class Kemal::Handler < HTTP::Handler
   macro only(paths, method = "GET")
     class_name = {{@type.name}}
     {{paths}}.each do |path|
