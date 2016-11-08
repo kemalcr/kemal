@@ -31,17 +31,12 @@ class Kemal::Handler < HTTP::Handler
   #       only ["/"]
   #
   #       def call(env)
-  #         return unless only_match?(env)
+  #         return call_next(env) unless only_match?(env)
   #         puts "If the path is / i will be doing some processing here."
   #       end
   #     end
   def only_match?(env)
-    if @@only_routes_tree
-      only_found = false
-      only_found? = @@only_routes_tree.find(radix_path(env.request.method, env.request.path)).found?
-      return only_found?
-    end
-    false
+    @@only_routes_tree.find(radix_path(env.request.method, env.request.path)).found?
   end
 
   # Processes the path based on `exclude` paths which is a `Array(String)`.
@@ -55,17 +50,12 @@ class Kemal::Handler < HTTP::Handler
   #       exclude ["/"]
   #
   #       def call(env)
-  #         return unless exclude_match?(env)
-  #         puts "If the path is / i will be doing some processing here."
+  #         return call_next(env) if exclude_match?(env)
+  #         puts "If the path is not / i will be doing some processing here."
   #       end
   #     end
   def exclude_match?(env)
-    if @@exclude_routes_tree
-      exclude_found = false
-      exclude_found? = @@exclude_routes_tree.find(radix_path(env.request.method, env.request.path)).found?
-      return !exclude_found?
-    end
-    false
+    @@exclude_routes_tree.find(radix_path(env.request.method, env.request.path)).found?
   end
 
   private def radix_path(method : String, path)
