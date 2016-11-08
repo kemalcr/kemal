@@ -83,7 +83,7 @@ end
 #   halt_json env, status_code: 403, response: %({"msg": "Forbidden"})
 macro halt_json(env, status_code = 200, response = "")
   {{env}}.response.status_code = {{status_code}}
-  {{env}}.response.content_type "application/json"
+  {{env}}.response.content_type = "application/json"
   {{env}}.response.print {{response}}
   {{env}}.response.close
   next
@@ -95,7 +95,7 @@ end
 #   halt env, status_code: 403, response: "<h1>Forbidden</h1>"
 macro halt_html(env, status_code = 200, response = "")
   {{env}}.response.status_code = {{status_code}}
-  {{env}}.response.content_type "text/html"
+  {{env}}.response.content_type = "text/html"
   {{env}}.response.print {{response}}
   {{env}}.response.close
   next
@@ -107,7 +107,7 @@ end
 #   halt env, status_code: 403, response: "Forbidden"
 macro halt_plain(env, status_code = 200, response = "")
   {{env}}.response.status_code = {{status_code}}
-  {{env}}.response.content_type "text/plain"
+  {{env}}.response.content_type = "text/plain"
   {{env}}.response.print {{response}}
   {{env}}.response.close
   next
