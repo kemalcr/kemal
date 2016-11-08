@@ -104,7 +104,7 @@ describe "Handler" do
     client_response.body.should eq "OnlyPost"
   end
 
-  it "runs specified exclude_routes with method in middleware" do
+  it "doesn't run specified exclude_routes with method in middleware" do
     post "/exclude" do
       "Post"
     end

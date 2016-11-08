@@ -16,6 +16,22 @@ class Kemal::Handler < HTTP::Handler
     end
   end
 
+  # Processes the path based on `only/exclude` paths which is a `Array(String)`.
+  # If the path is not found on `only` and `exclude` conditions the handler will continue processing.
+  # If the path is found in `only` or `exclude` conditions it'll stop processing and will pass the request
+  # to next handler.
+  #
+  # However this is not done automatically. All handlers must inherit from `Kemal::Handler` and need to explicitly
+  # call `super && return(call_next(env))`.
+  #
+  #     OnlyHandler < Kemal::Handler
+  #       only ["/"]
+  #
+  #       def call(env)
+  #         super && return(call_next(env))
+  #         puts "If the path is / i will be doing some processing here."
+  #       end
+  #     end
   def call(env)
     if @@only_routes_tree || @@exclude_routes_tree
       only_found = false
