@@ -11,7 +11,7 @@ class OnlyHandler < Kemal::Handler
   only ["/only"]
 
   def call(env)
-    super && return(call_next(env))
+    return unless only_match?(env)
     env.response.print "Only"
     call_next env
   end
@@ -21,17 +21,17 @@ class ExcludeHandler < Kemal::Handler
   exclude ["/exclude"]
 
   def call(env)
-    super && return(call_next(env))
+    return unless exclude_match?(env)
     env.response.print "Exclude"
     call_next env
   end
 end
 
 class PostOnlyHandler < Kemal::Handler
-  only ["/only", "/route1", "/route2"]
+  only ["/only", "/route1", "/route2"], "POST"
 
   def call(env)
-    super && return(call_next(env))
+    return unless only_match?(env)
     env.response.print "Only"
     call_next env
   end
@@ -41,7 +41,7 @@ class PostExcludeHandler < Kemal::Handler
   exclude ["/exclude"], "POST"
 
   def call(env)
-    super && return(call_next(env))
+    return unless exclude_match?(env)
     env.response.print "Exclude"
     call_next env
   end
