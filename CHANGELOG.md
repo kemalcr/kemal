@@ -13,6 +13,36 @@ Request -> Middleware -> Filter -> Route
 - Rename `return_with` as `halt`.
 - Route declaration must start with `/`.  Fixes [#242](https://github.com/sdogruyol/kemal/issues/242)
 - Set default exception Content-Type to text/html. Fixes [#202](https://github.com/sdogruyol/kemal/issues/242)
+- Add `only` and `exclude` paths for `Kemal::Handler`. This change requires that all handlers must inherit from `Kemal::Handler`. 
+
+For example this handler will only work on `/` path. By default the HTTP method is `GET`.
+
+
+```crystal
+OnlyHandler < Kemal::Handler
+  only ["/"]
+  
+  def call(env)
+    return call_next(env) unless only_match?(env)
+    puts "If the path is / i will be doing some processing here."
+  end
+end
+```
+
+The handlers using `exclude` will work on the paths that isn't specified. For example this handler will work on any routes other than `/`.
+
+```crystal
+ExcludeHandler < Kemal::Handler
+  exclude ["/"]
+  
+  def call(env)
+    return call_next(env) unless only_match?(env)
+    puts "If the path is NOT / i will be doing some processing here."
+  end
+end
+```
+
+- Close response on `halt`. (thanks @samueleaton)
 
 # 0.16.1 (12-10-2016)
 
