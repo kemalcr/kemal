@@ -1,6 +1,7 @@
 require "http"
 require "multipart"
 require "./kemal/*"
+require "./kemal/ext/*"
 require "./kemal/helpers/*"
 require "./kemal/middleware/*"
 
