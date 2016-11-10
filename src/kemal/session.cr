@@ -15,7 +15,7 @@ module Kemal
   #
   # Sessions are pruned hourly after 48 hours of inactivity.
   class Sessions
-    # Session Types are String, Integer, Float and Boolean
+    # :nodoc:
     alias SessionTypes = String | Int32 | Float64 | Bool
 
     # In-memory, ephemeral datastore only.

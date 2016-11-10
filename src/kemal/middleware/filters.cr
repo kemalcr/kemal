@@ -70,6 +70,7 @@ module Kemal::Middleware
     end
   end
 
+  # :nodoc:
   class Block
     property block : HTTP::Server::Context -> String
 

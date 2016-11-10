@@ -79,7 +79,7 @@ def gzip(status : Bool = false)
   add_handler HTTP::DeflateHandler.new if status
 end
 
-# nodoc:
+# :nodoc:
 struct UploadFile
   getter field : String
   getter data : IO::Delimited

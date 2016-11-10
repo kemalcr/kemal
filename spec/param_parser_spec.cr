@@ -174,7 +174,7 @@ describe "ParamParser" do
       body_params.to_s.should eq("")
 
       json_params = Kemal::ParamParser.new(request).json
-      json_params.should eq({} of String => AllParamTypes)
+      json_params.should eq({} of String => Nil | String | Int64 | Float64 | Bool | Hash(String, JSON::Type) | Array(JSON::Type))
     end
   end
 

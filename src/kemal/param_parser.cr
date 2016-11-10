@@ -5,11 +5,11 @@ module Kemal
   # ParamParser parses the request contents including query_params and body
   # and converts them into a params hash which you can within the environment
   # context.
-  alias AllParamTypes = Nil | String | Int64 | Float64 | Bool | Hash(String, JSON::Type) | Array(JSON::Type)
-
   class ParamParser
     URL_ENCODED_FORM = "application/x-www-form-urlencoded"
     APPLICATION_JSON = "application/json"
+    # :nodoc:
+    alias AllParamTypes = Nil | String | Int64 | Float64 | Bool | Hash(String, JSON::Type) | Array(JSON::Type)
 
     def initialize(@request : HTTP::Request)
       @url = {} of String => String
