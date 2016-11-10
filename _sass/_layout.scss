@@ -353,18 +353,16 @@
     }
 }
 
+@mixin center-children {
+  display: flex;
+  align-items: center;
+  justify-content: center;  
+}
+
 .companies {
-    text-align: center;
 
     div {
-        line-height: 100px;
-        display: table-cell;
-        vertical-align: middle;
-
-        img {
-            vertical-align: middle;
-            max-height: 100px;
-        }
+        @include center-children;
     }
 }
 
