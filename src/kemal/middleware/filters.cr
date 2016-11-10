@@ -6,7 +6,7 @@ module Kemal::Middleware
 
     # This middleware is lazily instantiated and added to the handlers as soon as a call to `after_X` or `before_X` is made.
     def initialize
-      @tree = Radix::Tree(Array(Kemal::Middleware::Block)).new
+      @tree = Radix::Tree(Array(Kemal::Middleware::FilterBlock)).new
       Kemal.config.add_filter_handler(self)
     end
 
@@ -28,10 +28,10 @@ module Kemal::Middleware
     # It adds the block for the corresponding verb/path/type combination to the tree.
     def _add_route_filter(verb, path, type, &block : HTTP::Server::Context -> _)
       lookup = lookup_filters_for_path_type(verb, path, type)
-      if lookup.found? && lookup.payload.is_a?(Array(Block))
-        (lookup.payload.as(Array(Block))) << Block.new(&block)
+      if lookup.found? && lookup.payload.is_a?(Array(FilterBlock))
+        (lookup.payload.as(Array(FilterBlock))) << FilterBlock.new(&block)
       else
-        @tree.add radix_path(verb, path, type), [Block.new(&block)]
+        @tree.add radix_path(verb, path, type), [FilterBlock.new(&block)]
       end
     end
 
@@ -48,8 +48,8 @@ module Kemal::Middleware
     # This will fetch the block for the verb/path/type from the tree and call it.
     private def call_block_for_path_type(verb, path, type, context)
       lookup = lookup_filters_for_path_type(verb, path, type)
-      if lookup.found? && lookup.payload.is_a? Array(Block)
-        blocks = lookup.payload.as(Array(Block))
+      if lookup.found? && lookup.payload.is_a? Array(FilterBlock)
+        blocks = lookup.payload.as(Array(FilterBlock))
         blocks.each { |block| block.call(context) }
       end
     end
@@ -57,7 +57,7 @@ module Kemal::Middleware
     # This checks is filter is already defined for the verb/path/type combination
     private def filter_for_path_type_defined?(verb, path, type)
       lookup = @tree.find radix_path(verb, path, type)
-      lookup.found? && lookup.payload.is_a? Block
+      lookup.found? && lookup.payload.is_a? FilterBlock
     end
 
     # This returns a lookup for verb/path/type
@@ -71,7 +71,7 @@ module Kemal::Middleware
   end
 
   # :nodoc:
-  class Block
+  class FilterBlock
     property block : HTTP::Server::Context -> String
 
     def initialize(&block : HTTP::Server::Context -> _)
@@ -87,7 +87,6 @@ end
 # All the helper methods available are:
 #  - before_all, before_get, before_post, before_put, before_patch, before_delete
 #  - after_all, after_get, after_post, after_put, after_patch, after_delete
-
 ALL_METHODS = %w(get post put patch delete all)
 {% for type in ["before", "after"] %}
   {% for method in ALL_METHODS %}
