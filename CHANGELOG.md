@@ -42,7 +42,8 @@ ExcludeHandler < Kemal::Handler
 end
 ```
 
-- Close response on `halt`. (thanks @samueleaton)
+- Close response on `halt`. (thanks @samueleaton).
+- Update `Radix` to `v0.3.4`.
 
 # 0.16.1 (12-10-2016)
 
