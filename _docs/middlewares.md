@@ -3,11 +3,15 @@ layout: doc
 title: Middlewares
 ---
 
-## Built-in Middlewares
+## Middlewares
 
-Kemal has built-in middlewares for common use cases.
+Middlewares a.k.a `Handler`s are the building blocks of `Kemal`. It lets you seperate your concerns into different layers. 
 
-### HTTP Basic Authorization
+Each middleware is supposed to have one responsibility. Take a look at `Kemal`'s built-in middlewares to see what that means.
+
+### Built-in Middlewares
+
+#### HTTP Basic Authorization
 
 This middleware lets you add HTTP Basic Authorization to your Kemal application.
 You can easily use this middleware with `basic_auth` macro like below.
@@ -84,7 +88,3 @@ end
 Kemal.config.add_handler CustomHandler.new
 ```
 
-## Other middlewares
-
-[kemal-pg](https://github.com/sdogruyol/kemal-pg): Postgresql Middleware for Kemal. Easily integrate Postgresql to your Kemal app.
-[kemal-mysql](https://github.com/sdogruyol/kemal-mysql): Mysql Middleware for Kemal. Easily integrate Mysql to your Kemal app.
