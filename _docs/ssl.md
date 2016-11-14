@@ -1,6 +1,7 @@
 ---
 layout: doc
 title: "SSL"
+order: 2
 ---
 
 Kemal has built-in and easy to use SSL support.

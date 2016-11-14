@@ -1,6 +1,7 @@
 ---
 layout: doc
 title: "Getting Started"
+order: 1
 ---
 
 ## 1. Install Crystal
