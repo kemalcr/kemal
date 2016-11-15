@@ -23,6 +23,8 @@ nav_bars:
     url: "/community"
   - title: "Github"
     url: "https://github.com/sdogruyol/kemal"
+  - title: "Blog"
+    url: "/blog"
 
 examples:
   - title: "How to connect to Database"
