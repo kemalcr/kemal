@@ -123,8 +123,8 @@ This XML configuration seems a bit complicated. Here are the important things th
 - `<client>` is a Tsung machine. If you are running Tsung in a distributed mode (multiple Tsung servers) you need to edit your `/etc/hosts` and add your Tsung servers like this.
 
 ```
-tsung-machine 34.55.199.22
-tsung-machine-2 34.55.199.23
+tsung-machine 95.85.57.196
+tsung-machine-2 146.185.131.204
 ```
 
 Tsung uses SSH authentication to access workers. That's why you need to generate a public key in your Tsung master machine in this case `tsung-machine` and add it to `tsung-machine-2`'s `.ssh/authorized_keys`.
