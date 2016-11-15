@@ -226,3 +226,5 @@ servers pushed the limits again :)
 Kemal Handling ***61189*** concurrent WebSocket connections :) It's not the limit but the end for now.
 
 Happy Crystalling <3
+
+P.S: If you like this, please follow [Kemal](https://twitter.com/crystalkemal) on Twitter for updates and blog posts like this.
