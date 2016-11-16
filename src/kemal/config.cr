@@ -7,7 +7,7 @@ module Kemal
   class Config
     INSTANCE       = Config.new
     HANDLERS       = [] of HTTP::Handler
-    ERROR_HANDLERS = {} of Int32 => HTTP::Server::Context -> String
+    ERROR_HANDLERS = {} of Int32 => HTTP::Server::Context, Exception -> String
     {% if flag?(:without_openssl) %}
     @ssl : Bool?
     {% else %}
@@ -72,8 +72,8 @@ module Kemal
       ERROR_HANDLERS
     end
 
-    def add_error_handler(status_code, &handler : HTTP::Server::Context -> _)
-      ERROR_HANDLERS[status_code] = ->(context : HTTP::Server::Context) { handler.call(context).to_s }
+    def add_error_handler(status_code, &handler : HTTP::Server::Context, Exception -> _)
+      ERROR_HANDLERS[status_code] = ->(context : HTTP::Server::Context, error : Exception) { handler.call(context, error).to_s }
     end
 
     def extra_options(&@extra_options : OptionParser ->)

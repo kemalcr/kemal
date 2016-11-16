@@ -44,6 +44,13 @@ end
 
 - Close response on `halt`. (thanks @samueleaton).
 - Update `Radix` to `v0.3.4`.
+- `error` handler now also yields error. For example you can get the error mesasage like
+
+```crystal
+  error 500 do |env, err|
+    err.message
+  end
+```
 
 # 0.16.1 (12-10-2016)
 
