@@ -2,11 +2,12 @@
  * Site header
  */
 .site-header {
-    border-top: 7px solid $red-color;
-    border-bottom: 1px solid $grey-color-light;
+    // border-top: 7px solid $red-color;
+    // border-bottom: 1px solid $grey-color-light;
     min-height: 56px;
     // Positioning context for the mobile navigation icon
     position: relative;
+    box-shadow: 0 1px 5px rgba(0,0,0,0.1) !important
 }
 
 .site-title {
@@ -24,7 +25,7 @@
 }
 
 .site-title img {
-    width: 60px;
+    width: 45px;
 }
 
 .site-nav {
@@ -98,7 +99,6 @@
  */
 .site-footer {
     border-top: 1px solid $grey-color-light;
-    margin-top: 40px;
     padding: $spacing-unit 0;
 }
 
@@ -280,10 +280,11 @@
 }
 
 .hero {
-    background: #f1f1f1;
+    background: #f8f7f6;
     text-align: center;
     padding: 40px 0;
     margin-bottom: 40px;
+    border-bottom: 1px solid $grey-color-light;
 
     img {
         width: 13%;
@@ -326,8 +327,6 @@
 }
 
 .block {
-    margin-top: 40px;
-
     .code_frame {
         box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.1), 0 8px 32px rgba(0, 0, 0, 0.12);
         border: 1.3px solid #d1d9db;
@@ -373,4 +372,12 @@
     th {
         text-align: center;
     }
+}
+
+section {
+  padding: 60px 0;
+}
+section.second {
+  background: #f8f8f8;
+  border: 1px solid $grey-color-light;
 }
