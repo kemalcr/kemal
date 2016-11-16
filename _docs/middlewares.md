@@ -1,11 +1,12 @@
 ---
 layout: doc
 title: Middlewares
+order: 9
 ---
 
 ## Middlewares
 
-Middlewares a.k.a `Handler`s are the building blocks of `Kemal`. It lets you seperate your concerns into different layers. 
+Middlewares a.k.a `Handler`s are the building blocks of `Kemal`. It lets you seperate your concerns into different layers.
 
 Each middleware is supposed to have one responsibility. Take a look at `Kemal`'s built-in middlewares to see what that means.
 
@@ -87,4 +88,3 @@ end
 
 Kemal.config.add_handler CustomHandler.new
 ```
-

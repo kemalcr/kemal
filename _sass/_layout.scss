@@ -38,7 +38,7 @@
     .page-link {
         color: $text-color;
         line-height: $base-line-height;
-        text-transform: uppercase;
+        text-transform: capitalize;
         // Gaps between nav items, but not on the last one
         &:not(:last-child) {
             margin-right: 20px;
@@ -356,7 +356,7 @@
 @mixin center-children {
   display: flex;
   align-items: center;
-  justify-content: center;  
+  justify-content: center;
 }
 
 .companies {

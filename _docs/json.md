@@ -1,6 +1,7 @@
 ---
 layout: doc
 title: Serving JSON API
+order: 4
 ---
 
 You need to return a ```JSON``` object or need to convert the existing object via `to_json`.

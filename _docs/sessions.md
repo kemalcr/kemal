@@ -1,6 +1,7 @@
 ---
 layout: doc
 title: Sessions
+order: 11
 ---
 
 Kemal's default session is in-memory only and can hold values of the following types: `String | Int64 | Float64 | Bool`.

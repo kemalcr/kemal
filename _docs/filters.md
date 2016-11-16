@@ -1,6 +1,7 @@
 ---
 layout: doc
 title: "Filters"
+order: 6
 ---
 
 Before filters are evaluated before each request within the same context as the routes. They can modify the request and response.
@@ -64,15 +65,15 @@ You can add many blocks to the same verb/path combination by calling it multiple
 
 ```ruby
 before_all do |env|
- raise "Unauthorized" unless authorized?(env)
+  raise "Unauthorized" unless authorized?(env)
 end
 
 before_all do |env|
- env.session = Session.new(env.cookies)
+  env.session = Session.new(env.cookies)
 end
 
 get "/foo" do |env|
- "foo"
+  "foo"
 end
 
 ```

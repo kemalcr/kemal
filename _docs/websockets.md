@@ -1,6 +1,7 @@
 ---
 layout: doc
 title: Websockets
+order: 13
 ---
 
 Using Websockets is super easy! By nature Websockets are a bit different than standard Http Request / Response lifecycle.

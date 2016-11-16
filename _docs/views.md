@@ -1,6 +1,7 @@
 ---
 layout: doc
 title: Using Dynamic Views
+order: 5
 ---
 
 You can use ERB-like built-in [ECR](http://crystal-lang.org/api/ECR.html) to render dynamic views.
@@ -56,16 +57,17 @@ giving it an identifier:
 
 ```erb
 # index.ecr
- <% content_for "some_key" do %>
+<% content_for "some_key" do %>
   <chunk of="html">...</chunk>
 <% end %>
-Then, you call +yield_content+ with that identifier, generally from a
-layout, to render the captured block:
 ```
 
+Then, you call **yield_content** with that identifier, generally from a
+layout, to render the captured block:
+
 ```erb
- # layout.ecr
- <%= yield_content "some_key" %>
+# layout.ecr
+<%= yield_content "some_key" %>
 ```
 
 ##### And How Is This Useful?

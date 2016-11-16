@@ -1,6 +1,7 @@
 ---
 layout: doc
 title: Utilities
+order: 7
 ---
 
 ## Browser Redirect
@@ -10,8 +11,8 @@ Just like other things in `kemal`, browser redirection is super simple as well. 
 ```ruby
 # Redirect browser
 get "/logout" do |env|
-	# important stuff like clearing session etc.
-	env.redirect "/login" # redirect to /login page
+  # important stuff like clearing session etc.
+  env.redirect "/login" # redirect to /login page
 end
 ```
 
@@ -20,5 +21,5 @@ end
 Kemal mounts `./public` root path of the project as the default public asset folder. You can change this by using `public_folder`.
 
 ```ruby
-  public_folder "path/to/your/folder"
+public_folder "path/to/your/folder"
 ```

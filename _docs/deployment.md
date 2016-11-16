@@ -1,6 +1,7 @@
 ---
 layout: doc
 title: "Deployment"
+order: 15
 ---
 
 ## Heroku

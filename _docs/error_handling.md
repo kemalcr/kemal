@@ -1,6 +1,7 @@
 ---
 layout: doc
 title: "Error Handling"
+order: 8
 ---
 
 Error handlers run within the same context as routes and before filters which means you get all the power of those.

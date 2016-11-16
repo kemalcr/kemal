@@ -1,6 +1,7 @@
 ---
 layout: doc
 title: Restful Web Services
+order: 2
 ---
 
 You can handle HTTP methods as easy as writing method names and the route with a code block. Kemal will handle all the hard work.

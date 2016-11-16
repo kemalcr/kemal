@@ -1,6 +1,7 @@
 ---
 layout: doc
 title: "Database Connection"
+order: 12
 ---
 
 Kemal supports database connection in an easy and extensible way.
