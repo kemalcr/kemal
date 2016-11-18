@@ -2,8 +2,6 @@
   require "zlib"
 {% end %}
 
-require "./helpers/utils"
-
 module Kemal
   class StaticFileHandler < HTTP::StaticFileHandler
     def call(context)
