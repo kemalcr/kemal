@@ -3,7 +3,7 @@ require "./spec_helper"
 describe "Kemal::CommonLogHandler" do
   it "logs to the given IO" do
     config = Kemal.config
-    io = MemoryIO.new
+    io = IO::Memory.new
     logger = Kemal::CommonLogHandler.new io
     logger.write "Something"
     io.to_s.should eq "Something"
@@ -11,8 +11,8 @@ describe "Kemal::CommonLogHandler" do
 
   it "creates log message for each request" do
     request = HTTP::Request.new("GET", "/")
-    io = MemoryIO.new
-    context_io = MemoryIO.new
+    io = IO::Memory.new
+    context_io = IO::Memory.new
     response = HTTP::Server::Response.new(context_io)
     context = HTTP::Server::Context.new(request, response)
     logger = Kemal::CommonLogHandler.new io

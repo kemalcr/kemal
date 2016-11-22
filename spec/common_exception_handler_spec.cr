@@ -7,7 +7,7 @@ describe "Kemal::CommonExceptionHandler" do
     end
 
     request = HTTP::Request.new("GET", "/asd")
-    io = MemoryIO.new
+    io = IO::Memory.new
     response = HTTP::Server::Response.new(io)
     context = HTTP::Server::Context.new(request, response)
     Kemal::CommonExceptionHandler::INSTANCE.call(context)
@@ -25,7 +25,7 @@ describe "Kemal::CommonExceptionHandler" do
       env.response.status_code = 403
     end
     request = HTTP::Request.new("GET", "/")
-    io = MemoryIO.new
+    io = IO::Memory.new
     response = HTTP::Server::Response.new(io)
     context = HTTP::Server::Context.new(request, response)
     Kemal::CommonExceptionHandler::INSTANCE.next = Kemal::RouteHandler::INSTANCE
@@ -46,7 +46,7 @@ describe "Kemal::CommonExceptionHandler" do
       env.response.status_code = 500
     end
     request = HTTP::Request.new("GET", "/")
-    io = MemoryIO.new
+    io = IO::Memory.new
     response = HTTP::Server::Response.new(io)
     context = HTTP::Server::Context.new(request, response)
     Kemal::CommonExceptionHandler::INSTANCE.next = Kemal::RouteHandler::INSTANCE
@@ -68,7 +68,7 @@ describe "Kemal::CommonExceptionHandler" do
       env.response.status_code = 500
     end
     request = HTTP::Request.new("GET", "/")
-    io = MemoryIO.new
+    io = IO::Memory.new
     response = HTTP::Server::Response.new(io)
     context = HTTP::Server::Context.new(request, response)
     Kemal::CommonExceptionHandler::INSTANCE.next = Kemal::RouteHandler::INSTANCE
@@ -90,7 +90,7 @@ describe "Kemal::CommonExceptionHandler" do
       env.response.status_code = 500
     end
     request = HTTP::Request.new("GET", "/")
-    io = MemoryIO.new
+    io = IO::Memory.new
     response = HTTP::Server::Response.new(io)
     context = HTTP::Server::Context.new(request, response)
     Kemal::CommonExceptionHandler::INSTANCE.next = Kemal::RouteHandler::INSTANCE

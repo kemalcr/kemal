@@ -1,7 +1,7 @@
 require "./spec_helper"
 
 private def handle(request, fallthrough = true)
-  io = MemoryIO.new
+  io = IO::Memory.new
   response = HTTP::Server::Response.new(io)
   context = HTTP::Server::Context.new(request, response)
   handler = Kemal::StaticFileHandler.new "#{__DIR__}/static", fallthrough

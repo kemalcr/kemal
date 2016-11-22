@@ -49,7 +49,7 @@ describe "Context" do
       }
     end
     request = HTTP::Request.new("GET", "/")
-    io = MemoryIO.new
+    io = IO::Memory.new
     response = HTTP::Server::Response.new(io)
     context = HTTP::Server::Context.new(request, response)
     Kemal::Middleware::Filter::INSTANCE.call(context)

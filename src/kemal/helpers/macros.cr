@@ -33,7 +33,7 @@ CONTENT_FOR_BLOCKS = Hash(String, Tuple(String, Proc(String))).new
 # setting the appropriate set of tags that should be added to the layout.
 macro content_for(key, file = __FILE__)
   %proc = ->() {
-    __kilt_io__ = MemoryIO.new
+    __kilt_io__ = IO::Memory.new
     {{ yield }}
     __kilt_io__.to_s
   }
