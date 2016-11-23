@@ -1,4 +1,4 @@
-/libs/
+/lib/
 /.crystal/
 /.shards/
 *.log
