@@ -54,6 +54,7 @@ describe "Kemal::CommonLogHandler" do
       request = HTTP::Request.new("GET", "/")
       io = IO::Memory.new
       logger = Kemal::CommonLogHandler.new(io)
+      logger logger
       Kemal.config.add_handler(logger)
       Kemal.config.add_handler(Kemal::CommonExceptionHandler.new)
       response = call_request_on_app(request)
