@@ -1,4 +1,4 @@
-# Next
+# 0.17.0 (23-11-2016)
 
 - Reimplemented Request middleware / filter routing. 
 
@@ -51,6 +51,8 @@ end
     err.message
   end
 ```
+
+- Update `multipart.cr` to `v0.1.1`
 
 # 0.16.1 (12-10-2016)
 
