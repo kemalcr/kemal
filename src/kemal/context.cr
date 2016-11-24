@@ -9,7 +9,11 @@ class HTTP::Server
 
     def params
       @request.url_params ||= route_lookup.params
-      @params ||= Kemal::ParamParser.new(@request)
+      @params ||= if @request.param_parser
+                    @request.param_parser.not_nil!
+                  else
+                    Kemal::ParamParser.new(@request)
+                  end
     end
 
     def redirect(url, status_code = 302)

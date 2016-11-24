@@ -75,8 +75,20 @@ module Kemal
       end
     end
 
-    def parse_part(part)
-      HTTP::Params.parse(part.to_s || "")
+    def parse_part(part : IO?)
+      if part
+        HTTP::Params.parse(part.gets_to_end)
+      else
+        HTTP::Params.parse("")
+      end
+    end
+
+    def parse_part(part : String?)
+      if part
+        HTTP::Params.parse(part.to_s)
+      else
+        HTTP::Params.parse("")
+      end
     end
   end
 end
