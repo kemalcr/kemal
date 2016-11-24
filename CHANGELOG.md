@@ -1,3 +1,7 @@
+# 0.17.1 (24-11-2016)
+
+- Treat `HTTP::Request` body as an `IO`. Fixes [#257](https://github.com/sdogruyol/kemal/issues/257)
+
 # 0.17.0 (23-11-2016)
 
 - Reimplemented Request middleware / filter routing. 
