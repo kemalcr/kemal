@@ -29,11 +29,6 @@ class HTTP::Server
       route_lookup.found?
     end
 
-    def session
-      @session ||= Kemal::Sessions.new(self)
-      @session.not_nil!
-    end
-
     def get(name)
       @store[name]
     end
