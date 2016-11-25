@@ -1,7 +1,7 @@
 # 0.17.2 (25-11-2016)
 
 - Use body.gets_to_end for parse_json. Fixes #260.
-Update Radix to 0.3.5 and lock pessimistically. (thanks @luislavena)
+- Update Radix to 0.3.5 and lock pessimistically. (thanks @luislavena)
 
 # 0.17.1 (24-11-2016)
 
