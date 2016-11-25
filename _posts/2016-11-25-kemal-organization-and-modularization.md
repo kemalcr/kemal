@@ -1,5 +1,5 @@
 ---
-title: 'Modularization and Kemal Organization'
+title: 'Kemal Organization and Modularization'
 date: '2016-11-25 17:55'
 layout: 'post'
 tags:
@@ -28,10 +28,10 @@ We've started to modularize Kemal. The main purpose of modularization is to keep
 
 Until now these features were in Kemal
 
-- Session
-- CSRF
+- [Session](https://github.com/kemalcr/kemal-session)
+- [CSRF](https://github.com/kemalcr/kemal-csrf)
 
-These are not necessarily needed to run Kemal thus we seperated them from the core and moved to it's own repositories. This really makes maintaining Kemal and these modules much more simpler. Meanwhile we're going to have more useful modules in the upcoming releases.
+These are not necessarily needed to run Kemal thus we seperated them from the core and moved to their own repositories. This really makes maintaining Kemal and these modules much more simpler. Meanwhile we're going to have more useful modules in the upcoming releases.
 
 Let's make Kemal great together <3
 
