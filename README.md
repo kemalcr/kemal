@@ -1,9 +1,9 @@
 <img src="https://avatars3.githubusercontent.com/u/15321198?v=3&s=200" width="100" height="100" />
 
-# Kemal [![Build Status](https://travis-ci.org/sdogruyol/kemal.svg?branch=master)](https://travis-ci.org/sdogruyol/kemal)
+# Kemal [![Build Status](https://travis-ci.org/kemalcr/kemal.svg?branch=master)](https://travis-ci.org/kemalcr/kemal)
 
-[![Join the chat at https://gitter.im/sdogruyol/kemal](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/sdogruyol/kemal?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
-[![crystal-docs.org](https://crystal-docs.org/badge.svg)](https://crystal-docs.org/sdogruyol/kemal) 
+[![Join the chat at https://gitter.im/kemalcr/sdogruyol](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/kemalcr/kemal?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+[![crystal-docs.org](https://crystal-docs.org/badge.svg)](https://crystal-docs.org/kemalcr/kemal) 
 
 Lightning Fast, Super Simple web framework for [Crystal](http://www.crystal-lang.org).
 Inspired by [Sinatra](http://www.sinatrarb.com/) but with superior performance and built-in WebSocket support.
@@ -34,7 +34,7 @@ crystal src/kemal_sample.cr
 ```
 Go to *http://localhost:3000*
 
-Check [documentation](http://kemalcr.com) or [samples](https://github.com/sdogruyol/kemal/tree/master/samples) for more.
+Check [documentation](http://kemalcr.com) or [samples](https://github.com/kemalcr/kemal/tree/master/samples) for more.
 
 # Super Fast 🚀
 
