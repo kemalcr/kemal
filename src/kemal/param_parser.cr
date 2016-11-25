@@ -64,7 +64,7 @@ module Kemal
     def parse_json
       return unless @request.body && @request.headers["Content-Type"]?.try(&.starts_with?(APPLICATION_JSON))
 
-      body = @request.body.to_s
+      body = @request.body.not_nil!.gets_to_end
       case json = JSON.parse(body).raw
       when Hash
         json.each do |key, value|
