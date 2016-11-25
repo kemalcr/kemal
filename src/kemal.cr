@@ -41,6 +41,8 @@ module Kemal
         file_path = File.expand_path("lib/kemal/images/#{image}", Dir.current)
         if File.exists? file_path
           send_file env, file_path
+        else
+          halt env, 404
         end
       end
 
