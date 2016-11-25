@@ -36,7 +36,7 @@ Then add *kemal* to the `shard.yml` file as a dependency.
 ```
 dependencies:
   kemal:
-    github: sdogruyol/kemal
+    github: kemalcr/kemal
     branch: master
 ```
 
@@ -50,7 +50,7 @@ It will output something like that:
 
 ```
 $ shards install
-Updating https://github.com/sdogruyol/kemal.git
+Updating https://github.com/kemalcr/kemal.git
 Installing kemal (master)
 ```
 

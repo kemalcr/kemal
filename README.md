@@ -4,7 +4,7 @@ This is the repo for the official [Kemal](http://kemalcr.com) site.
 
 ## Installation
 
-* `git clone git@github.com:sdogruyol/kemal.git`
+* `git clone git@github.com:kemalcr/kemal.git`
 * `cd kemal`
 * `git fetch`
 * `git checkout gh-pages`

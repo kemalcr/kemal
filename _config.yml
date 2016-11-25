@@ -24,7 +24,7 @@ nav_bars:
   - title: "Community"
     url: "/community"
   - title: "Github"
-    url: "https://github.com/sdogruyol/kemal"
+    url: "https://github.com/kemalcr/kemal"
 
 
 examples:
