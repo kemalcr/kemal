@@ -27,7 +27,7 @@ class Kemal::Handler < HTTP::Handler
   #
   # However this is not done automatically. All handlers must inherit from `Kemal::Handler`.
   #
-  #     OnlyHandler < Kemal::Handler
+  #     class OnlyHandler < Kemal::Handler
   #       only ["/"]
   #
   #       def call(env)
@@ -46,7 +46,7 @@ class Kemal::Handler < HTTP::Handler
   #
   # However this is not done automatically. All handlers must inherit from `Kemal::Handler`.
   #
-  #     ExcludeHandler < Kemal::Handler
+  #     class ExcludeHandler < Kemal::Handler
   #       exclude ["/"]
   #
   #       def call(env)
