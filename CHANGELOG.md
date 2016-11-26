@@ -28,7 +28,7 @@ For example this handler will only work on `/` path. By default the HTTP method 
 
 
 ```crystal
-OnlyHandler < Kemal::Handler
+class OnlyHandler < Kemal::Handler
   only ["/"]
   
   def call(env)
@@ -41,7 +41,7 @@ end
 The handlers using `exclude` will work on the paths that isn't specified. For example this handler will work on any routes other than `/`.
 
 ```crystal
-ExcludeHandler < Kemal::Handler
+class ExcludeHandler < Kemal::Handler
   exclude ["/"]
   
   def call(env)
@@ -92,7 +92,7 @@ post "/upload" do |env|
     "Upload complete"
   end
 end
-  ```
+```
 
 - Make session configurable. Now you can specify session name and expire time wit
 
