@@ -3,12 +3,6 @@ def add_handler(handler)
   Kemal.config.add_handler handler
 end
 
-# Uses Kemal::Middleware::HTTPBasicAuth to easily add HTTP Basic Auth support.
-def basic_auth(username, password)
-  auth_handler = Kemal::Middleware::HTTPBasicAuth.new(username, password)
-  add_handler auth_handler
-end
-
 # Sets public folder from which the static assets will be served.
 # By default this is `/public` not `src/public`.
 def public_folder(path)
