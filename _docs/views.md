@@ -7,7 +7,7 @@ order: 5
 You can use ERB-like built-in [ECR](http://crystal-lang.org/api/ECR.html) to render dynamic views.
 
 ```ruby
-get '/:name' do |env|
+get "/:name" do |env|
   name = env.params.url["name"]
   render "src/views/hello.ecr"
 end
@@ -24,7 +24,7 @@ Hello <%= name %>
 You can use **layouts** in Kemal. You should pass a second argument.
 
 ```ruby
-get '/:name' do
+get "/:name" do
   render "src/views/subview.ecr", "src/views/layouts/layout.ecr"
 end
 ```
@@ -94,7 +94,7 @@ end
 And now you can use your new renderer.
 
 ```ruby
-get '/:name' do
+get "/:name" do
   my_renderer "subview"
 end
 ```
