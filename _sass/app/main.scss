@@ -17,10 +17,6 @@
  * * ICONS
  * _icons.scss .................... Globally-available icon libraries in this project.
  *
- * * SPRITES
- * _sprites.scss .................. All sprites in your projects will prepare by Grunt Task Runner.
- * 
- *
  * VARIABLES
  * _variables.scss ................ Globally-available variables and config.
  *
@@ -43,8 +39,6 @@
 @import "variables";
 @import "mixins";
 @import "icons";
-@import "sprites";
 @import "utils";
-@import "plugins/plugins";
 @import "layout";
 @import "components";
