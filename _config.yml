@@ -30,3 +30,6 @@ nav_bars:
 examples:
   - title: "How to connect to Database"
     url: "https://github.com/sdogruyol/kemal-pg-sample"
+
+jsarr:
+  - name: "/js/browser.js"

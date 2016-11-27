@@ -1,0 +1,310 @@
+.search-popup{
+	position: fixed;
+	left: 0;
+	top: 0;
+	z-index: 400;
+	width: 100%;
+	height: 100%;
+	background-color: $brand-primary;
+	visibility: hidden;
+	@include opacity(0);
+	@include prefix(transition, #{opacity 0.1s linear, visibility 0.1s linear}, webkit moz);
+
+	.container{
+		position: relative;
+		padding-top: 77px;
+		height: 100%;
+	}
+
+	&__inner{
+		position: relative;
+		height: 100%;
+
+		form{
+			position: relative;
+		    height: 100%;
+			padding-top: 70px;
+			padding-bottom: 40px;
+		}
+	}
+
+	&__close{
+
+		color: #FFF;
+		font-size: 20px;
+		position: absolute;
+		right: 15px;
+		top: 20px;
+
+		&:hover{
+			text-decoration: none;
+			color: $brand-secondary;
+		}
+	}
+
+	.input-holder{
+		background-color: darken($brand-primary, 8%);
+		padding: 15px 14px;
+		position: absolute;
+		top: 0;
+		left: 0;
+		width: 100%;
+		overflow: hidden;
+	    @include opacity(0);
+		@include prefix(transform, translateY(100px), webkit moz);
+
+		input{
+			width: 100%;
+			height: 30px;
+			border: 0;
+			padding: 0;
+			color: #FFF;
+			font-size: 14px;
+			background: transparent none;
+			outline: none;
+
+			&::-webkit-input-placeholder {
+			   color: #FFF;
+			   @include opacity(0.4);
+			}
+
+			&:-moz-placeholder { /* Firefox 18- */
+			   color: #FFF;
+			   @include opacity(0.4);
+			}
+
+			&::-moz-placeholder {  /* Firefox 19+ */
+			   color: #FFF;
+			   @include opacity(0.4);
+			}
+
+			&:-ms-input-placeholder {  
+			   color: #FFF;
+			   @include opacity(0.4);
+			}
+
+			.ie8 &{line-height: 30px;}
+		}
+
+		button{
+			background: transparent;
+			position: absolute;
+			right: -114px;
+			top: 0;
+			font-size: 25px;
+			color: #FFF;
+			padding: 10px 30px;
+			height: 100%;
+			line-height: 14px;
+			visibility: hidden;
+			border: 0;
+			@include opacity(0);
+			@include prefix(transition, #{opacity 0.2s linear, right 0.2s ease-out, visibility 0.2s linear}, webkit moz);
+		}
+	}
+
+	&__list{
+		position: relative;
+		padding: 0;
+		visibility: hidden;
+		top: 150px;
+		height: 100%;
+		padding-bottom: 82px;
+		@include opacity(0);
+		@include prefix(transition, #{opacity 0.1s linear, top 0.2s ease-out, visibility 0.2s linear}, webkit moz);
+
+		.ui-autocomplete{
+			display: block !important;
+			position: relative !important;
+			top: 0 !important;
+			left: auto !important;
+			width: 100% !important;
+			max-height: 100%;
+			overflow: auto;
+			@include ul_reset;
+			@include webkit-scroll-style;
+
+			li {
+			    border-bottom: 1px solid lighten($brand-primary, 5%);
+			    padding: 15px 0;
+			    font-size: 14px;
+			    color: rgba(#FFF, 0.4);
+			    cursor: pointer;
+			    @include prefix(transition, color 0.1s linear, webkit moz);
+
+			    &.ui-state-focus{margin: 0;}
+
+			    &:hover, &.ui-state-focus{
+			    	color: #FFF;
+			    }
+			}
+		}
+
+		> div{
+			position: relative;
+		    height: 100%;
+		}
+
+		&__info{
+			font-size: 14px;
+			color: #FFF;
+			padding: 15px 0;
+			text-align: center;
+			visibility: hidden;
+			@include opacity(0);
+			@include prefix(transition, #{opacity 0.1s 0.2s linear, visibility 0.1s 0.2s linear}, webkit moz);
+			
+
+			a, button{
+				color: #FFF;
+				background: none;
+				border: 0;
+				margin-top: 15px;
+				display: inline-block;
+
+				&:hover, &:focus{color: #FFF;}
+			}
+		}
+
+		&-wrapper{
+			position: relative;
+			height: 100%;
+		}
+	}
+
+	&.search-list-active{
+
+		.search-popup{
+
+			&__list{
+				top: 0;
+				visibility: visible;
+				@include opacity(1);
+
+				&__info{
+					visibility: visible;
+					@include opacity(1)
+				}
+			}
+		}
+
+		.input-holder{
+			button{
+				right: 0;
+				visibility: visible;
+				@include opacity(1);
+			}
+		}
+		
+	}
+
+	.search-opened &{
+		visibility: visible;
+		@include opacity(1);
+
+		.input-holder{
+			@include opacity(1);
+			@include prefix(transition, #{transform 0.2s 0.1s ease, opacity 0.2s 0.1s linear}, webkit moz);
+			@include prefix(transform, translateY(0), webkit moz);
+		}
+	}
+
+
+	@media screen and (min-width: 768px) {
+
+		&__close{font-size: 22px;}
+
+		.input-holder{
+			padding: 15px 30px;
+
+			input{
+				height: 40px;
+				font-size: 22px;
+
+				.ie8 &{line-height: 40px;}
+			}
+		}
+
+		&__inner{
+			form{}
+		}
+
+		&__list{
+			padding: 0 30px 82px;
+			text-align: left;
+
+			&__info{
+				padding: 30px;
+				text-align: left;
+
+				a, button{
+					margin-top: 0;
+				}
+
+				&__right{
+					text-align: right;
+				}
+			}
+		}
+	}
+
+	@media screen and (min-width: 992px) {
+		.input-holder{
+			padding: 17px 57px;
+
+			input{
+				height: 101px;
+				font-size: 28px;
+
+				.ie8 &{line-height: 101px;}
+			}
+
+			button{
+				font-size: 35px;
+				padding: 34px 40px;
+			}
+		}
+
+		&__bottom{
+			display: block;
+			padding-bottom: 40px;
+		}
+
+		&__inner{
+			position: relative;
+			height: 100%;
+
+			form{
+			    padding-top: 135px;
+			}
+		}
+
+		&__list{
+			padding: 0 57px 82px;
+
+			&__info{padding: 30px 57px;}
+		}
+	}
+
+	@media screen and (min-width: 1200px) {
+		&__bottom{
+			padding-bottom: 84px;
+
+			a{
+				span{width: auto;}
+			}
+		}
+
+		&__inner{
+			//form{padding-bottom: 190px;}
+		}
+	}
+}
+
+.search-opened{
+	body{overflow: hidden;}
+
+	&:not(.mobile) {
+		body{padding-right: 17px;}
+	}
+}

@@ -1,18 +1,20 @@
-<footer class="site-footer">
-  <div class="wrapper">
-    <div class="footer-col-wrapper">
-      <div class="footer-col footer-col-1">
-        <ul class="contact-list">
-          <a href="https://gitter.im/sdogruyol/kemal">
-            <img src="https://badges.gitter.im/Join%20Chat.svg"/>
-          </a>
-        </ul>
+<footer class="Footer">
+  <div class="container">
+    <div class="row">
+      <div class="col-sm-6">
+        <a href="https://gitter.im/sdogruyol/kemal">
+          <img src="https://badges.gitter.im/Join%20Chat.svg">
+        </a>
       </div>
-
-      <div class="footer-develop">
-        <h4>Kemal is developed and maintained by <a href="http://twitter.com/sdogruyol">Serdar Doğruyol</a></h4>
-        <h5>Design by <a href="http://twitter.com/askngdk">Aşkın Gedik</a></h5>
+      <div class="col-sm-6 Footer_copyright">
+        <p>Kemal is developed and maintained by <a href="http://twitter.com/sdogruyol" target="_blank">Serdar Doğruyol</a></p>
+        <div>
+          <small>Design by <a href="http://twitter.com/askngdk" target="_blank">Aşkın Gedik</a> and <a href="http://twitter.com/SinanMtl" target="_blank">Sinan Mutlu</a></small>
+        </div>
       </div>
     </div>
   </div>
 </footer>
+{% for js in site.jsarr %}
+<script type="text/javascript" src="{{ js.name | prepend: site.baseurl }}"></script>
+{% endfor %}

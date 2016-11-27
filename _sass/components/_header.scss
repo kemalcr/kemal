@@ -1,0 +1,107 @@
+
+/*
+* Header
+*/
+
+.Header{
+  position: relative;
+  margin-bottom: 42px;
+
+  @media screen and (min-width: $screen-sm-min){
+    border-bottom: 1px solid #E3E3E3;
+    margin-bottom: 0;
+  }
+
+	&_content{
+		padding-top: 6px;
+    padding-bottom: 6px;
+    text-align: center;
+
+    @media screen and (min-width: $screen-sm-min){
+      display: flex;
+      align-items: center;
+      padding-top: 10px;
+      padding-bottom: 10px;
+    }
+	}
+
+	&_menu{
+    flex: 1;
+    text-align: right;
+
+    &_toggle{
+      display: inline-block;
+      width: 45px;
+      height: 45px;
+      line-height: 38px;
+    }
+
+    &_nav{
+      position: absolute;
+      right: 0;
+      top: 100%;
+      width: 100%;
+      background-color: #333;
+      text-align: center;
+      display: flex;
+      justify-content: center;
+
+      @media screen and (min-width: $screen-xs-min){
+        
+      }
+
+      @media screen and (min-width: $screen-sm-min){
+        position: relative;
+        width: auto;
+        background-color: transparent;
+      }
+    }
+
+		&_item{
+			color: #FFF;
+			padding: 12px 18px;
+			display: inline-block;
+      font-size: 13px;
+      white-space: nowrap;
+
+      .icon, span{vertical-align: middle;}
+      .icon{
+        width: 22px;
+        height: 22px;
+        margin-top: -3px;
+      }
+
+      &:focus{
+        text-decoration: none;
+        color: #FFF;
+      }
+
+      &:hover, &:active{
+        color: #FFF;
+        text-decoration: none;
+        background-color: $brand-primary;
+        border-color: $brand-primary;
+      }
+      
+      @media screen and (min-width: $screen-sm-min){
+        font-size: 16px;
+        color: #000;
+        margin: 0 10px;
+
+        &:hover{
+          background-color: transparent;
+          color: $brand-primary;
+        }
+
+        &:focus{color: $brand-primary;}
+      }
+		}
+	}
+
+	&_logo{
+
+		img{
+			width: 45px;
+		}
+	}
+}

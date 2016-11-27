@@ -12,7 +12,7 @@ Happy Black Friday everyone!
 
 On this special day we've got two great announcements to move Kemal forward.
 
-# Kemal Organization
+## Kemal Organization
 
 Finally, Kemal has moved to its' own organization under [kemalcr](http://github.com/kemalcr).
 
@@ -20,7 +20,7 @@ Having an organization will make collaboration much more easier and you can see 
 
 ![Kemal Organization](/img/blog/kemal_organization.png)
 
-# Modularization
+## Modularization
 
 Some of you may have already noticed that under [Kemal Organization](http://github.com/kemalcr) there are several repos other than Kemal.
 

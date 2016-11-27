@@ -1,0 +1,85 @@
+
+.gri{
+	&-popup{
+		@include background-opacity(#000, 0.8);
+		position: fixed;
+		left: 0;
+		top: 0;
+		width: 100%;
+		height: 100%;
+		z-index: 300;
+		text-align: center;
+		display: none;
+		overflow: auto;
+
+		&:before{
+			content : "";
+			display: inline-block;
+			height: 100%;
+			vertical-align: middle;
+		}
+
+		&__opened{
+			overflow: hidden;			
+
+			.win &{margin-left: -17px;}
+			.ie11 &{margin-left: 0;}
+		}
+
+		&__img{margin-bottom: 30px;}
+
+		&__inner{
+			background-color: #FFF;
+			display: inline-block;
+			vertical-align: middle;
+			position: relative;
+			font-size: 15px;
+			color: #909090;
+			margin: 30px 0 0;
+			text-align: left;
+			@include opacity(0);
+			@include prefix(transform, scale(0), webkit moz);
+			@include prefix(transition, #{transform 0.2s, opacity 0.2s}, webkit moz);
+
+			h1, h2, h3, h4, h5, h6,
+			.h1, .h2, .h3, .h4, .h5, .h6{color: #909090;}
+
+			&.active{
+				@include opacity(1);
+				@include prefix(transform, scale(1), webkit moz);
+			}
+		}
+
+		&__close{
+			position: absolute;
+			right: 0;
+			bottom: 100%;
+			overflow: hidden;
+			width: 30px;
+			height: 30px;
+			color: #fff;
+			background-color: $gray-base;
+
+			&:before{content: "×";}
+
+			&:hover, &:focus{
+				color: #fff;
+				background-color: darken($gray-base, 5%);
+			}
+		}
+
+		@media screen and (max-width: 480px) {
+
+			&__inner{margin-top: 40px;}
+
+			&__close{
+				width: 40px;
+				height: 40px;
+				line-height: 40px;
+			}
+			
+		}
+
+	}
+
+}

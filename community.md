@@ -2,6 +2,8 @@
 layout: default
 ---
 
+# Community
+
 > Kemal is nice, so we are nice!
 
 There are a number of places to connect with community members at all experience levels.
@@ -10,7 +12,7 @@ There are a number of places to connect with community members at all experience
 - <a href="https://groups.google.com/forum/#!forum/kemalcr">Mailing List </a> - for help and long term discussion
 - <a href="https://gitter.im/kemalcr/kemal">Gitter Channel</a>  - for general help and discussion
 
-# Videos
+## Videos
 
 - [Kemal - Building Lightning Fast Web Applications with Simplicity](https://www.youtube.com/watch?v=KJB-nAoRSr8)
 

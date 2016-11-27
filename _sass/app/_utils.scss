@@ -1,0 +1,54 @@
+ ///// Menu toggle icon effect
+
+.menu-icon{
+	display: inline-block;
+	width: 20px;
+	height: 2px;
+	margin: 7px 0;
+	background-color: #000;
+	position: relative;
+	@include prefix(transition, background-color 0.2s linear, webkit moz);
+
+	&:before, &:after{
+		content: "";
+		display: block;
+		width: 20px;
+		height: 2px;
+		background-color: #000;
+		position: absolute;
+		left: 0;
+		transform: translateZ(0);
+		@include prefix(transition, all 0.2s ease-in, webkit moz);
+	}
+
+	&:before{top: -7px;}
+	&:after{top: 7px;}
+
+	[aria-expanded="true"] &{
+		will-change: background-color;
+		background: rgba(#000, 0);
+
+		&:before, &:after{
+			top: 0;
+			width: 22px;
+			will-change: top, width, transform;
+		}
+
+		&:before{@include prefix(transform, rotate(45deg), webkit moz);}
+		&:after{@include prefix(transform, rotate(-45deg), webkit moz);}
+	}
+}
+
+.u{
+	&-mr{
+		@each $dir in top, right, bottom, left {
+			&-#{$dir} {
+				@each $val in 5, 10, 15, 20, 25, 30, 35, 40 {
+					&-#{$val} {
+						margin-#{$dir}: #{$val}px;
+					}
+				}
+			}
+		}
+	}
+}
