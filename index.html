@@ -1,32 +1,30 @@
 ---
 layout: home
 ---
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.1.6/Chart.min.js"></script>
 
-<div class="hero">
-    <img src="img/kemal.png" alt="kemal" />
-    <h1>
-    Kemal
-  </h1>
-    <h2>
-    <strong>F</strong>ast. <strong>E</strong>ffective. <strong>S</strong>imple.
-  </h2>
-    <h3>
-    <br>
-    Lightning fast, super simple web framework written in Crystal programming language.
-    <br />
-  </h3>
-    <a href="/docs/getting_started" class="button">Start Now!</a>
+<!-- HERO SECTION -->
+<div class="jumbotron text-center Site_hero">
+  <div class="container">
+    <img src="img/kemal.png" alt="Kemal" class="Site_hero_logo name">
+    <h1 class="Site_hero_title name">Kemal</h1>
+    <p class="slogan active">
+      <span><strong>F</strong>ast, </span>
+      <span><strong>E</strong>ffective, </span>
+      <span><strong>S</strong>imple. </span>
+    </p>
+    <p class="desc">Lightning fast, super simple web framework written in<br>Crystal programming language.</p>
+    <a href="/docs/getting_started" class="btn btn-primary">Start Now</a>
+  </div>
 </div>
 
-<section>
-    <div class="wrapper block">
-        <div class="row">
-            <div class="col-md-6">
-                <h1>Super Simple</h1>
-
-                <div class="code_frame">
-{% highlight ruby %}
+<!-- FEATURES AND EXAMPLE -->
+<div class="container">
+  <div class="row">
+    <div class="col-sm-6">
+      <div class="Block">
+        <h2 class="Block_title text-center">SUPER SIMPLE</h2>
+        <div class="Block_content">
+          {% highlight ruby %}
 require "kemal"
 
 # Matches GET "http://host:port/"
@@ -42,116 +40,117 @@ end
 
 Kemal.run
 {% endhighlight %}
-                </div>
-            </div>
-
-            <div class="col-md-6">
-                <h1>Features</h1>
-                <ul>
-                    <li>Support all REST verbs</li>
-                    <li>Websocket support</li>
-                    <li>Request/Response context, easy parameter handling</li>
-                    <li>Built-in and easily extensible middlewares</li>
-                    <li>Built-in JSON support</li>
-                    <li>Built-in static file serving</li>
-                    <li>Built-in view templating via <a href="https://crystal-lang.org/api/master/ECR.html">ECR</a></li>
-                </ul>
-            </div>
         </div>
+      </div>
     </div>
-</section>
-
-<section class="second">
-    <div class="wrapper block benchmark">
-        <h1>Benchmarks</h1>
-        <p>Numbers speak louder than words.</p>
-        <div class="row">
-          <div class="col-md-6">
-            <canvas id="request" class="item"></canvas>
-          </div>
-          <div class="col-md-6">
-            <canvas id="response-time" class="item"></canvas>
-          </div>
+    <div class="col-sm-6">
+      <div class="Block">
+        <h2 class="Block_title">FEATURES</h2>
+        <div class="Block_content">
+          <ul>
+            <li>Support all REST verbs</li>
+            <li>Websocket support</li>
+            <li>Request/Response context, easy parameter handling</li>
+            <li>Built-in and easily extensible middlewares</li>
+            <li>Built-in JSON support</li>
+            <li>Built-in static file serving</li>
+            <li>Built-in view templating via <a href="https://crystal-lang.org/api/master/ECR.html" target="_blank">ECR</a></li>
+          </ul>
         </div>
-        <br />
-        <p> These results were achieved with <strong>wrk</strong> on a Macbook Pro Late 2013. (<strong>2Ghz i7 8GB Ram OS X Yosemite</strong>)
-        </p>
-        </div>
+      </div>
     </div>
-</section>
+  </div>
+</div>
 
-<section>
-    <div class="wrapper block">
-        <div class="row">
-            <div class="col-xs-12 companies">
-                <h1>Who uses Kemal? </h1>
-                <div class="row">
-                    <div class="col-xs-3">
-                        <a href="https://github.com/mperham/sidekiq.cr"><img src="img/sidekiq.png" /></a>
-                    </div>
-                    <div class="col-xs-3">
-                        <a href="http://www.protel.com.tr/en"><img src="img/protel.jpg" /></a>
-                    </div>
-                    <div class="col-xs-3">
-                        <a href="https://www.rainforestqa.com/"><img src="img/rainforest.png" /></a>
-                    </div>
-                    <div class="col-xs-3">
-                        <a href="https://www.bulutfon.com/"><img src="img/bulutfon.png" /></a>
-                    </div>
-                </div>
-            </div>
-        </div>
+<!-- BENCHMARKS -->
+<div class="jumbotron text-center Site_hero">
+  <div class="container">
+    <h3>BENCHMARKS</h3>
+    <p>Numbers speak louder than words.</p>
+    <div class="row">
+      <div class="col-sm-6">
+        <canvas id="request" class="item"></canvas>
+      </div>
+      <div class="col-sm-6">
+        <canvas id="response-time" class="item"></canvas>
+      </div>
     </div>
-</section>
+    <div class="u-mr-top-20">
+      <small>These results were achieved with <strong>wrk</strong> on a Macbook Pro Late 2013. <strong>(2Ghz i7 8GB Ram OS X Yosemite)</strong></small>
+    </div>
+  </div>
+</div>
 
-<script>
-var ctx = document.getElementById("request");
-var scatterChart = new Chart(ctx, {
-    type: 'bar',
-    data: {
-      labels: ["Request Per Second"],
+<!-- WHO USES KEMAL? -->
+<div class="container">
+  <div class="Block">
+    <div class="h3 Block_title">WHO USES KEMAL?</div>
+    <div class="Block_content">
+      <div class="Kemal-users">
+        <div><a href="https://github.com/mperham/sidekiq.cr" target="_blank"><img src="img/sidekiq.png" alt="Sitekiq"></a></div>
+        <div><a href="http://www.protel.com.tr/en" target="_blank"><img src="img/protel.jpg" alt="Protel"></a></div>
+        <div><a href="https://www.rainforestqa.com/" target="_blank"><img src="img/rainforest.png" alt="rainforest"></a></div>
+        <div><a href="https://www.bulutfon.com/" target="_blank"><img src="img/bulutfon.png" alt="Bulutfon"></a></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.1.6/Chart.min.js"></script>
+<script type="text/javascript">
+  (function() {
+    var ctx, scatterChart;
+    ctx = document.getElementById("request");
+
+    scatterChart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: ["Request Per Second"],
         datasets: [
-            {
-                label: 'Kemal',
-                fill: false,
-                lineTension: 0.1,
-                borderColor: '#ff4f4f',
-                backgroundColor: '#ff4f4f',
-                data: ['100238']
-            }, {
-                label: 'Sinatra',
-                fill: false,
-                lineTension: 0.1,
-                borderColor: '#aca38f',
-                backgroundColor: '#aca38f',
-                data: ['2274']
-            }
+          {
+            label: 'Kemal',
+            fill: false,
+            lineTension: 0.1,
+            borderColor: '#ff4f4f',
+            backgroundColor: '#ff4f4f',
+            data: ['100238']
+          }, {
+            label: 'Sinatra',
+            fill: false,
+            lineTension: 0.1,
+            borderColor: '#aca38f',
+            backgroundColor: '#aca38f',
+            data: ['2274']
+          }
         ]
-    }
-});
+      }
+    });
 
-var ctx = document.getElementById("response-time");
-var scatterChart = new Chart(ctx, {
-    type: 'bar',
-    data: {
-      labels: ["Avg. Response Time(in milliseconds)"],
+    ctx = document.getElementById("response-time");
+
+    scatterChart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: ["Avg. Response Time(in milliseconds)"],
         datasets: [
-            {
-                label: 'Kemal',
-                fill: false,
-                lineTension: 0.1,
-                borderColor: '#ff4f4f',
-                backgroundColor: '#ff4f4f',
-                data: ['0.395']
-            }, {
-                label: 'Sinatra',
-                fill: false,
-                lineTension: 0.1,
-                borderColor: '#aca38f',
-                backgroundColor: '#aca38f',
-                data: ['43.82']
-            }
+          {
+            label: 'Kemal',
+            fill: false,
+            lineTension: 0.1,
+            borderColor: '#ff4f4f',
+            backgroundColor: '#ff4f4f',
+            data: ['0.395']
+          }, {
+            label: 'Sinatra',
+            fill: false,
+            lineTension: 0.1,
+            borderColor: '#aca38f',
+            backgroundColor: '#aca38f',
+            data: ['43.82']
+          }
         ]
-    }
-});
+      }
+    });
+  }).call(this);
 </script>
+

@@ -1,16 +1,9 @@
-<div class="doc-sidebar">
-
-  <h1 class="doc-heading">Guide</h1>
-
-  <ul class="doc-list">
-
+<div class="Sidebar">
+  <div class="h3 Sidebar_title">Guide</div>
+  <nav class="Sidebar_nav">
     {% assign sorted_pages = (site.docs | sort: 'order') %}
     {% for post in sorted_pages %}
-      <li>
-        <h2>
-          <a class="doc-link" href="{{ post.url | prepend: site.baseurl }}">{{ post.title }}</a>
-        </h2>
-      </li>
+      <a href="{{ post.url | prepend: site.baseurl }}">{{ post.title }}</a>
     {% endfor %}
-  </ul>
+  </nav>
 </div>

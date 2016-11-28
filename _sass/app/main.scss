@@ -1,0 +1,44 @@
+/**
+ * CONTENTS
+ * 
+ * SCSS Framework for developers
+ * v 0.0.1
+ *
+ * 	app/ 			All .scss files is imported in this directories' sub files. 
+ * 	components/		All component .scss files must be in this folder. 
+ * 	icons/			All icon .scss files must be in this folder.
+ * 	library/		
+ * 	plugins/		
+ * 	templates/ 		
+ *
+ * * FONTS
+ * _fonts.scss .................... Globally-available font-families in this project.
+ *
+ * * ICONS
+ * _icons.scss .................... Globally-available icon libraries in this project.
+ *
+ * VARIABLES
+ * _variables.scss ................ Globally-available variables and config.
+ *
+ * MIXINS
+ * _mixins.scss ................... Your *own useful mixins which are using generally in your project.
+ *
+ * UTILS
+ * _utils.scss .................... The collection of utility classes. Similar classes which are using 
+ * in the project generally in your build process
+ *
+ * LAYOUT
+ * _layout.scss ................... The collection of layout classes, ex: header, footer and etc..
+ *
+ * COMPONENTS
+ * _compontent.scss ............... Includes the project components.
+ *
+ */
+@import "library/bootstrap";
+@import "fonts";
+@import "variables";
+@import "mixins";
+@import "icons";
+@import "utils";
+@import "layout";
+@import "components";

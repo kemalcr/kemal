@@ -1,0 +1,25 @@
+
+/*
+* Subpage
+*/
+
+.subpage{
+  padding: 30px 0;
+}
+
+.Sidebar{
+  padding: 20px;
+  
+  &_title{
+    padding-bottom: 10px;
+    margin-bottom: 20px;
+    border-bottom: 1px solid #e0dfdf;
+  }
+
+  &_nav{
+    a{
+      display: block;
+      margin-bottom: 10px;
+    }
+  }
+}
