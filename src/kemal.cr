@@ -30,7 +30,7 @@ module Kemal
     # Test environment doesn't need to have signal trap, built-in images, and logging.
     unless config.env == "test"
       Signal::INT.trap {
-        config.logger.write "Kemal is going to take a rest!\n"
+        log "Kemal is going to take a rest!\n"
         config.server.close
         exit
       }
@@ -46,7 +46,7 @@ module Kemal
         end
       end
 
-      config.logger.write "[#{config.env}] Kemal is ready to lead at #{config.scheme}://#{config.host_binding}:#{config.port}\n"
+      log "[#{config.env}] Kemal is ready to lead at #{config.scheme}://#{config.host_binding}:#{config.port}\n"
       config.server.listen
     end
   end
