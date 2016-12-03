@@ -1,3 +1,8 @@
+# 0.17.3 (03-12-2016)
+
+- Handle missing 404 image. Fixes #263
+- Remove basic auth middleware from core and move to [kemalcr/kemal-basic-auth](https://github.com/kemalcr/kemal-basic-auth).
+
 # 0.17.2 (25-11-2016)
 
 - Use body.gets_to_end for parse_json. Fixes #260.
