@@ -83,15 +83,3 @@ module Kemal
     end
   end
 end
-
-# All the helper methods available are:
-#  - before_all, before_get, before_post, before_put, before_patch, before_delete
-#  - after_all, after_get, after_post, after_put, after_patch, after_delete
-ALL_METHODS = %w(get post put patch delete all)
-{% for type in ["before", "after"] %}
-  {% for method in ALL_METHODS %}
-    def {{type.id}}_{{method.id}}(path = "*", &block : HTTP::Server::Context -> _)
-     Kemal::FilterHandler::INSTANCE.{{type.id}}({{method}}.upcase, path, &block)
-    end
-  {% end %}
-{% end %}
