@@ -52,7 +52,7 @@ describe "Context" do
     io = IO::Memory.new
     response = HTTP::Server::Response.new(io)
     context = HTTP::Server::Context.new(request, response)
-    Kemal::Middleware::Filter::INSTANCE.call(context)
+    Kemal::FilterHandler::INSTANCE.call(context)
     Kemal::RouteHandler::INSTANCE.call(context)
     context.store["key"].should eq "value"
     context.store["before_get"].should eq "Kemal"

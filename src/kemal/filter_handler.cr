@@ -1,12 +1,12 @@
-module Kemal::Middleware
-  # Kemal::Filter handle all code that should be evaluated before and after
+module Kemal
+  # Kemal::FilterHandler handle all code that should be evaluated before and after
   # every request
-  class Filter < HTTP::Handler
+  class FilterHandler < HTTP::Handler
     INSTANCE = new
 
     # This middleware is lazily instantiated and added to the handlers as soon as a call to `after_X` or `before_X` is made.
     def initialize
-      @tree = Radix::Tree(Array(Kemal::Middleware::FilterBlock)).new
+      @tree = Radix::Tree(Array(Kemal::FilterBlock)).new
       Kemal.config.add_filter_handler(self)
     end
 
@@ -91,7 +91,7 @@ ALL_METHODS = %w(get post put patch delete all)
 {% for type in ["before", "after"] %}
   {% for method in ALL_METHODS %}
     def {{type.id}}_{{method.id}}(path = "*", &block : HTTP::Server::Context -> _)
-     Kemal::Middleware::Filter::INSTANCE.{{type.id}}({{method}}.upcase, path, &block)
+     Kemal::FilterHandler::INSTANCE.{{type.id}}({{method}}.upcase, path, &block)
     end
   {% end %}
 {% end %}

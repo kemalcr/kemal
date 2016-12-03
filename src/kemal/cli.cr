@@ -49,7 +49,7 @@ module Kemal
           puts "SSL Certificate Not Found"
           exit
         end
-        ssl = Kemal::Middleware::SSL.new
+        ssl = Kemal::SSL.new
         ssl.set_key_file @key_file.not_nil!
         ssl.set_cert_file @cert_file.not_nil!
         Kemal.config.ssl = ssl.context
