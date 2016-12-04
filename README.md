@@ -48,6 +48,17 @@ Numbers speak louder than words.
 
 These results were achieved with ```wrk``` on a Macbook Pro Late 2013. (**2Ghz i7 8GB Ram OS X Yosemite**)
 
+# Installation
+
+Add this to your application's `shard.yml`:
+
+```yaml
+dependencies:
+  kemal-session:
+    github: kemalcr/kemal
+    branch: master
+```
+
 # Features
 
 - Support all REST verbs
