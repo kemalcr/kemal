@@ -22,7 +22,7 @@ end
 
 def render_500(context, backtrace, verbosity)
   message = if verbosity
-              "<pre><%= backtrace %></pre>"
+              "<pre>#{HTML.escape(backtrace)}</pre>"
             else
               "<p>Something wrong with the server :(</p>"
             end
@@ -42,7 +42,7 @@ def render_500(context, backtrace, verbosity)
       </head>
       <body>
         <h2>Kemal has encountered an error. (500)</h2>
-        <%= HTML.escape(message) %>
+        #{message}
       </body>
       </html>
   HTML
