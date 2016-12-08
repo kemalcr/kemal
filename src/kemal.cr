@@ -30,7 +30,7 @@ module Kemal
     unless config.env == "test"
       Signal::INT.trap {
         log "Kemal is going to take a rest!\n"
-        config.server.close
+        Kemal.stop
         exit
       }
 
@@ -46,7 +46,22 @@ module Kemal
       end
 
       log "[#{config.env}] Kemal is ready to lead at #{config.scheme}://#{config.host_binding}:#{config.port}\n"
+      config.running = true
+      pp config.running
       config.server.listen
+    end
+  end
+
+  def self.stop
+    if config.running
+      if config.server
+        config.server.close
+        config.running = false
+      else
+        raise "config.server is not set. Please use Kemal.run to set the server."
+      end
+    else
+      raise "Kemal is already stopped."
     end
   end
 end

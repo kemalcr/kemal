@@ -14,7 +14,7 @@ module Kemal
     @ssl : OpenSSL::SSL::Context::Server?
     {% end %}
 
-    property host_binding, ssl, port, env, public_folder, logging,
+    property host_binding, ssl, port, env, public_folder, logging, running,
       always_rescue, serve_static : (Bool | Hash(String, Bool)), server, session : Hash(String, Time::Span | String), extra_options
 
     def initialize
@@ -32,6 +32,7 @@ module Kemal
       @router_included = false
       @custom_handler_position = 4
       @default_handlers_setup = false
+      @running = false
     end
 
     def logger
