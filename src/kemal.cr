@@ -47,7 +47,6 @@ module Kemal
 
       log "[#{config.env}] Kemal is ready to lead at #{config.scheme}://#{config.host_binding}:#{config.port}\n"
       config.running = true
-      pp config.running
       config.server.listen
     end
   end
@@ -58,7 +57,7 @@ module Kemal
         config.server.close
         config.running = false
       else
-        raise "config.server is not set. Please use Kemal.run to set the server."
+        raise "Kemal.config.server is not set. Please use Kemal.run to set the server."
       end
     else
       raise "Kemal is already stopped."
