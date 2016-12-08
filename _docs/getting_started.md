@@ -16,7 +16,7 @@ brew install crystal-lang
 ### Debian / Ubuntu
 
 ```
-curl http://dist.crystal-lang.org/apt/setup.sh | sudo bash
+curl https://dist.crystal-lang.org/apt/setup.sh | sudo bash
 sudo apt-get install crystal
 ```
 
