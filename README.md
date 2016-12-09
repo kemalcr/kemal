@@ -2,7 +2,7 @@
 
 # Kemal [![Build Status](https://travis-ci.org/kemalcr/kemal.svg?branch=master)](https://travis-ci.org/kemalcr/kemal)
 
-[![Join the chat at https://gitter.im/kemalcr/sdogruyol](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/kemalcr/kemal?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+[![Join the chat at https://gitter.im/sdogruyol/kemal](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/sdogruyol/kemal?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 [![crystal-docs.org](https://crystal-docs.org/badge.svg)](https://crystal-docs.org/kemalcr/kemal) 
 
 Lightning Fast, Super Simple web framework for [Crystal](http://www.crystal-lang.org).
