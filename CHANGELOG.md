@@ -1,3 +1,7 @@
+# Next
+
+- Add `Kemal.stop`. Fixes #269.
+
 # 0.17.3 (03-12-2016)
 
 - Handle missing 404 image. Fixes #263
