@@ -23,14 +23,6 @@ describe "Config" do
     config.host_binding.should eq "127.0.0.1"
   end
 
-  it "sets session values" do
-    config = Kemal.config
-    config.session["name"] = "kemal"
-    config.session["expire_time"] = 1.hours
-    config.session["name"].as(String).should eq "kemal"
-    config.session["expire_time"].as(Time::Span).should eq 1.hours
-  end
-
   it "adds a custom handler" do
     config = Kemal.config
     config.add_handler CustomTestHandler.new

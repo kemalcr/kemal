@@ -18,8 +18,6 @@ module Kemal
     config.server.tls = config.ssl
     {% end %}
 
-    Kemal::Sessions.run_reaper!
-
     unless Kemal.config.error_handlers.has_key?(404)
       error 404 do |env|
         render_404

@@ -15,14 +15,13 @@ module Kemal
     {% end %}
 
     property host_binding, ssl, port, env, public_folder, logging, running,
-      always_rescue, serve_static : (Bool | Hash(String, Bool)), server, session : Hash(String, Time::Span | String), extra_options
+      always_rescue, serve_static : (Bool | Hash(String, Bool)), server, extra_options
 
     def initialize
       @host_binding = "0.0.0.0"
       @port = 3000
       @env = "development"
       @serve_static = {"dir_listing" => false, "gzip" => true}
-      @session = {"name" => "kemal_session", "expire_time" => 48.hours}
       @public_folder = "./public"
       @logging = true
       @logger = nil
