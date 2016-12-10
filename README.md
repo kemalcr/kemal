@@ -54,7 +54,7 @@ Add this to your application's `shard.yml`:
 
 ```yaml
 dependencies:
-  kemal-session:
+  kemal:
     github: kemalcr/kemal
     branch: master
 ```
