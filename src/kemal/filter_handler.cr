@@ -1,7 +1,8 @@
 module Kemal
   # Kemal::FilterHandler handle all code that should be evaluated before and after
   # every request
-  class FilterHandler < HTTP::Handler
+  class FilterHandler
+    include HTTP::Handler
     INSTANCE = new
 
     # This middleware is lazily instantiated and added to the handlers as soon as a call to `after_X` or `before_X` is made.

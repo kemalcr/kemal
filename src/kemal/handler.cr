@@ -1,4 +1,5 @@
-class Kemal::Handler < HTTP::Handler
+class Kemal::Handler
+  include HTTP::Handler
   @@only_routes_tree = Radix::Tree(String).new
   @@exclude_routes_tree = Radix::Tree(String).new
 
