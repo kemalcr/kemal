@@ -1,6 +1,8 @@
-# Next
+# 0.17.4 (24-12-2016)
 
+- Support for Crystal 0.20.3
 - Add `Kemal.stop`. Fixes #269.
+- `HTTP::Handler` is not a class anymore, it's a module. See https://github.com/crystal-lang/crystal/releases/tag/0.20.3
 
 # 0.17.3 (03-12-2016)
 
