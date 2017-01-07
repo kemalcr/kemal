@@ -7,11 +7,12 @@ module Kemal
   # The command to run a `Kemal` application.
   # The port can be given to `#run` but is optional.
   # If not given Kemal will use `Kemal::Config#port`
-  def self.run(port = nil)
+  def self.run(host_binding = nil, port = nil)
     Kemal::CLI.new
     config = Kemal.config
     config.setup
     config.port = port if port
+    config.host_binding = host_binding if host_binding
 
     config.server = HTTP::Server.new(config.host_binding, config.port, config.handlers)
     {% if !flag?(:without_openssl) %}
