@@ -10,7 +10,7 @@ dependencies:
     version: 0.3.3
   multipart:
     github: RX14/multipart.cr
-    version: 0.1.1
+    version: 0.1.2
 
 author:
   - Serdar Dogruyol <dogruyolserdar@gmail.com>
