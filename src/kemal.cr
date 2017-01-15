@@ -50,11 +50,11 @@ module Kemal
           halt env, 404
         end
       end
-
-      yield config
-      config.running = true
-      config.server.listen
     end
+
+    config.running = true
+    yield config
+    config.server.listen if config.env != "test"
   end
 
   def self.stop
