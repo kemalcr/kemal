@@ -32,6 +32,7 @@ module Kemal
       @custom_handler_position = 4
       @default_handlers_setup = false
       @running = false
+      @shutdown_message = true
     end
 
     def logger
@@ -40,6 +41,14 @@ module Kemal
 
     def logger=(logger : Kemal::BaseLogHandler)
       @logger = logger
+    end
+
+    def shutdown_message(status : Bool)
+      @shutdown_message = status
+    end
+
+    def shutdown_message?
+      @shutdown_message
     end
 
     def scheme
