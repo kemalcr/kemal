@@ -4,10 +4,24 @@ require "./kemal/*"
 require "./kemal/helpers/*"
 
 module Kemal
+
+  # Overload of self.run with the default startup logging
+  def self.run(port = nil)
+    self.run port do
+      log "[#{config.env}] Kemal is ready to lead at #{config.scheme}://#{config.host_binding}:#{config.port}\n"
+    end
+  end
+
+  # Overload of self.run to allow just a block
+  def self.run(&block)
+    self.run nil &block
+  end
+   
+
   # The command to run a `Kemal` application.
   # The port can be given to `#run` but is optional.
   # If not given Kemal will use `Kemal::Config#port`
-  def self.run(port = nil)
+  def self.run(port = nil, &block)
     Kemal::CLI.new
     config = Kemal.config
     config.setup
@@ -42,11 +56,11 @@ module Kemal
           halt env, 404
         end
       end
-
-      log "[#{config.env}] Kemal is ready to lead at #{config.scheme}://#{config.host_binding}:#{config.port}\n"
-      config.running = true
-      config.server.listen
     end
+
+    config.running = true
+    yield config
+    config.server.listen if config.env != "test"
   end
 
   def self.stop
