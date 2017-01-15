@@ -12,6 +12,12 @@ module Kemal
     end
   end
 
+  # Overload of self.run to allow just a block
+  def self.run(&block)
+    self.run nil &block
+  end
+   
+
   # The command to run a `Kemal` application.
   # The port can be given to `#run` but is optional.
   # If not given Kemal will use `Kemal::Config#port`

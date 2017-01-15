@@ -17,4 +17,14 @@ describe "Run" do
     Kemal.config.running.should eq true
     Kemal.stop
   end
+
+  it "runs with just a block" do
+    Kemal.config.env = "test"
+    make_me_true = false
+    Kemal.run do
+      make_me_true = true
+      Kemal.stop
+    end
+    make_me_true.should eq true
+  end
 end
