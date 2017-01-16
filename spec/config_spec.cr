@@ -31,10 +31,10 @@ describe "Config" do
 
   it "toggles the shutdown message" do
     config = Kemal.config
-    config.shutdown_message false
-    config.shutdown_message?.should eq false
-    config.shutdown_message true
-    config.shutdown_message?.should eq true
+    config.shutdown_message = false
+    config.shutdown_message.should eq false
+    config.shutdown_message = true
+    config.shutdown_message.should eq true
   end
 
   it "adds custom options" do
