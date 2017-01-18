@@ -29,6 +29,14 @@ describe "Config" do
     config.handlers.size.should eq(6)
   end
 
+  it "toggles the shutdown message" do
+    config = Kemal.config
+    config.shutdown_message = false
+    config.shutdown_message.should eq false
+    config.shutdown_message = true
+    config.shutdown_message.should eq true
+  end
+
   it "adds custom options" do
     config = Kemal.config
     ARGV.push("--test")

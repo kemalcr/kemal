@@ -15,7 +15,8 @@ module Kemal
     {% end %}
 
     property host_binding, ssl, port, env, public_folder, logging, running,
-      always_rescue, serve_static : (Bool | Hash(String, Bool)), server, extra_options
+      always_rescue, serve_static : (Bool | Hash(String, Bool)), server, extra_options,
+      shutdown_message
 
     def initialize
       @host_binding = "0.0.0.0"
@@ -32,6 +33,7 @@ module Kemal
       @custom_handler_position = 4
       @default_handlers_setup = false
       @running = false
+      @shutdown_message = true
     end
 
     def logger
