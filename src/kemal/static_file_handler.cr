@@ -56,6 +56,9 @@ module Kemal
         request_headers = context.request.headers
         filesize = File.size(file_path)
         File.open(file_path) do |file|
+          if context.request.headers.has_key?("Range") && context.request.method == "GET"
+            next multipart(file, context)
+          end
           if request_headers.includes_word?("Accept-Encoding", "gzip") && config.is_a?(Hash) && config["gzip"] == true && filesize > minsize && Utils.zip_types(file_path)
             context.response.headers["Content-Encoding"] = "gzip"
             Zlib::Deflate.gzip(context.response) do |deflate|
@@ -73,6 +76,79 @@ module Kemal
         end
       else
         call_next(context)
+      end
+    end
+
+    def multipart(file, env)
+      #See http://httpwg.org/specs/rfc7233.html
+      fileb = file.size
+
+      range = env.request.headers["Range"]
+      match = range.match(/bytes=(\d{1,})-(\d{0,})/)
+
+      startb = 0
+      endb = 0
+
+      if match
+        if match.size >= 2
+          startb = match[1].to_i { 0 }
+        end
+
+        if match.size >= 3
+          endb = match[2].to_i { 0 }
+        end
+      end
+
+      if startb == 0 && endb == 0
+        startb = 0
+        endb = fileb
+      elsif endb == 0
+        # endb=startb + 114887
+        # size = 500
+        endb = fileb
+        # if startb + size > fileb
+        #  endb = fileb
+        # else
+        #  endb = startb + size
+        # end
+      end
+
+      if startb < endb && endb <= fileb
+        env.response.status_code = 206
+        env.response.content_length = endb - startb
+        env.response.headers.add("Content-Range", "bytes #{startb}-#{endb - 1}/#{fileb}") # MUST
+        begin
+          if startb > 1024
+            skipped = 0
+            until skipped + 1024 > startb
+              file.skip(1024)
+              skipped += 1024
+            end
+            if skipped - startb > 0
+              file.skip(skipped - startb)
+            end
+          else
+            file.skip(startb)
+          end
+        rescue ex
+          puts "#{ex.message} #{ex.backtrace}"
+        end
+
+        begin
+          # if(endb - startb > 1024)
+          #  realendbytes = 1024
+          # else
+          #  realendbytes = endb
+          # end
+          realendbytes = endb
+          IO.copy(file, env.response.output, realendbytes - startb)
+        rescue ex
+          puts "Handled ex: #{ex.message}"
+        end
+      else
+        env.response.status_code = 200 # Range not satisfable
+        # See 4.4 Note
+        IO.copy(file, env.response)
       end
     end
 

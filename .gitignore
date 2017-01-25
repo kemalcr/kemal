@@ -6,3 +6,5 @@
 # Libraries don't need dependency lock
 # Dependencies will be locked in application that uses them
 /shard.lock
+samples/multipart_file.cr
+static/
