@@ -99,24 +99,15 @@ module Kemal
         end
       end
 
-      if startb == 0 && endb == 0
-        startb = 0
+      if endb == 0
         endb = fileb
-      elsif endb == 0
-        # endb=startb + 114887
-        # size = 500
-        endb = fileb
-        # if startb + size > fileb
-        #  endb = fileb
-        # else
-        #  endb = startb + size
-        # end
       end
 
       if startb < endb && endb <= fileb
         env.response.status_code = 206
         env.response.content_length = endb - startb
         env.response.headers.add("Content-Range", "bytes #{startb}-#{endb - 1}/#{fileb}") # MUST
+        env.response.headers["X-Streaming"] = "true" #Not in RFC, but useful for debug
         begin
           if startb > 1024
             skipped = 0
@@ -135,13 +126,8 @@ module Kemal
         end
 
         begin
-          # if(endb - startb > 1024)
-          #  realendbytes = 1024
-          # else
-          #  realendbytes = endb
-          # end
           realendbytes = endb
-          IO.copy(file, env.response.output, realendbytes - startb)
+          IO.copy(file, env.response, realendbytes - startb)
         rescue ex
           puts "Handled ex: #{ex.message}"
         end
