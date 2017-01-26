@@ -12,7 +12,9 @@ private def handle(request, fallthrough = true)
 end
 
 describe Kemal::StaticFileHandler do
-  file_text = File.read "#{__DIR__}/static/dir/test.txt"
+  file = File.open "#{__DIR__}/static/dir/test.txt"
+  file_size = file.size
+  file_text = file.to_s
 
   it "should serve a file with content type and etag" do
     response = handle HTTP::Request.new("GET", "/dir/test.txt")
@@ -97,6 +99,35 @@ describe Kemal::StaticFileHandler do
       response = handle HTTP::Request.new(method, "/dir/test.txt"), false
       response.status_code.should eq(405)
       response.headers["Allow"].should eq("GET, HEAD")
+    end
+  end
+
+  it "should send part of files when requested (RFC7233)" do
+    %w(POST PUT DELETE HEAD).each do |method|
+      headers = HTTP::Headers{"Range" => "0-100"}
+      response = handle HTTP::Request.new(method, "/dir/test.txt", headers)
+      response.status_code.should_not eq(206)
+      response.headers.has_key?("Content-Range").should eq(false)
+    end
+
+    %w(GET).each do |method|
+      headers = HTTP::Headers{"Range" => "0-100"}
+      response = handle HTTP::Request.new(method, "/dir/test.txt", headers)
+      response.status_code.should eq(206 || 200)
+      if response.status_code == 206
+        response.headers.has_key?("Content-Range").should eq true
+        match = response.headers["Content-Range"].match(/bytes (\d+)-(\d+)\/(\d+)/)
+        match.should_not be nil
+        if match
+          startRange = match[1].to_i {0}
+          endRange = match[2].to_i {0}
+          rangeSize = match[3].to_i {0}
+
+          rangeSize.should eq file_size
+          (endRange < file_size).should eq true
+          (startRange < endRange).should eq true
+        end
+      end
     end
   end
 end
