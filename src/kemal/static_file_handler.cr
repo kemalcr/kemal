@@ -100,40 +100,33 @@ module Kemal
       end
 
       if endb == 0
-        endb = fileb
+          endb = fileb
       end
 
       if startb < endb && endb <= fileb
         env.response.status_code = 206
         env.response.content_length = endb - startb
-        env.response.headers.add("Content-Range", "bytes #{startb}-#{endb - 1}/#{fileb}") # MUST
-        env.response.headers["X-Streaming"] = "true" #Not in RFC, but useful for debug
-        begin
-          if startb > 1024
-            skipped = 0
-            until skipped + 1024 > startb
-              file.skip(1024)
-              skipped += 1024
-            end
-            if skipped - startb > 0
-              file.skip(skipped - startb)
-            end
-          else
-            file.skip(startb)
+        env.response.headers["Accept-Ranges"] = "bytes"
+        env.response.headers["Content-Range"] = "bytes #{startb}-#{endb - 1}/#{fileb}" # MUST
+
+        if startb > 1024
+          skipped = 0
+          # file.skip only accepts values less or equal to 1024 (buffer size, undocumented)
+          until skipped + 1024 > startb
+            file.skip(1024)
+            skipped += 1024
           end
-        rescue ex
-          puts "#{ex.message} #{ex.backtrace}"
+          if skipped - startb > 0
+            file.skip(skipped - startb)
+          end
+        else
+          file.skip(startb)
         end
 
-        begin
-          realendbytes = endb
-          IO.copy(file, env.response, realendbytes - startb)
-        rescue ex
-          puts "Handled ex: #{ex.message}"
-        end
+        IO.copy(file, env.response, endb - startb)
       else
-        env.response.status_code = 200 # Range not satisfable
-        # See 4.4 Note
+        env.response.content_length = fileb
+        env.response.status_code = 200 # Range not satisfable, see 4.4 Note
         IO.copy(file, env.response)
       end
     end

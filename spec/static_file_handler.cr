@@ -119,13 +119,13 @@ describe Kemal::StaticFileHandler do
         match = response.headers["Content-Range"].match(/bytes (\d+)-(\d+)\/(\d+)/)
         match.should_not be nil
         if match
-          startRange = match[1].to_i {0}
-          endRange = match[2].to_i {0}
-          rangeSize = match[3].to_i {0}
+          start_range = match[1].to_i {0}
+          end_range = match[2].to_i {0}
+          range_size = match[3].to_i {0}
 
-          rangeSize.should eq file_size
-          (endRange < file_size).should eq true
-          (startRange < endRange).should eq true
+          range_size.should eq file_size
+          (end_range < file_size).should eq true
+          (start_range < end_range).should eq true
         end
       end
     end
