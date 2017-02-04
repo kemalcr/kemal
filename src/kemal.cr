@@ -4,7 +4,6 @@ require "./kemal/*"
 require "./kemal/helpers/*"
 
 module Kemal
-
   # Overload of self.run with the default startup logging
   def self.run(port = nil)
     self.run port do
@@ -14,9 +13,8 @@ module Kemal
 
   # Overload of self.run to allow just a block
   def self.run(&block)
-    self.run nil &block
+    self.run nil & block
   end
-   
 
   # The command to run a `Kemal` application.
   # The port can be given to `#run` but is optional.

@@ -56,7 +56,7 @@ module Kemal
         request_headers = context.request.headers
         filesize = File.size(file_path)
         File.open(file_path) do |file|
-          if context.request.headers.has_key?("Range") && context.request.method == "GET"
+          if context.request.method == "GET" && context.request.headers.has_key?("Range")
             next multipart(file, context)
           end
           if request_headers.includes_word?("Accept-Encoding", "gzip") && config.is_a?(Hash) && config["gzip"] == true && filesize > minsize && Utils.zip_types(file_path)
@@ -80,7 +80,7 @@ module Kemal
     end
 
     def multipart(file, env)
-      #See http://httpwg.org/specs/rfc7233.html
+      # See http://httpwg.org/specs/rfc7233.html
       fileb = file.size
 
       range = env.request.headers["Range"]
@@ -100,7 +100,7 @@ module Kemal
       end
 
       if endb == 0
-          endb = fileb
+        endb = fileb
       end
 
       if startb < endb && endb <= fileb
