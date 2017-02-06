@@ -13,7 +13,7 @@ module Kemal
 
   # Overload of self.run to allow just a block
   def self.run(&block)
-    self.run nil & block
+    self.run nil, &block
   end
 
   # The command to run a `Kemal` application.
