@@ -34,11 +34,19 @@ module Kemal
       raise Kemal::Exceptions::RouteNotFound.new(context) unless context.route_defined?
       route = context.route_lookup.payload.as(Route)
       content = route.handler.call(context)
+    ensure
+      remove_tmpfiles(context)
       if Kemal.config.error_handlers.has_key?(context.response.status_code)
         raise Kemal::Exceptions::CustomException.new(context)
       end
       context.response.print(content)
       context
+    end
+
+    private def remove_tmpfiles(context)
+      context.params.files.each do |field, file|
+        File.delete(file.tmpfile_path) if ::File.exists?(file.tmpfile_path)
+      end
     end
 
     private def radix_path(method : String, path)

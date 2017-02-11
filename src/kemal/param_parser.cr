@@ -1,5 +1,6 @@
 require "json"
 require "uri"
+require "tempfile"
 
 module Kemal
   # ParamParser parses the request contents including query_params and body
@@ -8,14 +9,17 @@ module Kemal
   class ParamParser
     URL_ENCODED_FORM = "application/x-www-form-urlencoded"
     APPLICATION_JSON = "application/json"
+    MULTIPART_FORM   = "multipart/form-data"
     # :nodoc:
     alias AllParamTypes = Nil | String | Int64 | Float64 | Bool | Hash(String, JSON::Type) | Array(JSON::Type)
+    getter files
 
     def initialize(@request : HTTP::Request)
       @url = {} of String => String
       @query = HTTP::Params.new({} of String => Array(String))
       @body = HTTP::Params.new({} of String => Array(String))
       @json = {} of String => AllParamTypes
+      @files = {} of String => FileUpload
       @url_parsed = false
       @query_parsed = false
       @body_parsed = false
@@ -41,8 +45,16 @@ module Kemal
     {% end %}
 
     def parse_body
-      return if (@request.headers["Content-Type"]? =~ /#{URL_ENCODED_FORM}/).nil?
-      @body = parse_part(@request.body)
+      content_type = @request.headers["Content-Type"]?
+      return unless content_type
+      if content_type.try(&.starts_with?(URL_ENCODED_FORM))
+        @body = parse_part(@request.body)
+        return
+      end
+      if content_type.try(&.starts_with?(MULTIPART_FORM))
+        parse_file_upload
+        return
+      end
     end
 
     def parse_query
@@ -53,6 +65,22 @@ module Kemal
       if params = @request.url_params
         params.each do |key, value|
           @url[key.as(String)] = unescape_url_param(value).as(String)
+        end
+      end
+    end
+
+    def parse_file_upload
+      HTTP::FormData.parse(@request) do |field, data, meta, headers|
+        next unless meta
+        filename = meta.filename
+        if !filename.nil?
+          tempfile = Tempfile.new(filename)
+          ::File.open(tempfile.path, "w") do |file|
+            IO.copy(data, file)
+          end
+          @files[field] = FileUpload.new(tmpfile: tempfile, tmpfile_path: tempfile.path, meta: meta, headers: headers)
+        else
+          @body[field] = data.gets_to_end
         end
       end
     end
