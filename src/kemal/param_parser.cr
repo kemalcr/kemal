@@ -44,7 +44,7 @@ module Kemal
     end
     {% end %}
 
-    def parse_body
+    private def parse_body
       content_type = @request.headers["Content-Type"]?
       return unless content_type
       if content_type.try(&.starts_with?(URL_ENCODED_FORM))
@@ -57,11 +57,11 @@ module Kemal
       end
     end
 
-    def parse_query
+    private def parse_query
       @query = parse_part(@request.query)
     end
 
-    def parse_url
+    private def parse_url
       if params = @request.url_params
         params.each do |key, value|
           @url[key.as(String)] = unescape_url_param(value).as(String)
@@ -69,7 +69,7 @@ module Kemal
       end
     end
 
-    def parse_file_upload
+    private def parse_file_upload
       HTTP::FormData.parse(@request) do |field, data, meta, headers|
         next unless meta
         filename = meta.filename
@@ -89,7 +89,7 @@ module Kemal
     # If request body is a JSON Hash then all the params are parsed and added into `params`.
     # If request body is a JSON Array it's added into `params` as `_json` and can be accessed
     # like params["_json"]
-    def parse_json
+    private def parse_json
       return unless @request.body && @request.headers["Content-Type"]?.try(&.starts_with?(APPLICATION_JSON))
 
       body = @request.body.not_nil!.gets_to_end
@@ -103,7 +103,7 @@ module Kemal
       end
     end
 
-    def parse_part(part : IO?)
+    private def parse_part(part : IO?)
       if part
         HTTP::Params.parse(part.gets_to_end)
       else
@@ -111,7 +111,7 @@ module Kemal
       end
     end
 
-    def parse_part(part : String?)
+    private def parse_part(part : String?)
       if part
         HTTP::Params.parse(part.to_s)
       else

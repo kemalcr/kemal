@@ -30,7 +30,7 @@ module Kemal
     end
 
     # Processes the route if it's a match. Otherwise renders 404.
-    def process_request(context)
+    private def process_request(context)
       raise Kemal::Exceptions::RouteNotFound.new(context) unless context.route_defined?
       route = context.route_lookup.payload.as(Route)
       content = route.handler.call(context)

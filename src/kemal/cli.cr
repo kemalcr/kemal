@@ -13,7 +13,7 @@ module Kemal
       configure_ssl
     end
 
-    def parse
+    private def parse
       OptionParser.parse! do |opts|
         opts.on("-b HOST", "--bind HOST", "Host to bind (defaults to 0.0.0.0)") do |host_binding|
           @config.host_binding = host_binding
@@ -38,7 +38,7 @@ module Kemal
       end
     end
 
-    def configure_ssl
+    private def configure_ssl
       {% if !flag?(:without_openssl) %}
       if @ssl_enabled
         unless @key_file
@@ -57,7 +57,7 @@ module Kemal
     {% end %}
     end
 
-    def read_env
+    private def read_env
       @config.env = ENV["KEMAL_ENV"] if ENV.has_key?("KEMAL_ENV")
     end
   end

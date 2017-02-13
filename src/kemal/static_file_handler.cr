@@ -79,7 +79,17 @@ module Kemal
       end
     end
 
-    def multipart(file, env)
+    def etag(context, file_path)
+      etag = %{W/"#{File.lstat(file_path).mtime.epoch.to_s}"}
+      context.response.headers["ETag"] = etag
+      return false if !context.request.headers["If-None-Match"]? || context.request.headers["If-None-Match"] != etag
+      context.response.headers.delete "Content-Type"
+      context.response.content_length = 0
+      context.response.status_code = 304 # not modified
+      return true
+    end
+
+    private def multipart(file, env)
       # See http://httpwg.org/specs/rfc7233.html
       fileb = file.size
 
@@ -129,16 +139,6 @@ module Kemal
         env.response.status_code = 200 # Range not satisfable, see 4.4 Note
         IO.copy(file, env.response)
       end
-    end
-
-    def etag(context, file_path)
-      etag = %{W/"#{File.lstat(file_path).mtime.epoch.to_s}"}
-      context.response.headers["ETag"] = etag
-      return false if !context.request.headers["If-None-Match"]? || context.request.headers["If-None-Match"] != etag
-      context.response.headers.delete "Content-Type"
-      context.response.content_length = 0
-      context.response.status_code = 304 # not modified
-      return true
     end
   end
 end
