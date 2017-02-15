@@ -1,6 +1,6 @@
 module Kemal
   module Utils
-    def self.path_starts_with_backslash?(path)
+    def self.path_starts_with_slash?(path)
       path.starts_with?("/")
     end
 
