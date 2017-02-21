@@ -1,4 +1,4 @@
-# 0.18.1 (21-02-2016)
+# 0.18.1 (21-02-2017)
 
 - Crystal 0.21.0 support
 - Drop `multipart.cr` dependency. `multipart` support is now built-into Crystal <3
@@ -15,7 +15,7 @@
   + `size`: Size of the file upload.
 
 
-# 0.18.0 (11-02-2016)
+# 0.18.0 (11-02-2017)
 
 - Simpler file upload. File uploads can now be access from `HTTP::Server::Context` like `env.params.files["filename"]`.
 
@@ -49,7 +49,7 @@ To test
 - Update Radix to 0.3.7. Fixes https://github.com/kemalcr/kemal/issues/293
 - Configurable startup / shutdown logging. https://github.com/kemalcr/kemal/issues/291 and https://github.com/kemalcr/kemal/issues/292 (thanks @twisterghost).
 
-# 0.17.5 (09-01-2016)
+# 0.17.5 (09-01-2017)
 
 - Update multipart.cr to 0.1.2. Fixes #285 related to multipart.cr
 
