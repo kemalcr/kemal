@@ -1,3 +1,41 @@
+# 0.18.0 (11-02-2016)
+
+- Simpler file upload. File uploads can now be access from `HTTP::Server::Context` like `env.params.files["filename"]`.
+
+`env.params.files["filename"]` has 5 methods
+
+- `tmpfile`: This is temporary file for file upload. Useful for saving the upload file.
+- `tmpfile_path`: File path of `tmpfile`.
+- `filename`: File name of the file upload. (logo.png, images.zip e.g)
+- `meta`: Meta information for the file upload.
+- `headers`: Headers for the file upload.
+
+Here's a fully working sample for reading a image file upload `image1` and saving it under `public/uploads`.
+
+  ```crystal
+post "/upload" do |env|
+  file = env.params.files["image1"].tmpfile
+  file_path = ::File.join [Kemal.config.public_folder, "uploads/", file.filename]
+  File.open(file_path, "w") do |f|
+    IO.copy(file, f)
+  end
+  "Upload ok"
+end
+  ```
+
+To test
+
+`curl -F "image1=@/Users/serdar/Downloads/kemal.png" http://localhost:3000/upload`
+
+- RF7233 support a.k.a file streaming. (https://github.com/kemalcr/kemal/pull/299) (thanks @denysvitali)
+
+- Update Radix to 0.3.7. Fixes https://github.com/kemalcr/kemal/issues/293
+- Configurable startup / shutdown logging. https://github.com/kemalcr/kemal/issues/291 and https://github.com/kemalcr/kemal/issues/292 (thanks @twisterghost).
+
+# 0.17.5 (09-01-2016)
+
+- Update multipart.cr to 0.1.2. Fixes #285 related to multipart.cr
+
 # 0.17.4 (24-12-2016)
 
 - Support for Crystal 0.20.3

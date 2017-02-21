@@ -72,33 +72,3 @@ end
 def gzip(status : Bool = false)
   add_handler HTTP::CompressHandler.new if status
 end
-
-# :nodoc:
-struct UploadFile
-  getter field : String
-  getter data : IO::Delimited
-  getter meta : HTTP::FormData::FileMetadata
-  getter headers : HTTP::Headers
-
-  def initialize(@field, @data, @meta, @headers)
-  end
-end
-
-# Parses a multipart/form-data request. Yields an `UploadFile` object with `field`, `data`, `meta`, `headers` fields.
-# Consider the example below taking two image uploads as image1, image2. To get the relevant data
-# for each file you can use simple `if/switch` conditionals.
-#
-#   post "/upload" do |env|
-#     parse_multipart(env) do |f|
-#       image1 = f.data if f.field == "image1"
-#       image2 = f.data if f.field == "image2"
-#       puts f.meta
-#       puts f.headers
-#       "Upload complete"
-#     end
-#   end
-def parse_multipart(env)
-  HTTP::FormData.parse(env.request) do |field, data, meta, headers|
-    yield UploadFile.new field, data, meta, headers
-  end
-end
