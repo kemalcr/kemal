@@ -1,3 +1,20 @@
+# 0.18.1 (21-02-2016)
+
+- Crystal 0.21.0 support
+- Drop `multipart.cr` dependency. `multipart` support is now built-into Crystal <3
+- Since Crystal 0.21.0 comes built-in with `multipart` there are some improvements and deprecations.
+
+`meta` has been removed from `FileUpload` and it has the following properties
+
+  + `tmpfile`: This is temporary file for file upload. Useful for saving the upload file.
+  + `filename`: File name of the file upload. (logo.png, images.zip e.g)
+  + `headers`: Headers for the file upload.
+  + `creation_time`: Creation time of the file upload.
+  + `modification_time`: Last Modification time of the file upload.
+  + `read_time`: Read time of the file upload.
+  + `size`: Size of the file upload.
+
+
 # 0.18.0 (11-02-2016)
 
 - Simpler file upload. File uploads can now be access from `HTTP::Server::Context` like `env.params.files["filename"]`.
