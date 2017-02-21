@@ -45,7 +45,7 @@ module Kemal
 
     private def remove_tmpfiles(context)
       context.params.files.each do |field, file|
-        File.delete(file.tmpfile_path) if ::File.exists?(file.tmpfile_path)
+        File.delete(file.tmpfile.path) if ::File.exists?(file.tmpfile.path)
       end
     end
 

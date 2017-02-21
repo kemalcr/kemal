@@ -70,5 +70,5 @@ end
 # output, either using gzip or deflate, depending on the `Accept-Encoding` request header.
 # It's disabled by default.
 def gzip(status : Bool = false)
-  add_handler HTTP::DeflateHandler.new if status
+  add_handler HTTP::CompressHandler.new if status
 end

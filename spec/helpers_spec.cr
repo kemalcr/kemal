@@ -117,9 +117,9 @@ describe "Macros" do
   end
 
   describe "#gzip" do
-    it "adds HTTP::DeflateHandler to handlers" do
+    it "adds HTTP::CompressHandler to handlers" do
       gzip true
-      Kemal.config.handlers[4].should be_a(HTTP::DeflateHandler)
+      Kemal.config.handlers[4].should be_a(HTTP::CompressHandler)
     end
   end
 

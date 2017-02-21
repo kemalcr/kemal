@@ -1,5 +1,4 @@
 require "http"
-require "multipart"
 require "./kemal/*"
 require "./kemal/helpers/*"
 
