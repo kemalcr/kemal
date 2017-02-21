@@ -70,17 +70,13 @@ module Kemal
     end
 
     private def parse_file_upload
-      HTTP::FormData.parse(@request) do |field, data, meta, headers|
-        next unless meta
-        filename = meta.filename
+      HTTP::FormData.parse(@request) do |upload|
+        next unless upload
+        filename = upload.filename
         if !filename.nil?
-          tempfile = Tempfile.new(filename)
-          ::File.open(tempfile.path, "w") do |file|
-            IO.copy(data, file)
-          end
-          @files[field] = FileUpload.new(tmpfile: tempfile, tmpfile_path: tempfile.path, meta: meta, headers: headers)
+          @files[upload.name] = FileUpload.new(upload: upload)
         else
-          @body[field] = data.gets_to_end
+          @body[upload.name] = upload.body.gets_to_end
         end
       end
     end
