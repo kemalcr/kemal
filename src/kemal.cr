@@ -2,6 +2,49 @@ require "http"
 require "./kemal/*"
 require "./kemal/helpers/*"
 
+# This is literally `hack` to fix [Crystal issue #4060](https://github.com/crystal-lang/crystal/issues/4060)
+class Gzip::Header
+  def to_io(io)
+    # header
+    io.write_byte ID1
+    io.write_byte ID2
+
+    # compression method
+    io.write_byte DEFLATE
+
+    # flg
+    flg = Flg::None
+    flg |= Flg::EXTRA if !@extra.empty?
+    flg |= Flg::NAME if @name
+    flg |= Flg::COMMENT if @comment
+    io.write_byte flg.value
+
+    # time
+    io.write_bytes(modification_time.epoch.to_u32, IO::ByteFormat::LittleEndian)
+
+    # xfl
+    io.write_byte 0_u8
+
+    # os
+    io.write_byte os
+
+    if !@extra.empty?
+      io.write_byte @extra.size.to_u8
+      io.write(@extra)
+    end
+
+    if name = @name
+      io << name
+      io.write_byte 0_u8
+    end
+
+    if comment = @comment
+      io << comment
+      io.write_byte 0_u8
+    end
+  end
+end
+
 module Kemal
   # Overload of self.run with the default startup logging
   def self.run(port = nil)
