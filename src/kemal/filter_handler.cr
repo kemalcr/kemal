@@ -7,7 +7,7 @@ module Kemal
 
     # This middleware is lazily instantiated and added to the handlers as soon as a call to `after_X` or `before_X` is made.
     def initialize
-      @tree = Radix::Tree(Array(Kemal::FilterBlock)).new
+      @tree = Radix::Tree(Array(FilterBlock)).new
       Kemal.config.add_filter_handler(self)
     end
 
@@ -69,18 +69,18 @@ module Kemal
     private def radix_path(verb, path, type : Symbol)
       "#{type}/#{verb}/#{path}"
     end
-  end
 
-  # :nodoc:
-  class FilterBlock
-    property block : HTTP::Server::Context -> String
+    # :nodoc:
+    class FilterBlock
+      property block : HTTP::Server::Context -> String
 
-    def initialize(&block : HTTP::Server::Context -> _)
-      @block = ->(context : HTTP::Server::Context) { block.call(context).to_s }
-    end
+      def initialize(&block : HTTP::Server::Context -> _)
+        @block = ->(context : HTTP::Server::Context) { block.call(context).to_s }
+      end
 
-    def call(context)
-      @block.call(context)
+      def call(context)
+        @block.call(context)
+      end
     end
   end
 end
