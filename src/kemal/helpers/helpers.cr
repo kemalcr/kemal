@@ -66,7 +66,7 @@ end
 # Static server also have some advanced customization options like `dir_listing` and
 # `gzip`.
 #
-# server_static {"gzip" => true, "dir_listing" => false}
+# serve_static {"gzip" => true, "dir_listing" => false}
 def serve_static(status : (Bool | Hash))
   Kemal.config.serve_static = status
 end
