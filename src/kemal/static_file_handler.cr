@@ -50,7 +50,7 @@ module Kemal
           return call_next(context)
         end
       elsif File.exists?(file_path)
-        return if self.etag(context, file_path)
+        return if etag(context, file_path)
         minsize = 860 # http://webmasters.stackexchange.com/questions/31750/what-is-recommended-minimum-object-size-for-gzip-performance-benefits ??
         context.response.content_type = Utils.mime_type(file_path)
         request_headers = context.request.headers
@@ -79,7 +79,7 @@ module Kemal
       end
     end
 
-    def etag(context, file_path)
+    private def etag(context, file_path)
       etag = %{W/"#{File.lstat(file_path).mtime.epoch.to_s}"}
       context.response.headers["ETag"] = etag
       return false if !context.request.headers["If-None-Match"]? || context.request.headers["If-None-Match"] != etag
