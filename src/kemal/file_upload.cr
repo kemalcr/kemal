@@ -1,5 +1,5 @@
-# :nodoc:
 module Kemal
+  # :nodoc:
   struct FileUpload
     getter tmpfile : Tempfile
     getter filename : String?
