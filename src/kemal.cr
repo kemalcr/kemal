@@ -1,4 +1,7 @@
 require "http"
+require "json"
+require "uri"
+require "tempfile"
 require "./kemal/*"
 require "./kemal/helpers/*"
 

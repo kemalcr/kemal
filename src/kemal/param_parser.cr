@@ -1,7 +1,3 @@
-require "json"
-require "uri"
-require "tempfile"
-
 module Kemal
   # ParamParser parses the request contents including query_params and body
   # and converts them into a params hash which you can within the environment
