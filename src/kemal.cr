@@ -3,6 +3,7 @@ require "json"
 require "uri"
 require "tempfile"
 require "./kemal/*"
+require "./kemal/ext/*"
 require "./kemal/helpers/*"
 
 # This is literally `hack` to fix [Crystal issue #4060](https://github.com/crystal-lang/crystal/issues/4060)
