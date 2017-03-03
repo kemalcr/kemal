@@ -1,6 +1,5 @@
 module Kemal
   # Kemal::CommonLogHandler uses STDOUT by default and handles the logging of request/response process time.
-  # It's also provides a `write` method for common logging purposes.
   class CommonLogHandler < Kemal::BaseLogHandler
     @handler : IO
 

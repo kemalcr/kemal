@@ -1,6 +1,5 @@
 module Kemal
-  # Kemal::FilterHandler handle all code that should be evaluated before and after
-  # every request
+  # :nodoc:
   class FilterHandler
     include HTTP::Handler
     INSTANCE = new

@@ -2,15 +2,15 @@ require "kilt"
 
 CONTENT_FOR_BLOCKS = Hash(String, Tuple(String, Proc(String))).new
 
-# <tt>content_for</tt> is a set of helpers that allows you to capture
+# `content_for` is a set of helpers that allows you to capture
 # blocks inside views to be rendered later during the request. The most
 # common use is to populate different parts of your layout from your view.
 #
 # The currently supported engines are: ecr and slang.
 #
-# == Usage
+# ## Usage
 #
-# You call +content_for+, generally from a view, to capture a block of markup
+# You call `content_for`, generally from a view, to capture a block of markup
 # giving it an identifier:
 #
 #     # index.ecr
@@ -18,18 +18,18 @@ CONTENT_FOR_BLOCKS = Hash(String, Tuple(String, Proc(String))).new
 #       <chunk of="html">...</chunk>
 #     <% end %>
 #
-# Then, you call +yield_content+ with that identifier, generally from a
+# Then, you call `yield_content` with that identifier, generally from a
 # layout, to render the captured block:
 #
 #     # layout.ecr
 #     <%= yield_content "some_key" %>
 #
-# == And How Is This Useful?
+# ## And How Is This Useful?
 #
 # For example, some of your views might need a few javascript tags and
 # stylesheets, but you don't want to force this files in all your pages.
-# Then you can put <tt><%= yield_content :scripts_and_styles %></tt> on your
-# layout, inside the <head> tag, and each view can call <tt>content_for</tt>
+# Then you can put `<%= yield_content :scripts_and_styles %>` on your
+# layout, inside the <head> tag, and each view can call `content_for`
 # setting the appropriate set of tags that should be added to the layout.
 macro content_for(key, file = __FILE__)
   %proc = ->() {
@@ -42,7 +42,7 @@ macro content_for(key, file = __FILE__)
   nil
 end
 
-# Yields content for the given key if a content_for block exists for that key.
+# Yields content for the given key if a `content_for` block exists for that key.
 macro yield_content(key)
   if CONTENT_FOR_BLOCKS.has_key?({{key}})
     __caller_filename__ = CONTENT_FOR_BLOCKS[{{key}}][0]
