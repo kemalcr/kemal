@@ -1,12 +1,11 @@
-# Kemal 
+
+[![Kemal](media/header.png)](http://kemalcr.com)
+
+> Lightning Fast, Super Simple web framework.
 
 [![Build Status](https://travis-ci.org/kemalcr/kemal.svg?branch=master)](https://travis-ci.org/kemalcr/kemal)
 
 [![Join the chat at https://gitter.im/sdogruyol/kemal](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/sdogruyol/kemal?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
-
-![Kemal Logo](https://avatars3.githubusercontent.com/u/15321198?v=3&s=200)
-
-Lightning Fast, Super Simple web framework for [Crystal](http://www.crystal-lang.org).
 
 # Super Simple ⚡️
 
