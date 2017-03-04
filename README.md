@@ -1,7 +1,9 @@
 
-[![Kemal](media/header.png)](http://kemalcr.com)
+[![Kemal](https://avatars3.githubusercontent.com/u/15321198?v=3&s=200)](http://kemalcr.com)
 
-> Lightning Fast, Super Simple web framework.
+# Kemal
+
+Lightning Fast, Super Simple web framework.
 
 [![Build Status](https://travis-ci.org/kemalcr/kemal.svg?branch=master)](https://travis-ci.org/kemalcr/kemal)
 [![Join the chat at https://gitter.im/sdogruyol/kemal](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/sdogruyol/kemal?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
@@ -33,18 +35,6 @@ crystal src/kemal_sample.cr
 Go to *http://localhost:3000*
 
 Check [documentation](http://kemalcr.com) or [samples](https://github.com/kemalcr/kemal/tree/master/samples) for more.
-
-# Super Fast 🚀
-
-Numbers speak louder than words.
-
-| Framework             | Request Per Second  | Avg. Response Time |
-| --------------------- | :-----------------: | -----------------: |
-| Kemal (Production)    | 100238              |           395.44μs |
-| Sinatra (Thin)        | 2274                |            43.82ms |
-
-
-These results were achieved with ```wrk``` on a Macbook Pro Late 2013. (**2Ghz i7 8GB Ram OS X Yosemite**)
 
 # Installation
 
