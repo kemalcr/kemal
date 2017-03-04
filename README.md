@@ -1,12 +1,12 @@
-<img src="https://avatars3.githubusercontent.com/u/15321198?v=3&s=200" width="100" height="100" />
+# Kemal 
 
-# Kemal [![Build Status](https://travis-ci.org/kemalcr/kemal.svg?branch=master)](https://travis-ci.org/kemalcr/kemal)
+[![Build Status](https://travis-ci.org/kemalcr/kemal.svg?branch=master)](https://travis-ci.org/kemalcr/kemal)
 
 [![Join the chat at https://gitter.im/sdogruyol/kemal](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/sdogruyol/kemal?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
-[![crystal-docs.org](https://crystal-docs.org/badge.svg)](https://crystal-docs.org/kemalcr/kemal) 
+
+![Kemal Logo](https://avatars3.githubusercontent.com/u/15321198?v=3&s=200)
 
 Lightning Fast, Super Simple web framework for [Crystal](http://www.crystal-lang.org).
-Inspired by [Sinatra](http://www.sinatrarb.com/) but with superior performance and built-in WebSocket support.
 
 # Super Simple ⚡️
 
