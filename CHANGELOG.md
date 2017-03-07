@@ -1,3 +1,7 @@
+# 0.18.3 (07-03-2017)
+
+- Remove `Gzip::Header` monkey patch since it's fixed in `Crystal 0.21.1`.
+
 # 0.18.2 (24-02-2017)
 
 - Fix [Gzip in Kemal Seems broken for static files](https://github.com/kemalcr/kemal/issues/316). This was caused by `Gzip::Writer` in `Crystal 0.21.0` and currently mitigated by monkey patching `Gzip::Header`.
