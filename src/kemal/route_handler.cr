@@ -21,7 +21,7 @@ module Kemal
     # a corresponding `HEAD` route.
     def add_route(method, path, &handler : HTTP::Server::Context -> _)
       add_to_radix_tree method, path, Route.new(method, path, &handler)
-      add_to_radix_tree("HEAD", path, Route.new("HEAD", path, &handler)) if method == "GET"
+      add_to_radix_tree("HEAD", path, Route.new("HEAD", path) {|ctx| ""}) if method == "GET"
     end
 
     # Check if a route is defined and returns the lookup
