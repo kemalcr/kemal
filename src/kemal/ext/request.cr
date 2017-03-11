@@ -1,5 +1,5 @@
 class HTTP::Request
-  property override_method
+  property override_method : String?
   property url_params : Hash(String, String)?
   getter param_parser : Kemal::ParamParser?
 
@@ -21,7 +21,7 @@ class HTTP::Request
       @param_parser = Kemal::ParamParser.new(self)
       params = @param_parser.not_nil!.body
       if params.has_key?("_method") && HTTP::Request.override_method_valid?(params["_method"])
-        @override_method = params["_method"]
+        @override_method = params["_method"].as(String)
       end
     end
     @override_method
