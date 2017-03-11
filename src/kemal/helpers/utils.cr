@@ -18,6 +18,7 @@ module Kemal
       when ".jpg", ".jpeg" then "image/jpeg"
       when ".gif"          then "image/gif"
       when ".svg"          then "image/svg+xml"
+      when ".ico"          then "image/x-icon"
       when ".xml"          then "application/xml"
       when ".json"         then "application/json"
       when ".otf", ".ttf"  then "application/font-sfnt"
