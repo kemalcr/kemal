@@ -67,7 +67,7 @@ module Kemal
 
     private def parse_file_upload
       HTTP::FormData.parse(@request) do |upload|
-        next unless upload
+        next unless upload && upload.size
         filename = upload.filename
         if !filename.nil?
           @files[upload.name] = FileUpload.new(upload: upload)
