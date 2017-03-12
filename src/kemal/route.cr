@@ -3,7 +3,7 @@ module Kemal
   # It takes 3 parameters: Method, path and a block to specify
   # what action to be done if the route is matched.
   class Route
-    getter handler
+    getter method, path, handler
     @handler : HTTP::Server::Context -> String
     @method : String
 
