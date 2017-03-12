@@ -12,7 +12,7 @@ module Kemal
       rescue ex : Kemal::Exceptions::CustomException
         call_exception_with_status_code(context, ex, context.response.status_code)
       rescue ex : Exception
-        log("Exception: #{ex.inspect_with_backtrace}\n")
+        log("Exception: #{ex.inspect_with_backtrace}")
         return call_exception_with_status_code(context, ex, 500) if Kemal.config.error_handlers.has_key?(500)
         verbosity = Kemal.config.env == "production" ? false : true
         return render_500(context, ex.inspect_with_backtrace, verbosity)

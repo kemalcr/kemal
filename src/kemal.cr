@@ -10,7 +10,7 @@ module Kemal
   # Overload of self.run with the default startup logging
   def self.run(port = nil)
     self.run port do
-      log "[#{config.env}] Kemal is ready to lead at #{config.scheme}://#{config.host_binding}:#{config.port}\n"
+      log "[#{config.env}] Kemal is ready to lead at #{config.scheme}://#{config.host_binding}:#{config.port}"
     end
   end
 
@@ -42,7 +42,7 @@ module Kemal
     # Test environment doesn't need to have signal trap, built-in images, and logging.
     unless config.env == "test"
       Signal::INT.trap {
-        log "Kemal is going to take a rest!\n" if config.shutdown_message
+        log "Kemal is going to take a rest!" if config.shutdown_message
         Kemal.stop
         exit
       }
