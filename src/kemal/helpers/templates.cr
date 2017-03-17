@@ -9,6 +9,7 @@ def render_404
         <style type="text/css">
         body { text-align:center;font-family:helvetica,arial;font-size:22px;
           color:#888;margin:20px}
+        img { max-width: 579px; width: 100%; }
         #c {margin:0 auto;width:500px;text-align:left}
         </style>
       </head>
