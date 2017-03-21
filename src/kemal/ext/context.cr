@@ -8,7 +8,7 @@ class HTTP::Server
     STORE_MAPPINGS = [ Nil, String, Int32, Int64, Float64, Bool ]
 
     macro add_store_type(type)
-      STORE_MAPPINGS << {{ type }}
+      {{ STORE_MAPPINGS.push(type) }}
     end
 
     macro finished
