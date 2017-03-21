@@ -7,6 +7,10 @@ class HTTP::Server
     # :nodoc:
     STORE_MAPPINGS = [ Nil, String, Int32, Int64, Float64, Bool ]
 
+    macro add_store_type(type)
+      STORE_MAPPINGS << {{ type }}
+    end
+
     macro finished
       alias StoreTypes = Union({{ *STORE_MAPPINGS }})
       getter store = {} of String => StoreTypes

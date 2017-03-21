@@ -26,8 +26,8 @@ class AnotherContextStorageType
   @name = "kemal-context"
 end
 
-{{ HTTP::Server::Context::STORE_MAPPINGS << TestContextStorageType }}
-{{ HTTP::Server::Context::STORE_MAPPINGS << AnotherContextStorageType }}
+HTTP::Server::Context.add_store_type(TestContextStorageType)
+HTTP::Server::Context.add_store_type(AnotherContextStorageType)
 
 
 def create_request_and_return_io(handler, request)
