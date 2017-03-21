@@ -12,6 +12,24 @@ class CustomLogHandler < Kemal::BaseLogHandler
   end
 end
 
+class TestContextStorageType
+  property id
+  @id = 1
+
+  def to_s
+    @id
+  end
+end
+
+class AnotherContextStorageType
+  property name
+  @name = "kemal-context"
+end
+
+{{ HTTP::Server::Context::STORE_MAPPINGS << TestContextStorageType }}
+{{ HTTP::Server::Context::STORE_MAPPINGS << AnotherContextStorageType }}
+
+
 def create_request_and_return_io(handler, request)
   io = IO::Memory.new
   response = HTTP::Server::Response.new(io)

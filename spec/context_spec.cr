@@ -34,8 +34,13 @@ describe "Context" do
 
   it "can store variables" do
     before_get "/" do |env|
+      t = TestContextStorageType.new
+      t.id = 32
+      a = AnotherContextStorageType.new
       env.set "before_get", "Kemal"
       env.set "before_get_int", 123
+      env.set "before_get_context_test", t
+      env.set "another_context_test", a
       env.set "before_get_float", 3.5
     end
 
@@ -46,6 +51,7 @@ describe "Context" do
         before_get:       env.get("before_get"),
         before_get_int:   env.get("before_get_int"),
         before_get_float: env.get("before_get_float"),
+        before_get_context_test: env.get("before_get_context_test"),
       }
     end
     request = HTTP::Request.new("GET", "/")
@@ -58,5 +64,6 @@ describe "Context" do
     context.store["before_get"].should eq "Kemal"
     context.store["before_get_int"].should eq 123
     context.store["before_get_float"].should eq 3.5
+    context.store["before_get_context_test"].as(TestContextStorageType).id.should eq 32
   end
 end
