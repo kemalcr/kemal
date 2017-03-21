@@ -7,10 +7,6 @@ class HTTP::Server
     # :nodoc:
     STORE_MAPPINGS = [ Nil, String, Int32, Int64, Float64, Bool ]
 
-    macro add_store_type(type)
-      {{ STORE_MAPPINGS.push(type) }}
-    end
-
     macro finished
       alias StoreTypes = Union({{ *STORE_MAPPINGS }})
       getter store = {} of String => StoreTypes
@@ -45,5 +41,11 @@ class HTTP::Server
     def set(name, value)
       @store[name] = value
     end
+  end
+end
+
+module Kemal
+  macro add_context_storage_type(type)
+    {{ HTTP::Server::Context::STORE_MAPPINGS.push(type) }}
   end
 end
