@@ -34,6 +34,7 @@ describe "Context" do
 
   it "can store variables" do
     before_get "/" do |env|
+      env.set "key", "value"
       env.set "before_get", "Kemal"
       env.set "before_get_int", 123
       env.set "before_get_float", 3.5
