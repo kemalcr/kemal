@@ -37,6 +37,7 @@ describe "Context" do
       t = TestContextStorageType.new
       t.id = 32
       a = AnotherContextStorageType.new
+      env.set "key", "value"
       env.set "before_get", "Kemal"
       env.set "before_get_int", 123
       env.set "before_get_context_test", t
