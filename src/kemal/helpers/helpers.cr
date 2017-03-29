@@ -116,6 +116,7 @@ def send_file(env, path : String, mime_type : String? = nil)
       IO.copy(file, env.response)
     end
   end
+  return
 end
 
 private def multipart(file, env)

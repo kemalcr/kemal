@@ -88,7 +88,7 @@ describe "Macros" do
       response = call_request_on_app(request)
       response.status_code.should eq(200)
       response.headers["Content-Type"].should eq("application/octet-stream")
-      response.headers["Content-Length"].should eq("20")
+      response.headers["Content-Length"].should eq("18")
     end
 
     it "sends file with given path and given mime-type" do
@@ -100,7 +100,7 @@ describe "Macros" do
       response = call_request_on_app(request)
       response.status_code.should eq(200)
       response.headers["Content-Type"].should eq("image/jpeg")
-      response.headers["Content-Length"].should eq("20")
+      response.headers["Content-Length"].should eq("18")
     end
 
     it "sends file with binary stream" do
