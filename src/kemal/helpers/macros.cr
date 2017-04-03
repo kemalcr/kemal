@@ -76,3 +76,30 @@ macro halt(env, status_code = 200, response = "")
   {{env}}.response.close
   next
 end
+
+# Halt execution with the current context, setting Content-Type to application/json
+# Returns 200 and an empty response by default.
+#
+#   halt_json env, status_code: 403, response: %({"msg": "Forbidden"})
+macro halt_json(env, status_code = 200, response = "")
+  {{env}}.response.content_type = "application/json"
+  halt {{env}}, {{status_code}}, {{response}}
+end
+
+# Halt execution with the current context, setting Content-Type to text/html
+# Returns 200 and an empty response by default.
+#
+#   halt_html env, status_code: 403, response: "<h1>Forbidden</h1>"
+macro halt_html(env, status_code = 200, response = "")
+  {{env}}.response.content_type = "text/html"
+  halt {{env}}, {{status_code}}, {{response}}
+end
+
+# Halt execution with the current context, setting Content-Type to text/plain
+# Returns 200 and an empty response by default.
+#
+#   halt_plain env, status_code: 403, response: "Forbidden"
+macro halt_plain(env, status_code = 200, response = "")
+  {{env}}.response.content_type = "text/plain"
+  halt {{env}}, {{status_code}}, {{response}}
+end

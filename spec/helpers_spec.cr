@@ -62,6 +62,87 @@ describe "Macros" do
     end
   end
 
+  describe "#halt_json" do
+    it "can break block and sets content_type to application/json" do
+      get "/" do |env|
+        env.response.content_type = "text/plain"
+        halt_json env, 400, %({"language":"crystal"})
+      end
+      request = HTTP::Request.new("GET", "/")
+      client_response = call_request_on_app(request)
+      client_response.status_code.should eq(400)
+      client_response.content_type.should eq("application/json")
+      JSON.parse(client_response.body)["language"].should eq("crystal")
+    end
+
+    it "can break block with halt macro using default values" do
+      get "/" do |env|
+        env.response.content_type = "text/plain"
+        halt_json env
+        "world"
+      end
+      request = HTTP::Request.new("GET", "/")
+      client_response = call_request_on_app(request)
+      client_response.status_code.should eq(200)
+      client_response.content_type.should eq("application/json")
+      client_response.body.should eq("")
+    end
+  end
+
+  describe "#halt_html" do
+    it "can break block and sets content_type to text/html" do
+      get "/" do |env|
+        env.response.content_type = "text/plain"
+        halt_html env, 404, "<h1>Not Found</h1>"
+      end
+      request = HTTP::Request.new("GET", "/")
+      client_response = call_request_on_app(request)
+      client_response.status_code.should eq(404)
+      client_response.content_type.should eq("text/html")
+      client_response.body.should eq("<h1>Not Found</h1>")
+    end
+
+    it "can break block with halt macro using default values" do
+      get "/" do |env|
+        env.response.content_type = "text/plain"
+        halt_html env
+        "world"
+      end
+      request = HTTP::Request.new("GET", "/")
+      client_response = call_request_on_app(request)
+      client_response.status_code.should eq(200)
+      client_response.content_type.should eq("text/html")
+      client_response.body.should eq("")
+    end
+  end
+
+  describe "#halt_plain" do
+    it "can break block and sets content_type to text/plain" do
+      get "/" do |env|
+        env.response.content_type = "text/html"
+        halt_plain env, 404, "Not Found"
+      end
+      request = HTTP::Request.new("GET", "/")
+      client_response = call_request_on_app(request)
+      client_response.status_code.should eq(404)
+      client_response.content_type.should eq("text/plain")
+      client_response.body.should eq("Not Found")
+    end
+
+    it "can break block with halt macro using default values" do
+      get "/" do |env|
+        env.response.content_type = "text/html"
+        halt_plain env
+        "world"
+      end
+      request = HTTP::Request.new("GET", "/")
+      client_response = call_request_on_app(request)
+      client_response.status_code.should eq(200)
+      client_response.content_type.should eq("text/plain")
+      client_response.body.should eq("")
+    end
+  end
+
   describe "#headers" do
     it "can add headers" do
       get "/headers" do |env|
