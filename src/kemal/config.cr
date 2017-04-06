@@ -66,7 +66,6 @@ module Kemal
     end
 
     def add_filter_handler(handler : HTTP::Handler)
-      setup
       HANDLERS.insert HANDLERS.size - 1, handler
     end
 
