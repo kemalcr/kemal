@@ -26,8 +26,8 @@ class AnotherContextStorageType
   @name = "kemal-context"
 end
 
-Kemal.add_context_storage_type(TestContextStorageType)
-Kemal.add_context_storage_type(AnotherContextStorageType)
+add_context_storage_type(TestContextStorageType)
+add_context_storage_type(AnotherContextStorageType)
 
 def create_request_and_return_io(handler, request)
   io = IO::Memory.new

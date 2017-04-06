@@ -43,9 +43,3 @@ class HTTP::Server
     end
   end
 end
-
-module Kemal
-  macro add_context_storage_type(type)
-    {{ HTTP::Server::Context::STORE_MAPPINGS.push(type) }}
-  end
-end
