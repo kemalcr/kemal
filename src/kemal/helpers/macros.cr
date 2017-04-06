@@ -76,3 +76,15 @@ macro halt(env, status_code = 200, response = "")
   {{env}}.response.close
   next
 end
+
+# Extends context storage with user defined types.
+#
+# class User
+#   property name
+# end
+#
+# add_context_storage_type(User)
+#
+macro add_context_storage_type(type)
+  {{ HTTP::Server::Context::STORE_MAPPINGS.push(type) }}
+end

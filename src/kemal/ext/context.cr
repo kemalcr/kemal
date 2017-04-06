@@ -4,8 +4,13 @@
 # Instances of this class are passed to an `HTTP::Server` handler.
 class HTTP::Server
   class Context
-    alias StoreTypes = Nil | String | Int32 | Int64 | Float64 | Bool
-    getter store = {} of String => StoreTypes
+    # :nodoc:
+    STORE_MAPPINGS = [ Nil, String, Int32, Int64, Float64, Bool ]
+
+    macro finished
+      alias StoreTypes = Union({{ *STORE_MAPPINGS }})
+      getter store = {} of String => StoreTypes
+    end
 
     def params
       @request.url_params ||= route_lookup.params
