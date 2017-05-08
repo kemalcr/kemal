@@ -48,10 +48,10 @@ describe "Context" do
     get "/" do |env|
       env.set "key", "value"
       {
-        key:              env.get("key"),
-        before_get:       env.get("before_get"),
-        before_get_int:   env.get("before_get_int"),
-        before_get_float: env.get("before_get_float"),
+        key:                     env.get("key"),
+        before_get:              env.get("before_get"),
+        before_get_int:          env.get("before_get_int"),
+        before_get_float:        env.get("before_get_float"),
         before_get_context_test: env.get("before_get_context_test"),
       }
     end

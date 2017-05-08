@@ -5,7 +5,7 @@
 class HTTP::Server
   class Context
     # :nodoc:
-    STORE_MAPPINGS = [ Nil, String, Int32, Int64, Float64, Bool ]
+    STORE_MAPPINGS = [Nil, String, Int32, Int64, Float64, Bool]
 
     macro finished
       alias StoreTypes = Union({{ *STORE_MAPPINGS }})
