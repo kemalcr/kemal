@@ -1,3 +1,20 @@
+# 0.19.0 (09-05-2017)
+
+-  Return no body for head route fixes #323. (thanks @crisward)
+-  Update `radix` to `0.3.8`. (thanks @waghanza)
+-  User defined context store types. (thanks @neovitange)
+
+```ruby
+class User
+   property name
+end
+
+add_context_storage_type(User)
+```
+
+- Prevent `send_file returning filesize. (thanks @crisward)
+- Dont call setup in `config#add_filter_handler` fixes #338.
+
 # 0.18.3 (07-03-2017)
 
 - Remove `Gzip::Header` monkey patch since it's fixed in `Crystal 0.21.1`.
