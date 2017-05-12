@@ -8,8 +8,8 @@
 # - Kemal::StaticFileHandler
 # - Here goes custom handlers
 # - Kemal::RouteHandler
-def add_handler(handler)
-  Kemal.config.add_handler handler
+def add_handler(handler, position = Kemal.config.custom_handler_position)
+  Kemal.config.add_handler handler, position
 end
 
 # Sets public folder from which the static assets will be served.

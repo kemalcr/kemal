@@ -17,6 +17,7 @@ module Kemal
     property host_binding, ssl, port, env, public_folder, logging, running,
       always_rescue, serve_static : (Bool | Hash(String, Bool)), server, extra_options,
       shutdown_message
+    getter custom_handler_position
 
     def initialize
       @host_binding = "0.0.0.0"
@@ -59,9 +60,14 @@ module Kemal
       HANDLERS
     end
 
-    def add_handler(handler : HTTP::Handler | HTTP::WebSocketHandler)
+    def handlers=(handlers : Array(HTTP::Handler))
+      clear
+      handlers.each { |handler| HANDLERS << handler }
+    end
+
+    def add_handler(handler : HTTP::Handler | HTTP::WebSocketHandler, position = Kemal.config.custom_handler_position)
       setup
-      HANDLERS.insert @custom_handler_position, handler
+      HANDLERS.insert position, handler
       @custom_handler_position = @custom_handler_position + 1
     end
 

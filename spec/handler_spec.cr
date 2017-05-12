@@ -120,4 +120,17 @@ describe "Handler" do
     client_response = call_request_on_app(request)
     client_response.body.should eq "OnlyExcludePost"
   end
+
+  it "adds a handler at given position" do
+    post_handler = PostOnlyHandler.new
+    add_handler post_handler, 1
+    Kemal.config.handlers[1].should eq post_handler
+  end
+
+  it "assigns custom handlers" do
+    post_only_handler = PostOnlyHandler.new
+    post_exclude_handler = PostExcludeHandler.new
+    Kemal.config.handlers = [post_only_handler, post_exclude_handler]
+    Kemal.config.handlers.should eq [post_only_handler, post_exclude_handler]
+  end
 end
