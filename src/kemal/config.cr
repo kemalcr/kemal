@@ -62,7 +62,7 @@ module Kemal
 
     def handlers=(handlers : Array(HTTP::Handler))
       clear
-      handlers.each { |handler| HANDLERS << handler }
+      HANDLERS.replace(handlers)
     end
 
     def add_handler(handler : HTTP::Handler | HTTP::WebSocketHandler, position = Kemal.config.custom_handler_position)
