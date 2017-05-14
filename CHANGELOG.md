@@ -1,3 +1,12 @@
+# Next
+
+- Make `Route` a `Struct`.
+- Handlers are now completely customizable and you can specify your own handlers.
+
+```ruby
+Kemal.config.handlers = [Kemal::InitHandler.new, YourHandler.new, Kemal::RouteHandler::INSTANCE]
+```
+
 # 0.19.0 (09-05-2017)
 
 -  Return no body for head route fixes #323. (thanks @crisward)

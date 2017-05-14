@@ -2,7 +2,7 @@ module Kemal
   # Route is the main building block of Kemal.
   # It takes 3 parameters: Method, path and a block to specify
   # what action to be done if the route is matched.
-  class Route
+  struct Route
     getter method, path, handler
     @handler : HTTP::Server::Context -> String
     @method : String
