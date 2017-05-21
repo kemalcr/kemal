@@ -9,13 +9,19 @@ FILTER_METHODS = %w(get post put patch delete options all)
 
 {% for method in HTTP_METHODS %}
   def {{method.id}}(path, &block : HTTP::Server::Context -> _)
-    raise Kemal::Exceptions::InvalidPathStartException.new({{method}}, path) unless Kemal::Utils.path_starts_with_slash?(path)
+    unless Kemal::Utils.path_starts_with_slash?(path)
+      raise Kemal::Exceptions::InvalidPathStartException.new({{method}}, path)
+    end 
+    
     Kemal::RouteHandler::INSTANCE.add_route({{method}}.upcase, path, &block)
   end
 {% end %}
 
 def ws(path, &block : HTTP::WebSocket, HTTP::Server::Context -> Void)
-  raise Kemal::Exceptions::InvalidPathStartException.new("ws", path) unless Kemal::Utils.path_starts_with_slash?(path)
+  unless Kemal::Utils.path_starts_with_slash?(path)
+    raise Kemal::Exceptions::InvalidPathStartException.new("ws", path)
+  end
+  
   Kemal::WebSocketHandler.new path, &block
 end
 
