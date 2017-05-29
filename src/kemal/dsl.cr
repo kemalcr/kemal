@@ -5,7 +5,7 @@
 # - before_*
 # - error
 HTTP_METHODS   = %w(get post put patch delete options)
-FILTER_METHODS = %w(get post put patch delete options all)
+FILTER_METHODS = HTTP_METHODS + %w(all)
 
 {% for method in HTTP_METHODS %}
   def {{method.id}}(path, &block : HTTP::Server::Context -> _)
