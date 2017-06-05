@@ -117,7 +117,7 @@ describe Kemal::StaticFileHandler do
       if response.status_code == 206
         response.headers.has_key?("Content-Range").should eq true
         match = response.headers["Content-Range"].match(/bytes (\d+)-(\d+)\/(\d+)/)
-        match.should_not be nil
+        match.should_not eq nil
         if match
           start_range = match[1].to_i { 0 }
           end_range = match[2].to_i { 0 }
