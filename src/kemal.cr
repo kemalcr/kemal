@@ -41,11 +41,11 @@ module Kemal
 
     # Test environment doesn't need to have signal trap, built-in images, and logging.
     unless config.env == "test"
-      Signal::INT.trap {
+      Signal::INT.trap do
         log "Kemal is going to take a rest!" if config.shutdown_message
         Kemal.stop
         exit
-      }
+      end
 
       # This route serves the built-in images for not_found and exceptions.
       get "/__kemal__/:image" do |env|
