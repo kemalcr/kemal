@@ -1,6 +1,5 @@
 # 0.20.0 (01-07-2017)
 
-- Make `Route` a `Struct`.
 - Handlers are now completely customizable and you can specify your own handlers.
 
 ```ruby
@@ -14,6 +13,7 @@ You can also insert a handler into a specific position in the default / existing
 add_handler MyCustomHandler.new, 1
 ```
 - Updated [Kilt](https://github.com/jeromegn/kilt) to v0.4.0.
+- Make `Route` a `Struct`. This improves the performance of route declarations.
 
 # 0.19.0 (09-05-2017)
 
