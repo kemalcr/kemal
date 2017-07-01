@@ -7,14 +7,13 @@
 Kemal.config.handlers = [Kemal::InitHandler.new, YourHandler.new, Kemal::RouteHandler::INSTANCE]
 ```
 
-- Updated [Kilt](https://github.com/jeromegn/kilt) to v0.4.0.
-
 You can also insert a handler into a specific position in the default / existing handlers.
 
 ```ruby
 # This adds MyCustomHandler instance to 1 position. Be aware that the index starts from 0.
 add_handler MyCustomHandler.new, 1
 ```
+- Updated [Kilt](https://github.com/jeromegn/kilt) to v0.4.0.
 
 # 0.19.0 (09-05-2017)
 
