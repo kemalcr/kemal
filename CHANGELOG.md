@@ -1,12 +1,13 @@
 # 0.20.0 (01-07-2017)
 
-- Handlers are now completely customizable and you can specify your own handlers.
+- Great news everyone 🎉 All handlers are now completely ***customizable***!. Use the default `Kemal` handlers or go wild, it's all up to you ⛏
 
 ```ruby
+# Don't forget to add `Kemal::RouteHandler::INSTANCE` or your routes won't work!
 Kemal.config.handlers = [Kemal::InitHandler.new, YourHandler.new, Kemal::RouteHandler::INSTANCE]
 ```
 
-You can also insert a handler into a specific position in the default / existing handlers.
+You can also insert a handler into a specific position.
 
 ```ruby
 # This adds MyCustomHandler instance to 1 position. Be aware that the index starts from 0.
