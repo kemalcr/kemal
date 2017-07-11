@@ -64,6 +64,7 @@ def call_request_on_app(request)
 end
 
 def build_main_handler
+  Kemal.config.setup
   main_handler = Kemal.config.handlers.first
   current_handler = main_handler
   Kemal.config.handlers.each_with_index do |handler, index|
@@ -76,7 +77,6 @@ end
 Spec.before_each do
   config = Kemal.config
   config.env = "development"
-  config.setup
 end
 
 Spec.after_each do

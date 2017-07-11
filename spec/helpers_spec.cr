@@ -11,6 +11,7 @@ describe "Macros" do
   describe "#add_handler" do
     it "adds a custom handler" do
       add_handler CustomTestHandler.new
+      Kemal.config.setup
       Kemal.config.handlers.size.should eq 6
     end
   end
@@ -24,7 +25,6 @@ describe "Macros" do
     it "sets a custom logger" do
       config = Kemal::Config::INSTANCE
       logger CustomLogHandler.new
-      config.handlers[4].should be_a(CustomLogHandler)
       config.logger.should be_a(CustomLogHandler)
     end
   end
@@ -119,6 +119,7 @@ describe "Macros" do
   describe "#gzip" do
     it "adds HTTP::CompressHandler to handlers" do
       gzip true
+      Kemal.config.setup
       Kemal.config.handlers[4].should be_a(HTTP::CompressHandler)
     end
   end

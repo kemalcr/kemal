@@ -5,9 +5,12 @@ module Kemal
   #   Kemal.config
   #
   class Config
-    INSTANCE       = Config.new
-    HANDLERS       = [] of HTTP::Handler
-    ERROR_HANDLERS = {} of Int32 => HTTP::Server::Context, Exception -> String
+    INSTANCE           = Config.new
+    HANDLERS           = [] of HTTP::Handler
+    CUSTOM_HANDLERS    = [] of Tuple(Nil | Int32, HTTP::Handler)
+    WEBSOCKET_HANDLERS = [] of HTTP::WebSocketHandler
+    FILTER_HANDLERS    = [] of HTTP::Handler
+    ERROR_HANDLERS     = {} of Int32 => HTTP::Server::Context, Exception -> String
     {% if flag?(:without_openssl) %}
     @ssl : Bool?
     {% else %}
@@ -31,10 +34,10 @@ module Kemal
       @always_rescue = true
       @server = uninitialized HTTP::Server
       @router_included = false
-      @custom_handler_position = 4
       @default_handlers_setup = false
       @running = false
       @shutdown_message = true
+      @handler_position = 0
     end
 
     def logger
@@ -51,9 +54,13 @@ module Kemal
 
     def clear
       @router_included = false
-      @custom_handler_position = 4
+      @handler_position = 0
       @default_handlers_setup = false
       HANDLERS.clear
+      CUSTOM_HANDLERS.clear
+      WEBSOCKET_HANDLERS.clear
+      FILTER_HANDLERS.clear
+      ERROR_HANDLERS.clear
     end
 
     def handlers
@@ -65,14 +72,20 @@ module Kemal
       HANDLERS.replace(handlers)
     end
 
-    def add_handler(handler : HTTP::Handler | HTTP::WebSocketHandler, position = Kemal.config.custom_handler_position)
-      setup
-      HANDLERS.insert position, handler
-      @custom_handler_position = @custom_handler_position + 1
+    def add_handler(handler : HTTP::Handler)
+      CUSTOM_HANDLERS << {nil, handler}
+    end
+
+    def add_handler(handler : HTTP::Handler, position : Int32)
+      CUSTOM_HANDLERS << {position, handler}
+    end
+
+    def add_handler(handler : HTTP::WebSocketHandler)
+      WEBSOCKET_HANDLERS << handler
     end
 
     def add_filter_handler(handler : HTTP::Handler)
-      HANDLERS.insert HANDLERS.size - 1, handler
+      FILTER_HANDLERS << handler
     end
 
     def error_handlers
@@ -92,6 +105,9 @@ module Kemal
         setup_log_handler
         setup_error_handler
         setup_static_file_handler
+        setup_custom_handlers
+        setup_filter_handlers
+        setup_websocket_handlers
         @default_handlers_setup = true
         @router_included = true
         HANDLERS.insert(HANDLERS.size, Kemal::RouteHandler::INSTANCE)
@@ -99,7 +115,8 @@ module Kemal
     end
 
     private def setup_init_handler
-      HANDLERS.insert(0, Kemal::InitHandler::INSTANCE)
+      HANDLERS.insert(@handler_position, Kemal::InitHandler::INSTANCE)
+      @handler_position += 1
     end
 
     private def setup_log_handler
@@ -108,18 +125,49 @@ module Kemal
                   else
                     Kemal::NullLogHandler.new
                   end
-      HANDLERS.insert(1, @logger.not_nil!)
+      HANDLERS.insert(@handler_position, @logger.not_nil!)
+      @handler_position += 1
     end
 
     private def setup_error_handler
       if @always_rescue
         @error_handler ||= Kemal::CommonExceptionHandler.new
-        HANDLERS.insert(2, @error_handler.not_nil!)
+        HANDLERS.insert(@handler_position, @error_handler.not_nil!)
+        @handler_position += 1
       end
     end
 
     private def setup_static_file_handler
-      HANDLERS.insert(3, Kemal::StaticFileHandler.new(@public_folder)) if @serve_static.is_a?(Hash)
+      if @serve_static.is_a?(Hash)
+        HANDLERS.insert(@handler_position, Kemal::StaticFileHandler.new(@public_folder))
+        @handler_position += 1
+      end
+    end
+
+    # Handle WebSocketHandler
+    private def setup_custom_handlers
+      CUSTOM_HANDLERS.each do |ch|
+        position = ch[0]
+        if !position
+          HANDLERS.insert(@handler_position, ch[1])
+          @handler_position += 1
+        else
+          HANDLERS.insert(position, ch[1])
+          @handler_position += 1
+        end
+      end
+    end
+
+    private def setup_websocket_handlers
+      WEBSOCKET_HANDLERS.each do |h|
+        HANDLERS.insert(@handler_position, h)
+      end
+    end
+
+    private def setup_filter_handlers
+      FILTER_HANDLERS.each do |h|
+        HANDLERS.insert(@handler_position, h)
+      end
     end
   end
 

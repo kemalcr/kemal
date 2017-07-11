@@ -112,9 +112,6 @@ describe "Handler" do
       "Post"
     end
     add_handler PostOnlyHandler.new
-    request = HTTP::Request.new("POST", "/only")
-    client_response = call_request_on_app(request)
-    client_response.body.should eq "OnlyPost"
     add_handler PostExcludeHandler.new
     request = HTTP::Request.new("POST", "/only")
     client_response = call_request_on_app(request)
@@ -124,6 +121,7 @@ describe "Handler" do
   it "adds a handler at given position" do
     post_handler = PostOnlyHandler.new
     add_handler post_handler, 1
+    Kemal.config.setup
     Kemal.config.handlers[1].should eq post_handler
   end
 

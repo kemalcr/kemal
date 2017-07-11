@@ -26,6 +26,7 @@ describe "Config" do
   it "adds a custom handler" do
     config = Kemal.config
     config.add_handler CustomTestHandler.new
+    Kemal.config.setup
     config.handlers.size.should eq(6)
   end
 
