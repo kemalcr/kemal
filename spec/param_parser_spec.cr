@@ -71,24 +71,24 @@ describe "ParamParser" do
     end
   end
 
-  # it "parses multiple values in request body" do
-  #   route = Route.new "POST", "/" do |env|
-  #     hasan = env.params["hasan"]
-  #     "Hello #{hasan}"
-  #   end
+  it "parses multiple values in request body" do
+    route = Route.new "POST", "/" do |env|
+      hasan = env.params["hasan"]
+      "Hello #{hasan}"
+    end
 
-  #   request = HTTP::Request.new(
-  #     "POST",
-  #     "/",
-  #     body: "hasan=cemal&hasan=lamec",
-  #     headers: HTTP::Headers{"Content-Type" => "application/x-www-form-urlencoded"},
-  #   )
+    request = HTTP::Request.new(
+      "POST",
+      "/",
+      body: "hasan=cemal&hasan=lamec&hasan=kemal",
+      headers: HTTP::Headers{"Content-Type" => "application/x-www-form-urlencoded"},
+    )
 
-  #   param_parser = Kemal::ParamParser.new(request)
-  #   param_parser.parse
-  #   body_params = param_parser.params
-  #   body_params.fetch_all("hasan").should eq(["cemal", "lamec"])
-  # end
+    param_parser = Kemal::ParamParser.new(request)
+    param_parser.parse
+    body_params = param_parser.params
+    body_params["hasan"].should eq(["cemal", "lamec", "kemal"])
+  end
 
   context "when content type is application/json" do
     it "parses request body" do

@@ -30,7 +30,8 @@ describe "Kemal::RouteHandler" do
 
   it "route parameter has more precedence than query string arguments" do
     get "/:message" do |env|
-      "hello #{env.params["message"]}"
+      messages = env.params["message"].as(Array)
+      "hello #{messages.first}"
     end
     request = HTTP::Request.new("GET", "/world?message=coco")
     client_response = call_request_on_app(request)

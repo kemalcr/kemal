@@ -7,7 +7,7 @@ module Kemal
     APPLICATION_JSON = "application/json"
     MULTIPART_FORM   = "multipart/form-data"
     # :nodoc:
-    alias AllParamTypes = Nil | String | Int64 | Float64 | Bool | Hash(String, JSON::Type) | Array(JSON::Type)
+    alias AllParamTypes = Nil | String | Array(String) | Int64 | Float64 | Bool | Hash(String, JSON::Type) | Array(JSON::Type)
     getter params, files
 
     def initialize(@request : HTTP::Request)
@@ -54,7 +54,7 @@ module Kemal
       return unless @request.url_params
       if params = @request.url_params
         params.each do |key, value|
-          @params[key.as(String)] = unescape_url_param(value).as(String)
+          @params[key] = unescape_url_param(value).as(String)
         end
       end
     end
@@ -83,7 +83,7 @@ module Kemal
       case json = JSON.parse(body).raw
       when Hash
         json.each do |key, value|
-          @params[key.as(String)] = value.as(AllParamTypes)
+          @params[key] = value.as(AllParamTypes)
         end
       when Array
         @params["_json"] = json
@@ -92,15 +92,26 @@ module Kemal
 
     private def parse_part(part : IO?)
       return unless part
-      HTTP::Params.parse(part.gets_to_end).each do |key, value|
-        @params[key.as(String)] ||= value
-      end
+      parse_params(part.gets_to_end)
     end
 
     private def parse_part(part : String?)
       return unless part
-      HTTP::Params.parse(part.to_s).each do |key, value|
-        @params[key.as(String)] ||= value
+      parse_params(part.to_s)
+    end
+
+    private def parse_params(part)
+      HTTP::Params.parse(part).each do |key, value|
+        if @params.has_key?(key)
+          previous_value = @params[key]
+          if previous_value.is_a?(Array)
+            @params[key].as(Array) << value.as(String)
+          else
+            @params[key] = [previous_value.as(String), value.as(String)]
+          end
+        else
+          @params[key] ||= value.as(String)
+        end
       end
     end
   end
