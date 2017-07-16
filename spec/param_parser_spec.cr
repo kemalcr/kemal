@@ -92,8 +92,6 @@ describe "ParamParser" do
 
   context "when content type is application/json" do
     it "parses request body" do
-      route = Route.new "POST", "/" { }
-
       request = HTTP::Request.new(
         "POST",
         "/",
@@ -108,8 +106,6 @@ describe "ParamParser" do
     end
 
     it "parses request body when passed charset" do
-      route = Route.new "POST", "/" { }
-
       request = HTTP::Request.new(
         "POST",
         "/",
@@ -124,8 +120,6 @@ describe "ParamParser" do
     end
 
     it "parses request body for array" do
-      route = Route.new "POST", "/" { }
-
       request = HTTP::Request.new(
         "POST",
         "/",
@@ -140,8 +134,6 @@ describe "ParamParser" do
     end
 
     it "parses request body and query params" do
-      route = Route.new "POST", "/" { }
-
       request = HTTP::Request.new(
         "POST",
         "/?foo=bar",

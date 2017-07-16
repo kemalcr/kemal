@@ -1,7 +1,6 @@
 class HTTP::Request
   property override_method
   property url_params : Hash(String, String)?
-  getter param_parser : Kemal::ParamParser?
 
   def override_method
     @override_method ||= check_for_method_override!

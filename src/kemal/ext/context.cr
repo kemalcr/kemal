@@ -8,11 +8,7 @@ class HTTP::Server
     STORE_MAPPINGS = [Nil, String, Int32, Int64, Float64, Bool]
 
     def initialize(@request : Request, @response : Response)
-      @param_parser = if @request.param_parser
-                        @request.param_parser.not_nil!
-                      else
-                        Kemal::ParamParser.new(@request.not_nil!)
-                      end
+      @param_parser = Kemal::ParamParser.new(@request.not_nil!)
       @request.url_params ||= route_lookup.params
       @param_parser.parse
     end
