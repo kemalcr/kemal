@@ -8,7 +8,7 @@ describe "Kemal::FilterHandler" do
     filter_middleware = Kemal::FilterHandler.new
     filter_middleware._add_route_filter("GET", "/greetings", :before) { test_filter.modified = "true" }
 
-    kemal = Kemal::RouteHandler::INSTANCE
+    kemal = Kemal.application.route_handler
     kemal.add_route "GET", "/greetings" { test_filter.modified }
 
     test_filter.modified.should eq("false")
@@ -26,7 +26,7 @@ describe "Kemal::FilterHandler" do
     filter_middleware = Kemal::FilterHandler.new
     filter_middleware._add_route_filter("GET", "/greetings", :before) { test_filter.modified = test_filter.modified == "true" ? "false" : "true" }
 
-    kemal = Kemal::RouteHandler::INSTANCE
+    kemal = Kemal.application.route_handler
     kemal.add_route "GET", "/greetings" { test_filter.modified }
     kemal.add_route "POST", "/greetings" { test_filter.modified }
 
@@ -54,7 +54,7 @@ describe "Kemal::FilterHandler" do
     filter_middleware._add_route_filter("GET", "/greetings", :before) { test_filter.modified = test_filter.modified == "true" ? "false" : "true" }
     filter_middleware._add_route_filter("POST", "/greetings", :before) { test_filter.modified = test_filter.modified == "true" ? "false" : "true" }
 
-    kemal = Kemal::RouteHandler::INSTANCE
+    kemal = Kemal.application.route_handler
     kemal.add_route "GET", "/greetings" { test_filter.modified }
     kemal.add_route "POST", "/greetings" { test_filter.modified }
 
@@ -80,7 +80,7 @@ describe "Kemal::FilterHandler" do
     filter_middleware = Kemal::FilterHandler.new
     filter_middleware._add_route_filter("GET", "/greetings", :after) { test_filter.modified = "true" }
 
-    kemal = Kemal::RouteHandler::INSTANCE
+    kemal = Kemal.application.route_handler
     kemal.add_route "GET", "/greetings" { test_filter.modified }
 
     test_filter.modified.should eq("false")
@@ -98,7 +98,7 @@ describe "Kemal::FilterHandler" do
     filter_middleware = Kemal::FilterHandler.new
     filter_middleware._add_route_filter("GET", "/greetings", :after) { test_filter.modified = test_filter.modified == "true" ? "false" : "true" }
 
-    kemal = Kemal::RouteHandler::INSTANCE
+    kemal = Kemal.application.route_handler
     kemal.add_route "GET", "/greetings" { test_filter.modified }
     kemal.add_route "POST", "/greetings" { test_filter.modified }
 
@@ -126,7 +126,7 @@ describe "Kemal::FilterHandler" do
     filter_middleware._add_route_filter("GET", "/greetings", :after) { test_filter.modified = test_filter.modified == "true" ? "false" : "true" }
     filter_middleware._add_route_filter("POST", "/greetings", :after) { test_filter.modified = test_filter.modified == "true" ? "false" : "true" }
 
-    kemal = Kemal::RouteHandler::INSTANCE
+    kemal = Kemal.application.route_handler
     kemal.add_route "GET", "/greetings" { test_filter.modified }
     kemal.add_route "POST", "/greetings" { test_filter.modified }
 
@@ -157,7 +157,7 @@ describe "Kemal::FilterHandler" do
     filter_middleware._add_route_filter("ALL", "/greetings", :before) { test_filter_second.modified = test_filter_second.modified == "true" ? "false" : "true" }
     filter_middleware._add_route_filter("ALL", "/greetings", :before) { test_filter_third.modified = test_filter_third.modified == "true" ? "false" : "true" }
 
-    kemal = Kemal::RouteHandler::INSTANCE
+    kemal = Kemal.application.route_handler
     kemal.add_route "GET", "/greetings" { test_filter.modified }
     kemal.add_route "POST", "/greetings" { test_filter_second.modified }
     kemal.add_route "PUT", "/greetings" { test_filter_third.modified }

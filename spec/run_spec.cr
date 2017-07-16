@@ -17,32 +17,19 @@ end
 
 describe "Run" do
   it "runs a code block after starting" do
-    run(<<-CR).should eq "started\nstopped\n"
-      Kemal.config.env = "test"
-      Kemal.run do
-        puts "started"
-        Kemal.stop
-        puts "stopped"
-      end
-      CR
+    Kemal.config.env = "test"
+    make_me_true = false
+    Kemal.run do
+      make_me_true = true
+      Kemal.stop
+    end
+    make_me_true.should be_true
   end
 
   it "runs without a block being specified" do
-    run(<<-CR).should eq "[test] Kemal is ready to lead at http://0.0.0.0:3000\ntrue\n"
-      Kemal.config.env = "test"
-      Kemal.run
-      puts Kemal.config.running
-      CR
-  end
-
-  it "allows custom HTTP::Server bind" do
-    run(<<-CR).should eq "[test] Kemal is ready to lead at http://127.0.0.1:3000, http://0.0.0.0:3001\n"
-      Kemal.config.env = "test"
-      Kemal.run do |config|
-        server = config.server.not_nil!
-        server.bind_tcp "127.0.0.1", 3000, reuse_port: true
-        server.bind_tcp "0.0.0.0", 3001, reuse_port: true
-      end
-      CR
+    Kemal.config.env = "test"
+    Kemal.run
+    Kemal.application.running?.should be_true
+    Kemal.stop
   end
 end

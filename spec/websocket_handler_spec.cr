@@ -2,8 +2,8 @@ require "./spec_helper"
 
 describe "Kemal::WebSocketHandler" do
   it "doesn't match on wrong route" do
-    handler = Kemal::WebSocketHandler::INSTANCE
-    handler.next = Kemal::RouteHandler::INSTANCE
+    handler = Kemal::WebSocketHandler.new
+    handler.next = Kemal::RouteHandler.new
     ws "/" { }
     headers = HTTP::Headers{
       "Upgrade"           => "websocket",
@@ -14,6 +14,7 @@ describe "Kemal::WebSocketHandler" do
     io = IO::Memory.new
     response = HTTP::Server::Response.new(io)
     context = HTTP::Server::Context.new(request, response)
+    context.app = Kemal.application
 
     expect_raises(Kemal::Exceptions::RouteNotFound) do
       handler.call context
@@ -21,9 +22,9 @@ describe "Kemal::WebSocketHandler" do
   end
 
   it "matches on given route" do
-    handler = Kemal::WebSocketHandler::INSTANCE
-    ws "/" { |socket| socket.send("Match") }
-    ws "/no_match" { |socket| socket.send "No Match" }
+    handler = Kemal::WebSocketHandler.new
+    ws "/" { |socket, context| socket.send("Match") }
+    ws "/no_match" { |socket, context| socket.send "No Match" }
     headers = HTTP::Headers{
       "Upgrade"               => "websocket",
       "Connection"            => "Upgrade",
@@ -37,8 +38,8 @@ describe "Kemal::WebSocketHandler" do
   end
 
   it "fetches named url parameters" do
-    handler = Kemal::WebSocketHandler::INSTANCE
-    ws "/:id" { |_, c| c.ws_route_lookup.params["id"] }
+    handler = Kemal::WebSocketHandler.new
+    ws "/:id" { |s, c| c.params.url["id"] }
     headers = HTTP::Headers{
       "Upgrade"               => "websocket",
       "Connection"            => "Upgrade",
@@ -51,14 +52,15 @@ describe "Kemal::WebSocketHandler" do
   end
 
   it "matches correct verb" do
-    handler = Kemal::WebSocketHandler::INSTANCE
-    handler.next = Kemal::RouteHandler::INSTANCE
+    handler = Kemal::WebSocketHandler.new
+    handler.next = Kemal::RouteHandler.new
     ws "/" { }
     get "/" { "get" }
     request = HTTP::Request.new("GET", "/")
     io = IO::Memory.new
     response = HTTP::Server::Response.new(io)
     context = HTTP::Server::Context.new(request, response)
+    context.app = Kemal.application
     handler.call(context)
     response.close
     io.rewind

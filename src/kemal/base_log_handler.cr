@@ -1,3 +1,5 @@
+require "http"
+
 module Kemal
   # All loggers must inherit from `Kemal::BaseLogHandler`.
   abstract class BaseLogHandler

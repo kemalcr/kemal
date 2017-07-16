@@ -8,6 +8,8 @@ class HTTP::Server
     # :nodoc:
     STORE_MAPPINGS = [Nil, String, Int32, Int64, Float64, Bool]
 
+    property! app : Kemal::Base
+
     macro finished
       alias StoreTypes = Union({{ *STORE_MAPPINGS }})
       @store = {} of String => StoreTypes
@@ -31,7 +33,7 @@ class HTTP::Server
     end
 
     def route_lookup
-      Kemal::RouteHandler::INSTANCE.lookup_route(@request.method.as(String), @request.path)
+      app.route_handler.lookup_route(@request.override_method.as(String), @request.path)
     end
 
     def route_found?
@@ -39,7 +41,7 @@ class HTTP::Server
     end
 
     def ws_route_lookup
-      Kemal::WebSocketHandler::INSTANCE.lookup_ws_route(@request.path)
+      app.websocket_handler.lookup_ws_route(@request.path)
     end
 
     def ws_route_found?

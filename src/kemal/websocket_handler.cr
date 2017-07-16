@@ -2,7 +2,6 @@ module Kemal
   class WebSocketHandler
     include HTTP::Handler
 
-    INSTANCE = new
     property routes
 
     def initialize
@@ -38,6 +37,10 @@ module Kemal
       return unless upgrade.compare("websocket", case_insensitive: true) == 0
 
       context.request.headers.includes_word?("Connection", "Upgrade")
+    end
+
+    def clear
+      @routes = Radix::Tree(WebSocket).new
     end
   end
 end

@@ -7,13 +7,13 @@
 # - `Kemal::ExceptionHandler`
 # - `Kemal::StaticFileHandler`
 # - Here goes custom handlers
-# - `Kemal::RouteHandler`
+# - Kemal::RouteHandler
 def add_handler(handler : HTTP::Handler)
-  Kemal.config.add_handler handler
+  Kemal.application.add_handler handler
 end
 
 def add_handler(handler : HTTP::Handler, position : Int32)
-  Kemal.config.add_handler handler, position
+  Kemal.application.add_handler handler, position
 end
 
 # Sets public folder from which the static assets will be served.
@@ -26,7 +26,7 @@ end
 # Logs the output via `logger`.
 # This is the built-in `Kemal::LogHandler` by default which uses STDOUT.
 def log(message : String)
-  Kemal.config.logger.write "#{message}\n"
+  Kemal.application.logger.write "#{message}\n"
 end
 
 # Enables / Disables logging.
@@ -64,8 +64,8 @@ end
 # logger MyCustomLogger.new
 # ```
 def logger(logger : Kemal::BaseLogHandler)
-  Kemal.config.logger = logger
-  Kemal.config.add_handler logger
+  Kemal.application.logger = logger
+  Kemal.application.add_handler logger
 end
 
 # Enables / Disables static file serving.

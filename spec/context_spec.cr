@@ -90,18 +90,17 @@ describe "Context" do
       context.get("another_context_test").as(AnotherContextStorageType).name.should eq "kemal-context"
     end
 
-    it "fetches non-existent keys from store with get?" do
-      get "/" { }
-
-      request = HTTP::Request.new("GET", "/")
-      io = IO::Memory.new
-      response = HTTP::Server::Response.new(io)
-      context = HTTP::Server::Context.new(request, response)
-      Kemal::FilterHandler::INSTANCE.call(context)
-      Kemal::RouteHandler::INSTANCE.call(context)
-
-      context.get?("non_existent_key").should be_nil
-      context.get?("another_non_existent_key").should be_nil
-    end
+    request = HTTP::Request.new("GET", "/")
+    io = IO::Memory.new
+    response = HTTP::Server::Response.new(io)
+    context = HTTP::Server::Context.new(request, response)
+    context.app = Kemal.application
+    Kemal.application.filter_handler.call(context)
+    Kemal.application.route_handler.call(context)
+    context.store["key"].should eq "value"
+    context.store["before_get"].should eq "Kemal"
+    context.store["before_get_int"].should eq 123
+    context.store["before_get_float"].should eq 3.5
+    context.store["before_get_context_test"].as(TestContextStorageType).id.should eq 32
   end
 end
