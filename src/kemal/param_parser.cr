@@ -13,6 +13,7 @@ module Kemal
     def initialize(@request : HTTP::Request)
       @params = {} of String => AllParamTypes
       @files = {} of String => FileUpload
+      @params_parsed = false
     end
 
     private def unescape_url_param(value : String)
@@ -22,10 +23,12 @@ module Kemal
     end
 
     def parse
+      return if @params_parsed
       parse_url
       parse_query
       parse_body
       parse_json
+      @params_parsed = true
     end
 
     private def parse_body
