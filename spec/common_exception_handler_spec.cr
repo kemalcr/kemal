@@ -1,5 +1,7 @@
 require "./spec_helper"
 
+private INSTANCE = Kemal::ExceptionHandler.new
+
 describe "Kemal::ExceptionHandler" do
   it "renders 404 on route not found" do
     get "/" do |env|
@@ -10,7 +12,7 @@ describe "Kemal::ExceptionHandler" do
     io = IO::Memory.new
     response = HTTP::Server::Response.new(io)
     context = HTTP::Server::Context.new(request, response)
-    Kemal::ExceptionHandler::INSTANCE.call(context)
+    INSTANCE.call(context)
     response.close
     io.rewind
     response = HTTP::Client::Response.from_io(io, decompress: false)
@@ -28,8 +30,9 @@ describe "Kemal::ExceptionHandler" do
     io = IO::Memory.new
     response = HTTP::Server::Response.new(io)
     context = HTTP::Server::Context.new(request, response)
-    Kemal::ExceptionHandler::INSTANCE.next = Kemal::RouteHandler::INSTANCE
-    Kemal::ExceptionHandler::INSTANCE.call(context)
+    context.app = Kemal.application
+    INSTANCE.next = Kemal::RouteHandler.new
+    INSTANCE.call(context)
     response.close
     io.rewind
     response = HTTP::Client::Response.from_io(io, decompress: false)
@@ -49,8 +52,9 @@ describe "Kemal::ExceptionHandler" do
     io = IO::Memory.new
     response = HTTP::Server::Response.new(io)
     context = HTTP::Server::Context.new(request, response)
-    Kemal::ExceptionHandler::INSTANCE.next = Kemal::RouteHandler::INSTANCE
-    Kemal::ExceptionHandler::INSTANCE.call(context)
+    context.app = Kemal.application
+    INSTANCE.next = Kemal::RouteHandler.new
+    INSTANCE.call(context)
     response.close
     io.rewind
     response = HTTP::Client::Response.from_io(io, decompress: false)
@@ -71,8 +75,9 @@ describe "Kemal::ExceptionHandler" do
     io = IO::Memory.new
     response = HTTP::Server::Response.new(io)
     context = HTTP::Server::Context.new(request, response)
-    Kemal::ExceptionHandler::INSTANCE.next = Kemal::RouteHandler::INSTANCE
-    Kemal::ExceptionHandler::INSTANCE.call(context)
+    context.app = Kemal.application
+    INSTANCE.next = Kemal::RouteHandler.new
+    INSTANCE.call(context)
     response.close
     io.rewind
     response = HTTP::Client::Response.from_io(io, decompress: false)
@@ -93,8 +98,9 @@ describe "Kemal::ExceptionHandler" do
     io = IO::Memory.new
     response = HTTP::Server::Response.new(io)
     context = HTTP::Server::Context.new(request, response)
-    Kemal::ExceptionHandler::INSTANCE.next = Kemal::RouteHandler::INSTANCE
-    Kemal::ExceptionHandler::INSTANCE.call(context)
+    context.app = Kemal.application
+    INSTANCE.next = Kemal::RouteHandler.new
+    INSTANCE.call(context)
     response.close
     io.rewind
     response = HTTP::Client::Response.from_io(io, decompress: false)

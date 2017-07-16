@@ -6,8 +6,9 @@ describe "Kemal::InitHandler" do
     io = IO::Memory.new
     response = HTTP::Server::Response.new(io)
     context = HTTP::Server::Context.new(request, response)
-    Kemal::InitHandler::INSTANCE.next = ->(context : HTTP::Server::Context) {}
-    Kemal::InitHandler::INSTANCE.call(context)
+    init_handler = Kemal::InitHandler.new(Kemal::Base.new)
+    init_handler.next = ->(context : HTTP::Server::Context) {}
+    init_handler.call(context)
     context.response.headers["Content-Type"].should eq "text/html"
   end
 
@@ -16,7 +17,8 @@ describe "Kemal::InitHandler" do
     io = IO::Memory.new
     response = HTTP::Server::Response.new(io)
     context = HTTP::Server::Context.new(request, response)
-    Kemal::InitHandler::INSTANCE.call(context)
+    init_handler = Kemal::InitHandler.new(Kemal::Base.new)
+    init_handler.call(context)
     context.response.headers["X-Powered-By"].should eq "Kemal"
   end
 end

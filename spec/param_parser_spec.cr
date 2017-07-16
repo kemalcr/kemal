@@ -22,7 +22,7 @@ describe "ParamParser" do
   end
 
   it "parses url params" do
-    kemal = Kemal::RouteHandler::INSTANCE
+    kemal = Kemal.application.route_handler
     kemal.add_route "POST", "/hello/:hasan" do |env|
       "hello #{env.params.url["hasan"]}"
     end
@@ -34,7 +34,7 @@ describe "ParamParser" do
   end
 
   it "decodes url params" do
-    kemal = Kemal::RouteHandler::INSTANCE
+    kemal = Kemal.application.route_handler
     kemal.add_route "POST", "/hello/:email/:money/:spanish" do |env|
       email = env.params.url["email"]
       money = env.params.url["money"]

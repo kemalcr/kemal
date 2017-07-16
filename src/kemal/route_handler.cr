@@ -5,7 +5,7 @@ module Kemal
   # Routing, parsing, rendering e.g are done in this handler.
   class RouteHandler
     include HTTP::Handler
-    INSTANCE = new
+
     property routes
 
     def initialize
@@ -33,7 +33,7 @@ module Kemal
       raise Kemal::Exceptions::RouteNotFound.new(context) unless context.route_defined?
       content = context.route.handler.call(context)
 
-      if !Kemal.config.error_handlers.empty? && Kemal.config.error_handlers.has_key?(context.response.status_code)
+      if context.app.error_handlers.has_key?(context.response.status_code)
         raise Kemal::Exceptions::CustomException.new(context)
       end
 
@@ -48,6 +48,10 @@ module Kemal
     private def add_to_radix_tree(method, path, route)
       node = radix_path method, path
       @routes.add node, route
+    end
+
+    def clear
+      @routes = Radix::Tree(Route).new
     end
   end
 end

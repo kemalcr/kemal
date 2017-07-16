@@ -8,13 +8,13 @@ describe "Run" do
       make_me_true = true
       Kemal.stop
     end
-    make_me_true.should eq true
+    make_me_true.should be_true
   end
 
   it "runs without a block being specified" do
     Kemal.config.env = "test"
     Kemal.run
-    Kemal.config.running.should eq true
+    Kemal.application.running?.should be_true
     Kemal.stop
   end
 end

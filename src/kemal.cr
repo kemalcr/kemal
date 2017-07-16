@@ -2,11 +2,38 @@ require "http"
 require "json"
 require "uri"
 require "tempfile"
-require "./kemal/*"
+require "./kemal/base"
+require "./kemal/base_log_handler"
+require "./kemal/cli"
+require "./kemal/exception_handler"
+require "./kemal/log_handler"
+require "./kemal/config"
+require "./kemal/exceptions"
+require "./kemal/file_upload"
+require "./kemal/filter_handler"
+require "./kemal/handler"
+require "./kemal/init_handler"
+require "./kemal/null_log_handler"
+require "./kemal/param_parser"
+require "./kemal/response"
+require "./kemal/route"
+require "./kemal/route_handler"
+require "./kemal/ssl"
+require "./kemal/static_file_handler"
+require "./kemal/websocket"
+require "./kemal/websocket_handler"
 require "./kemal/ext/*"
 require "./kemal/helpers/*"
 
 module Kemal
+  def self.application
+    @@application ||= Kemal::Base.new
+  end
+
+  def self.config
+    application.config
+  end
+
   # Overload of `self.run` with the default startup logging.
   def self.run(port : Int32?)
     self.run port do
@@ -25,60 +52,17 @@ module Kemal
   end
 
   # The command to run a `Kemal` application.
-  #
-  # If *port* is not given Kemal will use `Kemal::Config#port`
-  def self.run(port : Int32? = nil, &block)
-    Kemal::CLI.new
-    config = Kemal.config
-    config.setup
-    config.port = port if port
+  # The port can be given to `#run` but is optional.
+  # If not given Kemal will use `Kemal::Config#port`
+  def self.run(port = nil)
+    CLI.new(config)
 
-    unless Kemal.config.error_handlers.has_key?(404)
-      error 404 do |env|
-        render_404
-      end
+    application.run(port) do |application|
+      yield application
     end
-
-    # Test environment doesn't need to have signal trap, built-in images, and logging.
-    unless config.env == "test"
-      Signal::INT.trap do
-        log "Kemal is going to take a rest!" if config.shutdown_message
-        Kemal.stop
-        exit
-      end
-
-      # This route serves the built-in images for not_found and exceptions.
-      get "/__kemal__/:image" do |env|
-        image = env.params.url["image"]
-        file_path = File.expand_path("lib/kemal/images/#{image}", Dir.current)
-        if File.exists? file_path
-          send_file env, file_path
-        else
-          halt env, 404
-        end
-      end
-    end
-
-    config.server ||= HTTP::Server.new(config.host_binding, config.port, config.handlers)
-    {% if !flag?(:without_openssl) %}
-      config.server.not_nil!.tls = config.ssl
-    {% end %}
-    config.running = true
-
-    yield config
-    config.server.not_nil!.listen if config.env != "test" && config.server
   end
 
   def self.stop
-    if config.running
-      if config.server
-        config.server.not_nil!.close
-        config.running = false
-      else
-        raise "Kemal.config.server is not set. Please use Kemal.run to set the server."
-      end
-    else
-      raise "Kemal is already stopped."
-    end
+    application.stop
   end
 end

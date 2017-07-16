@@ -2,12 +2,10 @@ module Kemal
   # :nodoc:
   class FilterHandler
     include HTTP::Handler
-    INSTANCE = new
 
     # This middleware is lazily instantiated and added to the handlers as soon as a call to `after_X` or `before_X` is made.
     def initialize
       @tree = Radix::Tree(Array(FilterBlock)).new
-      Kemal.config.add_filter_handler(self)
     end
 
     # The call order of the filters is `before_all -> before_x -> X -> after_x -> after_all`.
@@ -15,7 +13,7 @@ module Kemal
       return call_next(context) unless context.route_defined?
       call_block_for_path_type("ALL", context.request.path, :before, context)
       call_block_for_path_type(context.request.override_method, context.request.path, :before, context)
-      if Kemal.config.error_handlers.has_key?(context.response.status_code)
+      if context.app.error_handlers.has_key?(context.response.status_code)
         raise Kemal::Exceptions::CustomException.new(context)
       end
       call_next(context)

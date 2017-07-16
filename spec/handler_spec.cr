@@ -70,6 +70,7 @@ end
 describe "Handler" do
   it "adds custom handler before before_*" do
     filter_middleware = Kemal::FilterHandler.new
+    Kemal.application.add_filter_handler filter_middleware
     filter_middleware._add_route_filter("GET", "/", :before) do |env|
       env.response << " is"
     end
@@ -77,6 +78,8 @@ describe "Handler" do
     filter_middleware._add_route_filter("GET", "/", :before) do |env|
       env.response << " so"
     end
+    Kemal.application.add_filter_handler filter_middleware
+
     add_handler CustomTestHandler.new
 
     get "/" do |env|
@@ -141,21 +144,21 @@ describe "Handler" do
   it "adds a handler at given position" do
     post_handler = PostOnlyHandler.new
     add_handler post_handler, 1
-    Kemal.config.setup
-    Kemal.config.handlers[1].should eq post_handler
+    Kemal.application.setup
+    Kemal.application.handlers[1].should eq post_handler
   end
 
   it "assigns custom handlers" do
     post_only_handler = PostOnlyHandler.new
     post_exclude_handler = PostExcludeHandler.new
-    Kemal.config.handlers = [post_only_handler, post_exclude_handler]
-    Kemal.config.handlers.should eq [post_only_handler, post_exclude_handler]
+    Kemal.application.handlers = [post_only_handler, post_exclude_handler]
+    Kemal.application.handlers.should eq [post_only_handler, post_exclude_handler]
   end
 
   it "is able to use %w in macros" do
     post_only_handler = PostOnlyHandlerPercentW.new
     exclude_handler = ExcludeHandlerPercentW.new
-    Kemal.config.handlers = [post_only_handler, exclude_handler]
-    Kemal.config.handlers.should eq [post_only_handler, exclude_handler]
+    Kemal.application.handlers = [post_only_handler, exclude_handler]
+    Kemal.application.handlers.should eq [post_only_handler, exclude_handler]
   end
 end

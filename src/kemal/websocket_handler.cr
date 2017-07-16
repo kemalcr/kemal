@@ -3,7 +3,7 @@ module Kemal
   # For each WebSocket route a new handler is created and registered to global handlers.
   class WebSocketHandler
     include HTTP::Handler
-    INSTANCE = new
+
     property routes
 
     def initialize
@@ -40,6 +40,10 @@ module Kemal
       return false unless upgrade.compare("websocket", case_insensitive: true) == 0
 
       context.request.headers.includes_word?("Connection", "Upgrade")
+    end
+
+    def clear
+      @routes = Radix::Tree(WebSocket).new
     end
   end
 end

@@ -11,21 +11,21 @@ describe "Macros" do
   describe "#add_handler" do
     it "adds a custom handler" do
       add_handler CustomTestHandler.new
-      Kemal.config.setup
-      Kemal.config.handlers.size.should eq 7
+      Kemal.application.setup
+      Kemal.application.handlers.size.should eq 7
     end
   end
 
   describe "#logging" do
     it "sets logging status" do
       logging false
-      Kemal.config.logging.should eq false
+      Kemal.config.logging?.should be_false
     end
 
     it "sets a custom logger" do
-      config = Kemal::Config::INSTANCE
+      config = Kemal.config
       logger CustomLogHandler.new
-      config.logger.should be_a(CustomLogHandler)
+      Kemal.application.logger.should be_a(CustomLogHandler)
     end
   end
 
@@ -119,24 +119,24 @@ describe "Macros" do
   describe "#gzip" do
     it "adds HTTP::CompressHandler to handlers" do
       gzip true
-      Kemal.config.setup
-      Kemal.config.handlers[4].should be_a(HTTP::CompressHandler)
+      Kemal.application.setup
+      Kemal.application.handlers[4].should be_a(HTTP::CompressHandler)
     end
   end
 
   describe "#serve_static" do
     it "should disable static file hosting" do
       serve_static false
-      Kemal.config.serve_static.should eq false
+      Kemal.config.serve_static.should be_false
     end
 
     it "should disble enable gzip and dir_listing" do
       serve_static({"gzip" => true, "dir_listing" => true})
       conf = Kemal.config.serve_static
-      conf.is_a?(Hash).should eq true
+      conf.is_a?(Hash).should be_true # Can't use be_a(Hash) because Hash can't be used as generic argument
       if conf.is_a?(Hash)
-        conf["gzip"].should eq true
-        conf["dir_listing"].should eq true
+        conf["gzip"].should be_true
+        conf["dir_listing"].should be_true
       end
     end
   end
