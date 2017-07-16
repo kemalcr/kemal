@@ -2,49 +2,47 @@ require "./spec_helper"
 
 describe "ParamParser" do
   it "parses query params" do
-    route = Route.new "POST", "/" do |env|
-      hasan = env.params.query["hasan"]
-      "Hello #{hasan}"
-    end
     request = HTTP::Request.new("POST", "/?hasan=cemal")
-    query_params = Kemal::ParamParser.new(request).query
+    param_parser = Kemal::ParamParser.new(request)
+    param_parser.parse
+    query_params = param_parser.params
     query_params["hasan"].should eq "cemal"
   end
 
-  it "parses multiple values for query params" do
-    route = Route.new "POST", "/" do |env|
-      hasan = env.params.query["hasan"]
-      "Hello #{hasan}"
-    end
-    request = HTTP::Request.new("POST", "/?hasan=cemal&hasan=lamec")
-    query_params = Kemal::ParamParser.new(request).query
-    query_params.fetch_all("hasan").should eq ["cemal", "lamec"]
-  end
+  # it "parses multiple values for query params" do
+  #   request = HTTP::Request.new("POST", "/?hasan=cemal&hasan=lamec")
+  #   query_params = Kemal::ParamParser.new(request).params
+  #   query_params.fetch_all("hasan").should eq ["cemal", "lamec"]
+  # end
 
   it "parses url params" do
     kemal = Kemal::RouteHandler::INSTANCE
     kemal.add_route "POST", "/hello/:hasan" do |env|
-      "hello #{env.params.url["hasan"]}"
+      "hello #{env.params["hasan"]}"
     end
     request = HTTP::Request.new("POST", "/hello/cemal")
     # Radix tree MUST be run to parse url params.
     io_with_context = create_request_and_return_io(kemal, request)
-    url_params = Kemal::ParamParser.new(request).url
+    param_parser = Kemal::ParamParser.new(request)
+    param_parser.parse
+    url_params = param_parser.params
     url_params["hasan"].should eq "cemal"
   end
 
   it "decodes url params" do
     kemal = Kemal::RouteHandler::INSTANCE
     kemal.add_route "POST", "/hello/:email/:money/:spanish" do |env|
-      email = env.params.url["email"]
-      money = env.params.url["money"]
-      spanish = env.params.url["spanish"]
+      email = env.params["email"]
+      money = env.params["money"]
+      spanish = env.params["spanish"]
       "Hello, #{email}. You have #{money}. The spanish word of the day is #{spanish}."
     end
     request = HTTP::Request.new("POST", "/hello/sam%2Bspec%40gmail.com/%2419.99/a%C3%B1o")
     # Radix tree MUST be run to parse url params.
     io_with_context = create_request_and_return_io(kemal, request)
-    url_params = Kemal::ParamParser.new(request).url
+    param_parser = Kemal::ParamParser.new(request)
+    param_parser.parse
+    url_params = param_parser.params
     url_params["email"].should eq "sam+spec@gmail.com"
     url_params["money"].should eq "$19.99"
     url_params["spanish"].should eq "año"
@@ -52,9 +50,9 @@ describe "ParamParser" do
 
   it "parses request body" do
     route = Route.new "POST", "/" do |env|
-      name = env.params.query["name"]
-      age = env.params.query["age"]
-      hasan = env.params.body["hasan"]
+      name = env.params["name"]
+      age = env.params["age"]
+      hasan = env.params["hasan"]
       "Hello #{name} #{hasan} #{age}"
     end
 
@@ -65,33 +63,32 @@ describe "ParamParser" do
       headers: HTTP::Headers{"Content-Type" => "application/x-www-form-urlencoded"},
     )
 
-    query_params = Kemal::ParamParser.new(request).query
-    {"hasan" => "cemal"}.each do |k, v|
-      query_params[k].should eq(v)
-    end
-
-    body_params = Kemal::ParamParser.new(request).body
-    {"name" => "serdar", "age" => "99"}.each do |k, v|
-      body_params[k].should eq(v)
+    param_parser = Kemal::ParamParser.new(request)
+    param_parser.parse
+    params = param_parser.params
+    {"hasan" => "cemal", "name" => "serdar", "age" => "99"}.each do |k, v|
+      params[k].should eq(v)
     end
   end
 
-  it "parses multiple values in request body" do
-    route = Route.new "POST", "/" do |env|
-      hasan = env.params.body["hasan"]
-      "Hello #{hasan}"
-    end
+  # it "parses multiple values in request body" do
+  #   route = Route.new "POST", "/" do |env|
+  #     hasan = env.params["hasan"]
+  #     "Hello #{hasan}"
+  #   end
 
-    request = HTTP::Request.new(
-      "POST",
-      "/",
-      body: "hasan=cemal&hasan=lamec",
-      headers: HTTP::Headers{"Content-Type" => "application/x-www-form-urlencoded"},
-    )
+  #   request = HTTP::Request.new(
+  #     "POST",
+  #     "/",
+  #     body: "hasan=cemal&hasan=lamec",
+  #     headers: HTTP::Headers{"Content-Type" => "application/x-www-form-urlencoded"},
+  #   )
 
-    body_params = Kemal::ParamParser.new(request).body
-    body_params.fetch_all("hasan").should eq(["cemal", "lamec"])
-  end
+  #   param_parser = Kemal::ParamParser.new(request)
+  #   param_parser.parse
+  #   body_params = param_parser.params
+  #   body_params.fetch_all("hasan").should eq(["cemal", "lamec"])
+  # end
 
   context "when content type is application/json" do
     it "parses request body" do
@@ -104,7 +101,9 @@ describe "ParamParser" do
         headers: HTTP::Headers{"Content-Type" => "application/json"},
       )
 
-      json_params = Kemal::ParamParser.new(request).json
+      param_parser = Kemal::ParamParser.new(request)
+      param_parser.parse
+      json_params = param_parser.params
       json_params.should eq({"name" => "Serdar"})
     end
 
@@ -118,7 +117,9 @@ describe "ParamParser" do
         headers: HTTP::Headers{"Content-Type" => "application/json; charset=utf-8"},
       )
 
-      json_params = Kemal::ParamParser.new(request).json
+      param_parser = Kemal::ParamParser.new(request)
+      param_parser.parse
+      json_params = param_parser.params
       json_params.should eq({"name" => "Serdar"})
     end
 
@@ -132,7 +133,9 @@ describe "ParamParser" do
         headers: HTTP::Headers{"Content-Type" => "application/json"},
       )
 
-      json_params = Kemal::ParamParser.new(request).json
+      param_parser = Kemal::ParamParser.new(request)
+      param_parser.parse
+      json_params = param_parser.params
       json_params.should eq({"_json" => [1]})
     end
 
@@ -146,13 +149,13 @@ describe "ParamParser" do
         headers: HTTP::Headers{"Content-Type" => "application/json"},
       )
 
-      query_params = Kemal::ParamParser.new(request).query
-      {"foo" => "bar"}.each do |k, v|
-        query_params[k].should eq(v)
-      end
+      param_parser = Kemal::ParamParser.new(request)
+      param_parser.parse
+      json_params = param_parser.params
 
-      json_params = Kemal::ParamParser.new(request).json
-      json_params.should eq({"_json" => [1]})
+      {"foo" => "bar", "_json" => [1]}.each do |k, v|
+        json_params[k].should eq(v)
+      end
     end
 
     it "handles no request body" do
@@ -164,16 +167,9 @@ describe "ParamParser" do
         headers: HTTP::Headers{"Content-Type" => "application/json"},
       )
 
-      url_params = Kemal::ParamParser.new(request).url
-      url_params.should eq({} of String => String)
-
-      query_params = Kemal::ParamParser.new(request).query
-      query_params.to_s.should eq("")
-
-      body_params = Kemal::ParamParser.new(request).body
-      body_params.to_s.should eq("")
-
-      json_params = Kemal::ParamParser.new(request).json
+      param_parser = Kemal::ParamParser.new(request)
+      param_parser.parse
+      json_params = param_parser.params
       json_params.should eq({} of String => Nil | String | Int64 | Float64 | Bool | Hash(String, JSON::Type) | Array(JSON::Type))
     end
   end
@@ -181,9 +177,9 @@ describe "ParamParser" do
   context "when content type is incorrect" do
     it "does not parse request body" do
       route = Route.new "POST", "/" do |env|
-        name = env.params.body["name"]
-        age = env.params.body["age"]
-        hasan = env.params.query["hasan"]
+        name = env.params["name"]
+        age = env.params["age"]
+        hasan = env.params["hasan"]
         "Hello #{name} #{hasan} #{age}"
       end
 
@@ -194,11 +190,12 @@ describe "ParamParser" do
         headers: HTTP::Headers{"Content-Type" => "text/plain"},
       )
 
-      query_params = Kemal::ParamParser.new(request).query
+      param_parser = Kemal::ParamParser.new(request)
+      param_parser.parse
+      query_params = param_parser.params
       query_params["hasan"].should eq("cemal")
-
-      body_params = Kemal::ParamParser.new(request).body
-      body_params.to_s.should eq("")
+      query_params["age"]?.should eq(nil)
+      query_params["name"]?.should eq(nil)
     end
   end
 end
