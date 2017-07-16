@@ -34,16 +34,11 @@ module Kemal
     application.config
   end
 
-  # Overload of `self.run` with the default startup logging.
-  def self.run(port : Int32?)
+  # Overload of `self.run` with the default startup logging
+  def self.run(port : Int32? = nil)
     self.run port do
       log "[#{config.env}] Kemal is ready to lead at #{config.scheme}://#{config.host_binding}:#{config.port}"
     end
-  end
-
-  # Overload of `self.run` without port.
-  def self.run
-    self.run(nil)
   end
 
   # Overload of `self.run` to allow just a block.

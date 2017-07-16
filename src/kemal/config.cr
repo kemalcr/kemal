@@ -47,7 +47,11 @@ module Kemal
 
     def serve_static?(key)
       config = @serve_static
-      config.try(&.[key]?) || config == true
+      (config.is_a?(Hash) && config[key]?) || false
+    end
+
+
+    def extra_options(&@extra_options : OptionParser ->)
     end
   end
 end

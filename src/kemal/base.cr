@@ -1,3 +1,5 @@
+require "./helpers/*"
+
 # Kemal Base
 # The DSL currently consists of
 # - get post put patch delete options
@@ -5,6 +7,10 @@
 # - before_*
 # - error
 class Kemal::Base
+  include FileHelpers
+  include Templates
+  include Macros
+
   HTTP_METHODS   = %w(get post put patch delete options)
   FILTER_METHODS = %w(get post put patch delete options all)
 

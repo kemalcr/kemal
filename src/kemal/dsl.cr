@@ -6,6 +6,7 @@
 # - WebSocket(ws)
 # - before_*
 # - error
+require "./dsl/*"
 
 {% for method in Kemal::Base::HTTP_METHODS %}
   def {{method.id}}(path, &block : HTTP::Server::Context -> _)
