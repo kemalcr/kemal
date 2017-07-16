@@ -26,7 +26,7 @@ end
 # Logs the output via `logger`.
 # This is the built-in `Kemal::LogHandler` by default which uses STDOUT.
 def log(message : String)
-  Kemal.application.logger.write "#{message}\n"
+  Kemal.application.log(message)
 end
 
 # Enables / Disables logging.
@@ -65,7 +65,6 @@ end
 # ```
 def logger(logger : Kemal::BaseLogHandler)
   Kemal.application.logger = logger
-  Kemal.application.add_handler logger
 end
 
 # Enables / Disables static file serving.
@@ -94,7 +93,7 @@ end
 # end
 # ```
 def headers(env : HTTP::Server::Context, additional_headers : Hash(String, String))
-  env.response.headers.merge!(additional_headers)
+  Kemal.application.headers(env, additional_headers)
 end
 
 # Send a file with given path and base the mime-type on the file extension
@@ -110,82 +109,7 @@ end
 # send_file env, "./path/to/file", "image/jpeg"
 # ```
 def send_file(env : HTTP::Server::Context, path : String, mime_type : String? = nil)
-  config = Kemal.config.serve_static
-  file_path = File.expand_path(path, Dir.current)
-  mime_type ||= Kemal::Utils.mime_type(file_path)
-  env.response.content_type = mime_type
-  env.response.headers["Accept-Ranges"] = "bytes"
-  env.response.headers["X-Content-Type-Options"] = "nosniff"
-  minsize = 860 # http://webmasters.stackexchange.com/questions/31750/what-is-recommended-minimum-object-size-for-gzip-performance-benefits ??
-  request_headers = env.request.headers
-  filesize = File.size(file_path)
-  filestat = File.info(file_path)
-
-  Kemal.config.static_headers.try(&.call(env.response, file_path, filestat))
-
-  File.open(file_path) do |file|
-    if env.request.method == "GET" && env.request.headers.has_key?("Range")
-      next multipart(file, env)
-    end
-
-    condition = config.is_a?(Hash) && config["gzip"]? == true && filesize > minsize && Kemal::Utils.zip_types(file_path)
-    if condition && request_headers.includes_word?("Accept-Encoding", "gzip")
-      env.response.headers["Content-Encoding"] = "gzip"
-      Gzip::Writer.open(env.response) do |deflate|
-        IO.copy(file, deflate)
-      end
-    elsif condition && request_headers.includes_word?("Accept-Encoding", "deflate")
-      env.response.headers["Content-Encoding"] = "deflate"
-      Flate::Writer.open(env.response) do |deflate|
-        IO.copy(file, deflate)
-      end
-    else
-      env.response.content_length = filesize
-      IO.copy(file, env.response)
-    end
-  end
-  return
-end
-
-private def multipart(file, env : HTTP::Server::Context)
-  # See http://httpwg.org/specs/rfc7233.html
-  fileb = file.size
-  startb = endb = 0
-
-  if match = env.request.headers["Range"].match /bytes=(\d{1,})-(\d{0,})/
-    startb = match[1].to_i { 0 } if match.size >= 2
-    endb = match[2].to_i { 0 } if match.size >= 3
-  end
-
-  endb = fileb - 1 if endb == 0
-
-  if startb < endb < fileb
-    content_length = 1 + endb - startb
-    env.response.status_code = 206
-    env.response.content_length = content_length
-    env.response.headers["Accept-Ranges"] = "bytes"
-    env.response.headers["Content-Range"] = "bytes #{startb}-#{endb}/#{fileb}" # MUST
-
-    if startb > 1024
-      skipped = 0
-      # file.skip only accepts values less or equal to 1024 (buffer size, undocumented)
-      until (increase_skipped = skipped + 1024) > startb
-        file.skip(1024)
-        skipped = increase_skipped
-      end
-      if (skipped_minus_startb = skipped - startb) > 0
-        file.skip skipped_minus_startb
-      end
-    else
-      file.skip(startb)
-    end
-
-    IO.copy(file, env.response, content_length)
-  else
-    env.response.content_length = fileb
-    env.response.status_code = 200 # Range not satisfable, see 4.4 Note
-    IO.copy(file, env.response)
-  end
+  Kemal.application.send_file(env, path, mime_type)
 end
 
 # Send a file with given data and default `application/octet-stream` mime_type.
@@ -200,10 +124,7 @@ end
 # send_file env, data_slice, "image/jpeg"
 # ```
 def send_file(env : HTTP::Server::Context, data : Slice(UInt8), mime_type : String? = nil)
-  mime_type ||= "application/octet-stream"
-  env.response.content_type = mime_type
-  env.response.content_length = data.bytesize
-  env.response.write data
+  Kemal.application.send_file(env, data, mime_type)
 end
 
 # Configures an `HTTP::Server::Response` to compress the response
@@ -211,7 +132,7 @@ end
 #
 # Disabled by default.
 def gzip(status : Bool = false)
-  add_handler HTTP::CompressHandler.new if status
+  Kemal.application.gzip(status)
 end
 
 # Adds headers to `Kemal::StaticFileHandler`. This is especially useful for `CORS`.
