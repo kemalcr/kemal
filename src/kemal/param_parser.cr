@@ -8,8 +8,7 @@ module Kemal
     MULTIPART_FORM   = "multipart/form-data"
     # :nodoc:
     alias AllParamTypes = Nil | String | Int64 | Float64 | Bool | Hash(String, JSON::Type) | Array(JSON::Type)
-    getter params
-    getter files
+    getter params, files
 
     def initialize(@request : HTTP::Request)
       @params = {} of String => AllParamTypes
