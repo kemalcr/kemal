@@ -4,6 +4,7 @@ require "uri"
 require "tempfile"
 require "./kemal/*"
 require "./kemal/dsl"
+require "./kemal/application/application"
 require "./kemal/ext/*"
 require "./kemal/helpers/*"
 
