@@ -11,10 +11,14 @@ module Kemal
 
     {% for method in HTTP_METHODS %}
       def {{method.id}}(path, &block : HTTP::Server::Context -> _)
-        raise Kemal::Exceptions::InvalidPathStartException.new({{method}}, path) unless Kemal::Utils.path_starts_with_slash?(path)
-        Kemal::RouteHandler::INSTANCE.add_route({{method}}.upcase, path, &block)
+        action({{method}}, path, &block)
       end
     {% end %}
+
+    def action(method, path, &block : HTTP::Server::Context -> _)
+      raise Kemal::Exceptions::InvalidPathStartException.new(method, path) unless Kemal::Utils.path_starts_with_slash?(path)
+      Kemal::RouteHandler::INSTANCE.add_route(method.upcase, path, &block)
+    end
 
     def ws(path, &block : HTTP::WebSocket, HTTP::Server::Context -> Void)
       raise Kemal::Exceptions::InvalidPathStartException.new("ws", path) unless Kemal::Utils.path_starts_with_slash?(path)
