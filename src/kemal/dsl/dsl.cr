@@ -17,6 +17,7 @@ module Kemal
 
     def action(method, path, &block : HTTP::Server::Context -> _)
       raise Kemal::Exceptions::InvalidPathStartException.new(method, path) unless Kemal::Utils.path_starts_with_slash?(path)
+      raise Kemal::Exceptions::InvalidHTTPMethod.new(method) unless HTTP_METHODS.includes?(method.downcase)
       Kemal::RouteHandler::INSTANCE.add_route(method.upcase, path, &block)
     end
 
