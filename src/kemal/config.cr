@@ -53,5 +53,20 @@ module Kemal
 
     def extra_options(&@extra_options : OptionParser ->)
     end
+
+    # Create a config with default values
+    def self.default
+      new
+    end
+
+    # Creates a config with basic value (disabled logging, disabled serve_static, disabled shutdown_message)
+    def self.base
+      new.tap do |config|
+        config.logging = false
+        config.serve_static = false
+        config.shutdown_message = false
+        config.always_rescue = false
+      end
+    end
   end
 end

@@ -23,11 +23,18 @@ describe "Config" do
     config.host_binding.should eq "127.0.0.1"
   end
 
-  it "adds a custom handler" do
+  it "adds a custom handler to Base" do
     application = Kemal::Base.new
     application.add_handler CustomTestHandler.new
     application.setup
-    application.handlers.size.should eq(8)
+    application.handlers.size.should eq 6
+  end
+
+  it "adds a custom handler to Application" do
+    application = Kemal::Application.new
+    application.add_handler CustomTestHandler.new
+    application.setup
+    application.handlers.size.should eq 9
   end
 
   it "toggles the shutdown message" do

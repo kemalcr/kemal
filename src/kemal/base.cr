@@ -30,7 +30,7 @@ class Kemal::Base
   property! server : HTTP::Server
   property? running = false
 
-  def initialize(@config = Config.new)
+  def initialize(@config = Config.base)
     @logger = if @config.logging?
                 Kemal::LogHandler.new
               else
@@ -161,61 +161,47 @@ class Kemal::Base
   end
 
   # Overload of self.run with the default startup logging
-  def run(port = nil)
+  def run(port : Int32? = nil)
     run port do
       log "[#{config.env}] Kemal is ready to lead at #{config.scheme}://#{config.host_binding}:#{config.port}"
     end
   end
 
-  # Overload of self.run to allow just a block
-  def run(&block)
-    run nil, &block
-  end
-
   # The command to run a `Kemal` application.
   # The port can be given to `#run` but is optional.
   # If not given Kemal will use `Kemal::Config#port`
-  def run(port = nil, &block)
-    @config.port = port if port
-
+  def run(port : Int32? = nil)
     setup
 
-    @server = server = HTTP::Server.new(@config.host_binding, @config.port, @handlers)
+    prepare_for_server_start
+
+    start_server(port) do
+      yield self
+    end
+  end
+
+  private def prepare_for_server_start
+    unless @config.env == "test"
+      Signal::INT.trap do
+        log "Kemal is going to take a rest!" if @config.shutdown_message?
+        stop if running?
+        exit
+      end
+    end
+  end
+
+  private def start_server(port)
+    @server = server = HTTP::Server.new(@config.host_binding, port || @config.port, @handlers)
     {% if !flag?(:without_openssl) %}
     server.tls = config.ssl
     {% end %}
 
-    unless error_handlers.has_key?(404)
-      error 404 do |env|
-        render_404
-      end
-    end
-
-    # Test environment doesn't need to have signal trap, built-in images, and logging.
-    unless config.env == "test"
-      Signal::INT.trap do
-        log "Kemal is going to take a rest!" if config.shutdown_message?
-        Kemal.stop if running?
-        exit
-      end
-
-      # This route serves the built-in images for not_found and exceptions.
-      get "/__kemal__/:image" do |env|
-        image = env.params.url["image"]
-        file_path = File.expand_path("lib/kemal/images/#{image}", Dir.current)
-        if File.exists? file_path
-          send_file env, file_path
-        else
-          halt env, 404
-        end
-      end
-    end
-
+    server.bind
     @running = true
 
-    yield self
+    yield
 
-    server.listen if @config.env != "test"
+    server.listen unless @config.env == "test"
   end
 
   def stop

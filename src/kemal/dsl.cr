@@ -6,6 +6,7 @@
 # - WebSocket(ws)
 # - before_*
 # - error
+require "../kemal"
 require "./dsl/*"
 
 {% for method in Kemal::Base::HTTP_METHODS %}
