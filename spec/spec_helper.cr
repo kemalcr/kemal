@@ -1,87 +1,24 @@
 require "spec"
-require "../src/*"
-require "../src/kemal/dsl"
+require "../src/kemal"
 
-include Kemal
-
-class CustomLogHandler < Kemal::BaseLogHandler
-  def call(env)
-    call_next env
-  end
-
-  def write(message)
-  end
-end
-
-class TestContextStorageType
-  property id
-  @id = 1
-
-  def to_s
-    @id
-  end
-end
-
-class AnotherContextStorageType
-  property name
-  @name = "kemal-context"
-end
-
-add_context_storage_type(TestContextStorageType)
-add_context_storage_type(AnotherContextStorageType)
-
-def create_request_and_return_io(handler, request)
+def call_request_on_app(app, request)
   io = IO::Memory.new
   response = HTTP::Server::Response.new(io)
   context = HTTP::Server::Context.new(request, response)
-  context.app = Kemal.application
-  handler.call(context)
-  response.close
-  io.rewind
-  io
-end
-
-def create_ws_request_and_return_io(handler, request)
-  io = IO::Memory.new
-  response = HTTP::Server::Response.new(io)
-  context = HTTP::Server::Context.new(request, response)
-  context.app = Kemal.application
-  begin
-    handler.call context
-  rescue IO::Error
-    # Raises because the IO::Memory is empty
-  end
-  io.rewind
-end
-
-def call_request_on_app(request)
-  io = IO::Memory.new
-  response = HTTP::Server::Response.new(io)
-  context = HTTP::Server::Context.new(request, response)
-  main_handler = build_main_handler
+  main_handler = build_main_handler(app)
   main_handler.call context
   response.close
   io.rewind
   HTTP::Client::Response.from_io(io, decompress: false)
 end
 
-def build_main_handler
-  Kemal.application.setup
-  main_handler = Kemal.application.handlers.first
+def build_main_handler(app)
+  app.setup
+  main_handler = app.handlers.first
   current_handler = main_handler
-  Kemal.application.handlers.each_with_index do |handler, index|
+  app.handlers.each_with_index do |handler, index|
     current_handler.next = handler
     current_handler = handler
   end
   main_handler
-end
-
-Spec.before_each do
-  config = Kemal.config
-  config.env = "development"
-  config.logging = false
-end
-
-Spec.after_each do
-  Kemal.application.clear
 end

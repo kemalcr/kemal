@@ -4,6 +4,12 @@
 
 module Kemal
   class StaticFileHandler < HTTP::StaticFileHandler
+    getter config : Kemal::Config
+
+    def initialize(@config, fallthrough = true)
+      super(@config.public_folder, fallthrough)
+    end
+
     def call(context : HTTP::Server::Context)
       return call_next(context) if context.request.path.not_nil! == "/"
 
@@ -17,7 +23,6 @@ module Kemal
         return
       end
 
-      config = Kemal.config.serve_static
       original_path = context.request.path.not_nil!
       is_dir_path = original_path.ends_with? "/"
       request_path = URI.unescape(original_path)
@@ -43,7 +48,7 @@ module Kemal
       end
 
       if Dir.exists?(file_path)
-        if config.is_a?(Hash) && config["dir_listing"] == true
+        if @config.serve_static?("dir_listing")
           context.response.content_type = "text/html"
           directory_listing(context.response, request_path, file_path)
         else
@@ -51,7 +56,7 @@ module Kemal
         end
       elsif File.exists?(file_path)
         return if etag(context, file_path)
-        send_file(context, file_path)
+        FileHelpers.send_file(context, file_path, config)
       else
         call_next(context)
       end

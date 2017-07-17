@@ -10,9 +10,10 @@ describe "Macros" do
 
   describe "#add_handler" do
     it "adds a custom handler" do
-      add_handler CustomTestHandler.new
-      Kemal.application.setup
-      Kemal.application.handlers.size.should eq 8
+      app = Kemal::Application.new
+      app.add_handler CustomTestHandler.new
+      app.setup
+      app.handlers.size.should eq 8
     end
   end
 
@@ -23,7 +24,6 @@ describe "Macros" do
     end
 
     it "sets a custom logger" do
-      config = Kemal.config
       logger CustomLogHandler.new
       Kemal.application.logger.should be_a(CustomLogHandler)
     end
@@ -31,32 +31,34 @@ describe "Macros" do
 
   describe "#halt" do
     it "can break block with halt macro" do
-      get "/non-breaking" do |env|
+      app = Kemal::Base.new
+      app.get "/non-breaking" do |env|
         "hello"
         "world"
       end
       request = HTTP::Request.new("GET", "/non-breaking")
-      client_response = call_request_on_app(request)
+      client_response = call_request_on_app(app, request)
       client_response.status_code.should eq(200)
       client_response.body.should eq("world")
 
-      get "/breaking" do |env|
+      app.get "/breaking" do |env|
         halt env, 404, "hello"
         "world"
       end
       request = HTTP::Request.new("GET", "/breaking")
-      client_response = call_request_on_app(request)
+      client_response = call_request_on_app(app, request)
       client_response.status_code.should eq(404)
       client_response.body.should eq("hello")
     end
 
     it "can break block with halt macro using default values" do
-      get "/" do |env|
+      app = Kemal::Base.new
+      app.get "/" do |env|
         halt env
         "world"
       end
       request = HTTP::Request.new("GET", "/")
-      client_response = call_request_on_app(request)
+      client_response = call_request_on_app(app, request)
       client_response.status_code.should eq(200)
       client_response.body.should eq("")
     end
@@ -64,7 +66,8 @@ describe "Macros" do
 
   describe "#headers" do
     it "can add headers" do
-      get "/headers" do |env|
+      app = Kemal::Base.new
+      app.get "/headers" do |env|
         env.response.headers.add "Content-Type", "image/png"
         headers env, {
           "Access-Control-Allow-Origin" => "*",
@@ -72,7 +75,7 @@ describe "Macros" do
         }
       end
       request = HTTP::Request.new("GET", "/headers")
-      response = call_request_on_app(request)
+      response = call_request_on_app(app, request)
       response.headers["Access-Control-Allow-Origin"].should eq("*")
       response.headers["Content-Type"].should eq("text/plain")
     end
@@ -80,36 +83,39 @@ describe "Macros" do
 
   describe "#send_file" do
     it "sends file with given path and default mime-type" do
-      get "/" do |env|
+      app = Kemal::Base.new
+      app.get "/" do |env|
         send_file env, "./spec/asset/hello.ecr"
       end
 
       request = HTTP::Request.new("GET", "/")
-      response = call_request_on_app(request)
+      response = call_request_on_app(app, request)
       response.status_code.should eq(200)
       response.headers["Content-Type"].should eq("application/octet-stream")
       response.headers["Content-Length"].should eq("18")
     end
 
     it "sends file with given path and given mime-type" do
-      get "/" do |env|
+      app = Kemal::Base.new
+      app.get "/" do |env|
         send_file env, "./spec/asset/hello.ecr", "image/jpeg"
       end
 
       request = HTTP::Request.new("GET", "/")
-      response = call_request_on_app(request)
+      response = call_request_on_app(app, request)
       response.status_code.should eq(200)
       response.headers["Content-Type"].should eq("image/jpeg")
       response.headers["Content-Length"].should eq("18")
     end
 
     it "sends file with binary stream" do
-      get "/" do |env|
+      app = Kemal::Base.new
+      app.get "/" do |env|
         send_file env, "Serdar".to_slice
       end
 
       request = HTTP::Request.new("GET", "/")
-      response = call_request_on_app(request)
+      response = call_request_on_app(app, request)
       response.status_code.should eq(200)
       response.headers["Content-Type"].should eq("application/octet-stream")
       response.headers["Content-Length"].should eq("6")

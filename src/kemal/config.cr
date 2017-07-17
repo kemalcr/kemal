@@ -53,6 +53,10 @@ module Kemal
     def extra_options(&@extra_options : OptionParser ->)
     end
 
+    def serve_static?(key)
+      (h = @serve_static).is_a?(Hash) && h[key]? == true
+    end
+
     # Create a config with default values
     def self.default
       new

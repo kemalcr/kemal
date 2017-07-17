@@ -2,38 +2,42 @@ require "./spec_helper"
 
 describe "Context" do
   it "sets content type" do
-    get "/" do |env|
+    app = Kemal::Base.new
+    app.get "/" do |env|
       env.response.content_type = "application/json"
       "Hello"
     end
     request = HTTP::Request.new("GET", "/")
-    client_response = call_request_on_app(request)
+    client_response = call_request_on_app(app, request)
     client_response.headers["Content-Type"].should eq("application/json")
   end
 
   it "parses headers" do
-    get "/" do |env|
+    app = Kemal::Base.new
+    app.get "/" do |env|
       name = env.request.headers["name"]
       "Hello #{name}"
     end
     headers = HTTP::Headers.new
     headers["name"] = "kemal"
     request = HTTP::Request.new("GET", "/", headers)
-    client_response = call_request_on_app(request)
+    client_response = call_request_on_app(app, request)
     client_response.body.should eq "Hello kemal"
   end
 
   it "sets response headers" do
-    get "/" do |env|
+    app = Kemal::Base.new
+    app.get "/" do |env|
       env.response.headers.add "Accept-Language", "tr"
     end
     request = HTTP::Request.new("GET", "/")
-    client_response = call_request_on_app(request)
+    client_response = call_request_on_app(app, request)
     client_response.headers["Accept-Language"].should eq "tr"
   end
 
   it "can store variables" do
-    before_get "/" do |env|
+    app = Kemal::Base.new
+    app.before_get "/" do |env|
       t = TestContextStorageType.new
       t.id = 32
       a = AnotherContextStorageType.new
@@ -45,7 +49,7 @@ describe "Context" do
       env.set "before_get_float", 3.5
     end
 
-    get "/" do |env|
+    app.get "/" do |env|
       env.set "key", "value"
       {
         key:                     env.get("key"),
@@ -60,9 +64,9 @@ describe "Context" do
     io = IO::Memory.new
     response = HTTP::Server::Response.new(io)
     context = HTTP::Server::Context.new(request, response)
-    context.app = Kemal.application
-    Kemal.application.filter_handler.call(context)
-    Kemal.application.route_handler.call(context)
+    context.app = app
+    app.filter_handler.call(context)
+    app.route_handler.call(context)
     context.store["key"].should eq "value"
     context.store["before_get"].should eq "Kemal"
     context.store["before_get_int"].should eq 123

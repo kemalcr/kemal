@@ -1,4 +1,4 @@
-require "./spec_helper"
+require "./dsl_helper"
 
 describe "Run" do
   it "runs a code block after starting" do

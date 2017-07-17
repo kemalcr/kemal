@@ -78,81 +78,88 @@ describe "Handler" do
     filter_middleware._add_route_filter("GET", "/", :before) do |env|
       env.response << " so"
     end
-    Kemal.application.add_filter_handler filter_middleware
+    app = Kemal::Base.new
+    app.add_filter_handler filter_middleware
 
-    add_handler CustomTestHandler.new
+    app.add_handler CustomTestHandler.new
 
-    get "/" do |env|
+    app.get "/" do |env|
       " Great"
     end
     request = HTTP::Request.new("GET", "/")
-    client_response = call_request_on_app(request)
+    client_response = call_request_on_app(app, request)
     client_response.status_code.should eq(200)
     client_response.body.should eq("Kemal is so Great")
   end
 
   it "runs specified only_routes in middleware" do
-    get "/only" do |env|
+    app = Kemal::Base.new
+    app.get "/only" do |env|
       "Get"
     end
-    add_handler OnlyHandler.new
+    app.add_handler OnlyHandler.new
     request = HTTP::Request.new("GET", "/only")
-    client_response = call_request_on_app(request)
+    client_response = call_request_on_app(app, request)
     client_response.body.should eq "OnlyGet"
   end
 
   it "doesn't run specified exclude_routes in middleware" do
-    get "/" do |env|
+    app = Kemal::Base.new
+    app.get "/" do |env|
       "Get"
     end
-    get "/exclude" do
+    app.get "/exclude" do
       "Exclude"
     end
-    add_handler ExcludeHandler.new
+    app.add_handler ExcludeHandler.new
     request = HTTP::Request.new("GET", "/")
-    client_response = call_request_on_app(request)
+    client_response = call_request_on_app(app, request)
     client_response.body.should eq "ExcludeGet"
   end
 
   it "runs specified only_routes with method in middleware" do
-    post "/only" do
+    app = Kemal::Base.new
+    app.post "/only" do
       "Post"
     end
-    get "/only" do
+    app.get "/only" do
       "Get"
     end
-    add_handler PostOnlyHandler.new
+    app.add_handler PostOnlyHandler.new
     request = HTTP::Request.new("POST", "/only")
-    client_response = call_request_on_app(request)
+    client_response = call_request_on_app(app, request)
     client_response.body.should eq "OnlyPost"
   end
 
   it "doesn't run specified exclude_routes with method in middleware" do
-    post "/exclude" do
+    app = Kemal::Base.new
+    app.post "/exclude" do
       "Post"
     end
-    post "/only" do
+    app.post "/only" do
       "Post"
     end
-    add_handler PostOnlyHandler.new
-    add_handler PostExcludeHandler.new
+    app.add_handler PostOnlyHandler.new
+    app.add_handler PostExcludeHandler.new
     request = HTTP::Request.new("POST", "/only")
-    client_response = call_request_on_app(request)
+    client_response = call_request_on_app(app, request)
     client_response.body.should eq "OnlyExcludePost"
   end
 
   it "adds a handler at given position" do
     post_handler = PostOnlyHandler.new
-    add_handler post_handler, 1
-    Kemal.application.setup
-    Kemal.application.handlers[1].should eq post_handler
+    app = Kemal::Base.new
+    app.add_handler post_handler, 1
+    app.setup
+    app.handlers[1].should eq post_handler
   end
 
   it "assigns custom handlers" do
     post_only_handler = PostOnlyHandler.new
     post_exclude_handler = PostExcludeHandler.new
-    Kemal.application.handlers = [post_only_handler, post_exclude_handler]
-    Kemal.application.handlers.should eq [post_only_handler, post_exclude_handler]
+    app = Kemal::Base.new
+    app.handlers = [post_only_handler, post_exclude_handler]
+    app.handlers.should eq [post_only_handler, post_exclude_handler]
   end
 
   it "is able to use %w in macros" do

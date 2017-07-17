@@ -1,8 +1,5 @@
 module Kemal::FileHelpers
-  def log(message)
-    logger.write "#{message}\n"
-  end
-
+  extend self
   # Send a file with given path and base the mime-type on the file extension
   # or default `application/octet-stream` mime_type.
   #
@@ -15,8 +12,7 @@ module Kemal::FileHelpers
   # ```
   # send_file env, "./path/to/file", "image/jpeg"
   # ```
-  def send_file(env : HTTP::Server::Context, path : String, mime_type : String? = nil)
-    config = env.app.config
+  def send_file(env : HTTP::Server::Context, path : String, config : Kemal::Config, mime_type : String? = nil)
     file_path = File.expand_path(path, Dir.current)
     mime_type ||= Kemal::Utils.mime_type(file_path)
     env.response.content_type = mime_type
@@ -28,17 +24,18 @@ module Kemal::FileHelpers
     filestat = File.stat(file_path)
 
     config.static_headers.try(&.call(env.response, file_path, filestat))
+    gzip = config.serve_static?("gzip")
 
     File.open(file_path) do |file|
       if env.request.method == "GET" && env.request.headers.has_key?("Range")
         next multipart(file, env)
       end
-      if request_headers.includes_word?("Accept-Encoding", "gzip") && config.serve_static?("gzip") && filesize > minsize && Kemal::Utils.zip_types(file_path)
+      if request_headers.includes_word?("Accept-Encoding", "gzip") && gzip && filesize > minsize && Kemal::Utils.zip_types(file_path)
         env.response.headers["Content-Encoding"] = "gzip"
         Gzip::Writer.open(env.response) do |deflate|
           IO.copy(file, deflate)
         end
-      elsif request_headers.includes_word?("Accept-Encoding", "deflate") && config.serve_static?("gzip") && filesize > minsize && Kemal::Utils.zip_types(file_path)
+      elsif request_headers.includes_word?("Accept-Encoding", "deflate") && gzip && filesize > minsize && Kemal::Utils.zip_types(file_path)
         env.response.headers["Content-Encoding"] = "deflate"
         Flate::Writer.open(env.response) do |deflate|
           IO.copy(file, deflate)
@@ -49,6 +46,10 @@ module Kemal::FileHelpers
       end
     end
     return
+  end
+
+  def send_file(env, path : String, mime_type : String? = nil)
+    send_file(env, path, env.app.config, mime_type)
   end
 
   private def multipart(file, env : HTTP::Server::Context)

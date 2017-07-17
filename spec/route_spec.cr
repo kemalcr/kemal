@@ -1,4 +1,4 @@
-require "./spec_helper"
+require "./dsl_helper"
 
 describe "Route" do
   describe "match?" do
