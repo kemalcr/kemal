@@ -1,2 +1,2 @@
-require "./main"
+require "./base"
 require "./kemal/dsl/global"
