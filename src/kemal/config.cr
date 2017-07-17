@@ -54,7 +54,6 @@ module Kemal
       (config.is_a?(Hash) && config[key]?) || false
     end
 
-
     def extra_options(&@extra_options : OptionParser ->)
     end
 
@@ -65,12 +64,12 @@ module Kemal
 
     # Creates a config with basic value (disabled logging, disabled serve_static, disabled shutdown_message)
     def self.base
-      new.tap do |config|
-        config.logging = false
-        config.serve_static = false
-        config.shutdown_message = false
-        config.always_rescue = false
-      end
+      new(
+        logging: false,
+        serve_static: false,
+        shutdown_message: false,
+        always_rescue: false,
+      )
     end
   end
 end
