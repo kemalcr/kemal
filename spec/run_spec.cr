@@ -1,4 +1,4 @@
-require "./spec_helper"
+require "./dsl_helper"
 
 private def run(code)
   code = <<-CR

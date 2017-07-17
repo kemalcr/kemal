@@ -1,4 +1,4 @@
-require "./spec_helper"
+require "./dsl_helper"
 
 describe "Kemal::RouteHandler" do
   it "routes" do
