@@ -34,7 +34,7 @@ describe "Config" do
     application = Kemal::Application.new
     application.add_handler CustomTestHandler.new
     application.setup
-    application.handlers.size.should eq 9
+    application.handlers.size.should eq 8
   end
 
   it "toggles the shutdown message" do

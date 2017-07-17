@@ -1,7 +1,6 @@
 class Kemal::Application < Kemal::Base
   def initialize(config = Config.default)
-    super config
-    add_filter_handler(filter_handler)
+    super(config)
   end
 
   # Overload of self.run with the default startup logging
