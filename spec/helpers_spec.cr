@@ -1,13 +1,13 @@
 require "./spec_helper"
 
-describe "Macros" do
-  describe "#public_folder" do
-    it "sets public folder" do
-      public_folder "/some/path/to/folder"
-      Kemal.config.public_folder.should eq("/some/path/to/folder")
-    end
+private class CustomTestHandler < Kemal::Handler
+  def call(env)
+    env.response << "Kemal"
+    call_next env
   end
+end
 
+describe "Macros" do
   describe "#add_handler" do
     it "adds a custom handler" do
       app = Kemal::Application.new

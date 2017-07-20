@@ -1,6 +1,23 @@
 require "spec"
 require "../src/kemal"
 
+class TestContextStorageType
+  property id
+  @id = 1
+
+  def to_s
+    @id
+  end
+end
+
+class AnotherContextStorageType
+  property name
+  @name = "kemal-context"
+end
+
+Kemal::Macros.add_context_storage_type(TestContextStorageType)
+Kemal::Macros.add_context_storage_type(AnotherContextStorageType)
+
 def call_request_on_app(app, request)
   io = IO::Memory.new
   response = HTTP::Server::Response.new(io)

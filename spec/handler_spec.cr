@@ -1,13 +1,13 @@
 require "./spec_helper"
 
-class CustomTestHandler < Kemal::Handler
+private class CustomTestHandler < Kemal::Handler
   def call(env)
     env.response << "Kemal"
     call_next env
   end
 end
 
-class OnlyHandler < Kemal::Handler
+private class OnlyHandler < Kemal::Handler
   only ["/only"]
 
   def call(env)
@@ -17,7 +17,7 @@ class OnlyHandler < Kemal::Handler
   end
 end
 
-class ExcludeHandler < Kemal::Handler
+private class ExcludeHandler < Kemal::Handler
   exclude ["/exclude"]
 
   def call(env)
@@ -27,7 +27,7 @@ class ExcludeHandler < Kemal::Handler
   end
 end
 
-class PostOnlyHandler < Kemal::Handler
+private class PostOnlyHandler < Kemal::Handler
   only ["/only", "/route1", "/route2"], "POST"
 
   def call(env)
@@ -37,7 +37,7 @@ class PostOnlyHandler < Kemal::Handler
   end
 end
 
-class PostExcludeHandler < Kemal::Handler
+private class PostExcludeHandler < Kemal::Handler
   exclude ["/exclude"], "POST"
 
   def call(env)
