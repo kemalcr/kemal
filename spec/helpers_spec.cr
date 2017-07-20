@@ -17,18 +17,6 @@ describe "Macros" do
     end
   end
 
-  describe "#logging" do
-    it "sets logging status" do
-      logging false
-      Kemal.config.logging?.should be_false
-    end
-
-    it "sets a custom logger" do
-      logger CustomLogHandler.new
-      Kemal.application.logger.should be_a(CustomLogHandler)
-    end
-  end
-
   describe "#halt" do
     it "can break block with halt macro" do
       app = Kemal::Base.new
