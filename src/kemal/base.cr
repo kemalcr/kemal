@@ -13,7 +13,6 @@ class Kemal::Base
   include Macros
   include Base::DSL
   include Base::Builder
-  extend Base::ClassDSL
 
   # :nodoc:
   getter route_handler = Kemal::RouteHandler.new
@@ -41,9 +40,7 @@ class Kemal::Base
 
   # Overload of self.run with the default startup logging
   def run(port : Int32? = nil)
-    run port do
-      log "[#{config.env}] Kemal is ready to lead at #{config.scheme}://#{config.host_binding}:#{config.port}"
-    end
+    run(port) { }
   end
 
   # The command to run a `Kemal` application.

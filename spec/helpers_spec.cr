@@ -42,7 +42,7 @@ describe "Macros" do
       client_response.body.should eq("world")
 
       app.get "/breaking" do |env|
-        halt env, 404, "hello"
+        Kemal::Macros.halt env, 404, "hello"
         "world"
       end
       request = HTTP::Request.new("GET", "/breaking")
@@ -54,7 +54,7 @@ describe "Macros" do
     it "can break block with halt macro using default values" do
       app = Kemal::Base.new
       app.get "/" do |env|
-        halt env
+        Kemal::Macros.halt env
         "world"
       end
       request = HTTP::Request.new("GET", "/")
@@ -69,7 +69,7 @@ describe "Macros" do
       app = Kemal::Base.new
       app.get "/headers" do |env|
         env.response.headers.add "Content-Type", "image/png"
-        headers env, {
+        app.headers env, {
           "Access-Control-Allow-Origin" => "*",
           "Content-Type"                => "text/plain",
         }
@@ -85,7 +85,7 @@ describe "Macros" do
     it "sends file with given path and default mime-type" do
       app = Kemal::Base.new
       app.get "/" do |env|
-        send_file env, "./spec/asset/hello.ecr"
+        app.send_file env, "./spec/asset/hello.ecr"
       end
 
       request = HTTP::Request.new("GET", "/")
@@ -98,7 +98,7 @@ describe "Macros" do
     it "sends file with given path and given mime-type" do
       app = Kemal::Base.new
       app.get "/" do |env|
-        send_file env, "./spec/asset/hello.ecr", "image/jpeg"
+        app.send_file env, "./spec/asset/hello.ecr", "image/jpeg"
       end
 
       request = HTTP::Request.new("GET", "/")
@@ -111,7 +111,7 @@ describe "Macros" do
     it "sends file with binary stream" do
       app = Kemal::Base.new
       app.get "/" do |env|
-        send_file env, "Serdar".to_slice
+        app.send_file env, "Serdar".to_slice
       end
 
       request = HTTP::Request.new("GET", "/")

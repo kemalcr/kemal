@@ -14,7 +14,7 @@ class Kemal::Application < Kemal::Base
     super
 
     unless error_handlers.has_key?(404)
-      error 404 do |env|
+      self.error 404 do |env|
         render_404
       end
     end
@@ -22,7 +22,7 @@ class Kemal::Application < Kemal::Base
     # Test environment doesn't need to have signal trap, built-in images, and logging.
     unless @config.env == "test"
       # This route serves the built-in images for not_found and exceptions.
-      get "/__kemal__/:image" do |env|
+      self.get "/__kemal__/:image" do |env|
         image = env.params.url["image"]
         file_path = File.expand_path("lib/kemal/images/#{image}", Dir.current)
         if File.exists? file_path
