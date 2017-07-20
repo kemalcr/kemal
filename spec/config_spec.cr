@@ -1,5 +1,12 @@
 require "./spec_helper"
 
+private class CustomTestHandler < Kemal::Handler
+  def call(env)
+    env.response << "Kemal"
+    call_next env
+  end
+end
+
 describe "Config" do
   it "sets default port to 3000" do
     config = Kemal::Config.new
