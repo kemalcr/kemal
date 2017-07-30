@@ -6,6 +6,12 @@ module Kemal::Exceptions
     end
   end
 
+  class InvalidHTTPMethod < Exception
+    def initialize(method)
+      super "#{method} is not a valid HTTP method"
+    end
+  end
+
   class RouteNotFound < Exception
     def initialize(context)
       super "Requested path: '#{context.request.override_method.as(String)}:#{context.request.path}' was not found."
