@@ -7,19 +7,13 @@ module Kemal
     APPLICATION_JSON = "application/json"
     MULTIPART_FORM   = "multipart/form-data"
     # :nodoc:
-    alias AllParamTypes = Nil | String | Int64 | Float64 | Bool | Hash(String, JSON::Type) | Array(JSON::Type)
-    getter files
+    alias AllParamTypes = Nil | String | Array(String) | Int64 | Float64 | Bool | Hash(String, JSON::Type) | Array(JSON::Type)
+    getter params, files
 
     def initialize(@request : HTTP::Request)
-      @url = {} of String => String
-      @query = HTTP::Params.new({} of String => Array(String))
-      @body = HTTP::Params.new({} of String => Array(String))
-      @json = {} of String => AllParamTypes
+      @params = {} of String => AllParamTypes
       @files = {} of String => FileUpload
-      @url_parsed = false
-      @query_parsed = false
-      @body_parsed = false
-      @json_parsed = false
+      @params_parsed = false
     end
 
     private def unescape_url_param(value : String)
@@ -28,23 +22,21 @@ module Kemal
       value
     end
 
-    {% for method in %w(url query body json) %}
-    def {{method.id}}
-      # check memoization
-      return @{{method.id}} if @{{method.id}}_parsed
-
-      parse_{{method.id}}
-      # memoize
-      @{{method.id}}_parsed = true
-      @{{method.id}}
+    def parse
+      return if @params_parsed
+      parse_url
+      parse_query
+      parse_body
+      parse_json
+      @params_parsed = true
     end
-    {% end %}
 
     private def parse_body
+      return unless @request.body
       content_type = @request.headers["Content-Type"]?
       return unless content_type
       if content_type.try(&.starts_with?(URL_ENCODED_FORM))
-        @body = parse_part(@request.body)
+        parse_part(@request.body)
         return
       end
       if content_type.try(&.starts_with?(MULTIPART_FORM))
@@ -54,13 +46,15 @@ module Kemal
     end
 
     private def parse_query
-      @query = parse_part(@request.query)
+      return unless @request.query
+      parse_part(@request.query)
     end
 
     private def parse_url
+      return unless @request.url_params
       if params = @request.url_params
         params.each do |key, value|
-          @url[key.as(String)] = unescape_url_param(value).as(String)
+          @params[key] = unescape_url_param(value).as(String)
         end
       end
     end
@@ -72,7 +66,7 @@ module Kemal
         if !filename.nil?
           @files[upload.name] = FileUpload.new(upload: upload)
         else
-          @body[upload.name] = upload.body.gets_to_end
+          @params[upload.name] = upload.body.gets_to_end
         end
       end
     end
@@ -82,32 +76,42 @@ module Kemal
     # If request body is a JSON Array it's added into `params` as `_json` and can be accessed
     # like params["_json"]
     private def parse_json
-      return unless @request.body && @request.headers["Content-Type"]?.try(&.starts_with?(APPLICATION_JSON))
+      return unless @request.body
+      return unless @request.headers["Content-Type"]?.try(&.starts_with?(APPLICATION_JSON))
 
       body = @request.body.not_nil!.gets_to_end
       case json = JSON.parse(body).raw
       when Hash
         json.each do |key, value|
-          @json[key.as(String)] = value.as(AllParamTypes)
+          @params[key] = value.as(AllParamTypes)
         end
       when Array
-        @json["_json"] = json
+        @params["_json"] = json
       end
     end
 
     private def parse_part(part : IO?)
-      if part
-        HTTP::Params.parse(part.gets_to_end)
-      else
-        HTTP::Params.parse("")
-      end
+      return unless part
+      parse_params(part.gets_to_end)
     end
 
     private def parse_part(part : String?)
-      if part
-        HTTP::Params.parse(part.to_s)
-      else
-        HTTP::Params.parse("")
+      return unless part
+      parse_params(part.to_s)
+    end
+
+    private def parse_params(part)
+      HTTP::Params.parse(part).each do |key, value|
+        if @params.has_key?(key)
+          previous_value = @params[key]
+          if previous_value.is_a?(Array)
+            @params[key].as(Array) << value.as(String)
+          else
+            @params[key] = [previous_value.as(String), value.as(String)]
+          end
+        else
+          @params[key] ||= value.as(String)
+        end
       end
     end
   end

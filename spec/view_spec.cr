@@ -7,7 +7,7 @@ end
 describe "Views" do
   it "renders file" do
     get "/view/:name" do |env|
-      name = env.params.url["name"]
+      name = env.params["name"]
       render "spec/asset/hello.ecr"
     end
     request = HTTP::Request.new("GET", "/view/world")
@@ -17,7 +17,7 @@ describe "Views" do
 
   it "renders file with dynamic variables" do
     get "/view/:name" do |env|
-      name = env.params.url["name"]
+      name = env.params["name"]
       render_with_base_and_layout "hello.ecr"
     end
     request = HTTP::Request.new("GET", "/view/world")
@@ -27,7 +27,7 @@ describe "Views" do
 
   it "renders layout" do
     get "/view/:name" do |env|
-      name = env.params.url["name"]
+      name = env.params["name"]
       render "spec/asset/hello.ecr", "spec/asset/layout.ecr"
     end
     request = HTTP::Request.new("GET", "/view/world")
@@ -37,7 +37,7 @@ describe "Views" do
 
   it "renders layout with variables" do
     get "/view/:name" do |env|
-      name = env.params.url["name"]
+      name = env.params["name"]
       var1 = "serdar"
       var2 = "kemal"
       render "spec/asset/hello_with_content_for.ecr", "spec/asset/layout_with_yield_and_vars.ecr"
@@ -51,7 +51,7 @@ describe "Views" do
 
   it "renders layout with content_for" do
     get "/view/:name" do |env|
-      name = env.params.url["name"]
+      name = env.params["name"]
       render "spec/asset/hello_with_content_for.ecr", "spec/asset/layout_with_yield.ecr"
     end
     request = HTTP::Request.new("GET", "/view/world")
