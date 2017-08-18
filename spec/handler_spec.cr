@@ -47,6 +47,26 @@ class PostExcludeHandler < Kemal::Handler
   end
 end
 
+class ExcludeHandlerPercentW < Kemal::Handler
+  exclude %w[/exclude]
+
+  def call(env)
+    return call_next(env) if exclude_match?(env)
+    env.response.print "Exclude"
+    call_next env
+  end
+end
+
+class PostOnlyHandlerPercentW < Kemal::Handler
+  only %w[/only /route1 /route2], "POST"
+
+  def call(env)
+    return call_next(env) unless only_match?(env)
+    env.response.print "Only"
+    call_next env
+  end
+end
+
 describe "Handler" do
   it "adds custom handler before before_*" do
     filter_middleware = Kemal::FilterHandler.new
@@ -130,5 +150,12 @@ describe "Handler" do
     post_exclude_handler = PostExcludeHandler.new
     Kemal.config.handlers = [post_only_handler, post_exclude_handler]
     Kemal.config.handlers.should eq [post_only_handler, post_exclude_handler]
+  end
+
+  it "is able to use %w in macros" do
+    post_only_handler = PostOnlyHandlerPercentW.new
+    exclude_handler = ExcludeHandlerPercentW.new
+    Kemal.config.handlers = [post_only_handler, exclude_handler]
+    Kemal.config.handlers.should eq [post_only_handler, exclude_handler]
   end
 end
