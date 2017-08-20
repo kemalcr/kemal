@@ -55,6 +55,7 @@ describe "Context" do
         before_get_context_test: env.get("before_get_context_test"),
       }
     end
+
     request = HTTP::Request.new("GET", "/")
     io = IO::Memory.new
     response = HTTP::Server::Response.new(io)

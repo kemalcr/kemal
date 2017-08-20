@@ -13,7 +13,12 @@ class HTTP::Server
     end
 
     def params
-      @request.url_params ||= route_lookup.params
+      websocket? = @request.headers.has_key?("Upgrade")
+      @request.url_params ||= unless websocket?
+        route_lookup.params
+      else
+        ws_route_lookup.params
+      end
       @params ||= if @request.param_parser
                     @request.param_parser.not_nil!
                   else
@@ -32,6 +37,14 @@ class HTTP::Server
 
     def route_defined?
       route_lookup.found?
+    end
+
+    def ws_route_lookup
+      Kemal::RouteHandler::INSTANCE.lookup_ws_route(@request.path)
+    end
+
+    def ws_route_defined?
+      ws_route_lookup.found?
     end
 
     def get(name)
