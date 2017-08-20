@@ -13,12 +13,13 @@ class HTTP::Server
     end
 
     def params
-      websocket? = @request.headers.has_key?("Upgrade")
-      @request.url_params ||= unless websocket?
-        route_lookup.params
-      else
-        ws_route_lookup.params
-      end
+      connection_type = @request.headers.fetch("Connection", nil)
+      @request.url_params ||= unless connection_type == "Upgrade"
+                                route_lookup.params
+                              else
+                                ws_route_lookup.params
+                              end
+
       @params ||= if @request.param_parser
                     @request.param_parser.not_nil!
                   else

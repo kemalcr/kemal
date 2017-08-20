@@ -8,7 +8,7 @@ module Kemal
     end
 
     def call(context)
-      raise Kemal::Exceptions::RouteNotFound.new(context) unless context.ws_route_defined?
+      return call_next(context) unless context.ws_route_defined?
       super
     end
   end
