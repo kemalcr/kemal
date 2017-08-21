@@ -81,5 +81,6 @@ end
 
 Spec.after_each do
   Kemal.config.clear
-  Kemal::RouteHandler::INSTANCE.tree = Radix::Tree(Route).new
+  Kemal::RouteHandler::INSTANCE.http_routes = Radix::Tree(Route).new
+  Kemal::RouteHandler::INSTANCE.ws_routes = Radix::Tree(String).new
 end
