@@ -102,6 +102,10 @@ def send_file(env, path : String, mime_type : String? = nil)
   minsize = 860 # http://webmasters.stackexchange.com/questions/31750/what-is-recommended-minimum-object-size-for-gzip-performance-benefits ??
   request_headers = env.request.headers
   filesize = File.size(file_path)
+  filestat = File.stat(file_path)
+
+  Kemal.config.static_headers.try(&.call(env.response, file_path, filestat))
+
   File.open(file_path) do |file|
     if env.request.method == "GET" && env.request.headers.has_key?("Range")
       next multipart(file, env)
@@ -195,4 +199,8 @@ end
 # It's disabled by default.
 def gzip(status : Bool = false)
   add_handler HTTP::CompressHandler.new if status
+end
+
+def static_headers(&headers : HTTP::Server::Response, String, File::Stat -> Void)
+  Kemal.config.static_headers = headers
 end
