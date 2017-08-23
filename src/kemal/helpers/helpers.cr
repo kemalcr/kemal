@@ -201,6 +201,16 @@ def gzip(status : Bool = false)
   add_handler HTTP::CompressHandler.new if status
 end
 
+# Adds headers to `Kemal::StaticFileHandler`. This is especially useful for `CORS`.
+#
+# ```ruby
+# static_headers do |response, filepath, filestat|
+#   if filepath =~ /\.html$/
+#     response.headers.add("Access-Control-Allow-Origin", "*")
+#   end
+#   response.headers.add("Content-Size", filestat.size.to_s)
+# end
+# ```
 def static_headers(&headers : HTTP::Server::Response, String, File::Stat -> Void)
   Kemal.config.static_headers = headers
 end
