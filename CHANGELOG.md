@@ -1,3 +1,26 @@
+# Next
+
+- Dynamically insert handlers. Fixes #376.
+- Add context to WebSocket. This allows one to use `HTTP::Server::Context` in `ws` declarations. Fixes #349.
+
+```ruby
+ws "/:room_name" do |socket, env|
+  env.params.url["room_name"]
+end
+```
+
+- Add support for customizing the headers of built-in `Kemal::StaticFileHandler`. Useful for supporting `CORS`. 
+
+```ruby
+static_headers do |response, filepath, filestat|
+  if filepath =~ /\.html$/
+      response.headers.add("Access-Control-Allow-Origin", "*")
+    end
+    response.headers.add("Content-Size", filestat.size.to_s)
+  end
+end
+```
+
 # 0.20.0 (01-07-2017)
 
 - Crystal 0.23.0 support! As always, Kemal is compatible with the latest major release of Crystal 💎
