@@ -8,23 +8,23 @@
 # - Kemal::StaticFileHandler
 # - Here goes custom handlers
 # - Kemal::RouteHandler
-def add_handler(handler)
+def add_handler(handler : HTTP::Handler)
   Kemal.config.add_handler handler
 end
 
-def add_handler(handler, position : Int32)
+def add_handler(handler : HTTP::Handler, position : Int32)
   Kemal.config.add_handler handler, position
 end
 
 # Sets public folder from which the static assets will be served.
 # By default this is `/public` not `src/public`.
-def public_folder(path)
+def public_folder(path : String)
   Kemal.config.public_folder = path
 end
 
 # Logs the output via `logger`.
 # This is the built-in `Kemal::CommonLogHandler` by default which uses STDOUT.
-def log(message)
+def log(message : String)
   Kemal.config.logger.write "#{message}\n"
 end
 
@@ -32,7 +32,7 @@ end
 # This is enabled by default.
 #
 #   logging false
-def logging(status)
+def logging(status : Bool)
   Kemal.config.logging = status
 end
 
@@ -57,7 +57,7 @@ end
 # Now that we have a custom logger here's how we use it
 #
 #   logger MyCustomLogger.new
-def logger(logger)
+def logger(logger : Kemal::BaseLogHandler)
   Kemal.config.logger = logger
   Kemal.config.add_handler logger
 end
@@ -81,7 +81,7 @@ end
 #   def call(env)
 #     headers(env, {"custom-header" => "This is a custom value"})
 #   end
-def headers(env, additional_headers)
+def headers(env : HTTP::Server::Context, additional_headers : Hash(String, String))
   env.response.headers.merge!(additional_headers)
 end
 

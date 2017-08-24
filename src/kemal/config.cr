@@ -93,7 +93,7 @@ module Kemal
       ERROR_HANDLERS
     end
 
-    def add_error_handler(status_code, &handler : HTTP::Server::Context, Exception -> _)
+    def add_error_handler(status_code : Int32, &handler : HTTP::Server::Context, Exception -> _)
       ERROR_HANDLERS[status_code] = ->(context : HTTP::Server::Context, error : Exception) { handler.call(context, error).to_s }
     end
 

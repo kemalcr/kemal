@@ -19,7 +19,7 @@ module Kemal
       end
     end
 
-    private def call_exception_with_status_code(context, exception, status_code)
+    private def call_exception_with_status_code(context : HTTP::Server::Context, exception : Exception, status_code : Int32)
       if Kemal.config.error_handlers.has_key?(status_code)
         context.response.content_type = "text/html" unless context.response.headers.has_key?("Content-Type")
         context.response.print Kemal.config.error_handlers[status_code].call(context, exception)

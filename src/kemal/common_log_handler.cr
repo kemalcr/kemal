@@ -15,7 +15,7 @@ module Kemal
       context
     end
 
-    def write(message)
+    def write(message : String)
       @handler << message
     end
 

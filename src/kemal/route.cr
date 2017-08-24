@@ -7,7 +7,7 @@ module Kemal
     @handler : HTTP::Server::Context -> String
     @method : String
 
-    def initialize(@method, @path : String, &handler : HTTP::Server::Context -> _)
+    def initialize(@method : String, @path : String, &handler : HTTP::Server::Context -> _)
       @handler = ->(context : HTTP::Server::Context) do
         handler.call(context).to_s
       end

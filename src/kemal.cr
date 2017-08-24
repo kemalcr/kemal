@@ -8,7 +8,7 @@ require "./kemal/helpers/*"
 
 module Kemal
   # Overload of self.run with the default startup logging
-  def self.run(port = nil)
+  def self.run(port : Int32? = nil)
     self.run port do
       log "[#{config.env}] Kemal is ready to lead at #{config.scheme}://#{config.host_binding}:#{config.port}"
     end
@@ -22,7 +22,7 @@ module Kemal
   # The command to run a `Kemal` application.
   # The port can be given to `#run` but is optional.
   # If not given Kemal will use `Kemal::Config#port`
-  def self.run(port = nil, &block)
+  def self.run(port : Int32? = nil, &block)
     Kemal::CLI.new
     config = Kemal.config
     config.setup

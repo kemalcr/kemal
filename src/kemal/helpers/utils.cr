@@ -1,14 +1,14 @@
 module Kemal
   module Utils
-    def self.path_starts_with_slash?(path)
+    def self.path_starts_with_slash?(path : String)
       path.starts_with?("/")
     end
 
-    def self.zip_types(path) # https://github.com/h5bp/server-configs-nginx/blob/master/nginx.conf
+    def self.zip_types(path : String) # https://github.com/h5bp/server-configs-nginx/blob/master/nginx.conf
       [".htm", ".html", ".txt", ".css", ".js", ".svg", ".json", ".xml", ".otf", ".ttf", ".woff", ".woff2"].includes? File.extname(path)
     end
 
-    def self.mime_type(path)
+    def self.mime_type(path : String)
       case File.extname(path)
       when ".txt"          then "text/plain"
       when ".htm", ".html" then "text/html"

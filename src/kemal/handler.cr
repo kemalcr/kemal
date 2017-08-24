@@ -63,7 +63,7 @@ module Kemal
       @@exclude_routes_tree.find(radix_path(env.request.method, env.request.path)).found?
     end
 
-    private def radix_path(method : String, path)
+    private def radix_path(method : String, path : String)
       "#{self.class}/#{method.downcase}#{path}"
     end
   end

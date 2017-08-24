@@ -4,6 +4,6 @@ module Kemal
     include HTTP::Handler
 
     abstract def call(context)
-    abstract def write(message)
+    abstract def write(message : String)
   end
 end

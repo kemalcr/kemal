@@ -15,10 +15,10 @@ class HTTP::Server
     def params
       connection_type = @request.headers.fetch("Connection", nil)
       @request.url_params ||= unless connection_type == "Upgrade"
-                                route_lookup.params
-                              else
-                                ws_route_lookup.params
-                              end
+        route_lookup.params
+      else
+        ws_route_lookup.params
+      end
 
       @params ||= if @request.param_parser
                     @request.param_parser.not_nil!
@@ -27,7 +27,7 @@ class HTTP::Server
                   end
     end
 
-    def redirect(url, status_code = 302)
+    def redirect(url : String, status_code : Int32 = 302)
       @response.headers.add "Location", url
       @response.status_code = status_code
     end
@@ -48,11 +48,11 @@ class HTTP::Server
       ws_route_lookup.found?
     end
 
-    def get(name)
+    def get(name : String)
       @store[name]
     end
 
-    def set(name, value)
+    def set(name : String, value : StoreTypes)
       @store[name] = value
     end
   end

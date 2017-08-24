@@ -8,7 +8,7 @@ class HTTP::Request
   end
 
   # Checks if method contained in _method param is valid one
-  def self.override_method_valid?(override_method)
+  def self.override_method_valid?(override_method : String)
     return false unless override_method.is_a?(String)
     override_method = override_method.upcase
     override_method == "PUT" || override_method == "PATCH" || override_method == "DELETE"
