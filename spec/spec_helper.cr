@@ -77,6 +77,7 @@ end
 Spec.before_each do
   config = Kemal.config
   config.env = "development"
+  config.logging = false
 end
 
 Spec.after_each do
