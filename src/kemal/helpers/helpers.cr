@@ -93,7 +93,7 @@ end
 # Optionally you can override the mime_type
 #
 #   send_file env, "./path/to/file", "image/jpeg"
-def send_file(env, path : String, mime_type : String? = nil)
+def send_file(env : HTTP::Server::Context, path : String, mime_type : String? = nil)
   config = Kemal.config.serve_static
   file_path = File.expand_path(path, Dir.current)
   mime_type ||= Kemal::Utils.mime_type(file_path)
@@ -128,7 +128,7 @@ def send_file(env, path : String, mime_type : String? = nil)
   return
 end
 
-private def multipart(file, env)
+private def multipart(file, env : HTTP::Server::Context)
   # See http://httpwg.org/specs/rfc7233.html
   fileb = file.size
 
@@ -187,7 +187,7 @@ end
 # Optionally you can override the mime_type
 #
 #   send_file env, data_slice, "image/jpeg"
-def send_file(env, data : Slice(UInt8), mime_type : String? = nil)
+def send_file(env : HTTP::Server::Context, data : Slice(UInt8), mime_type : String? = nil)
   mime_type ||= "application/octet-stream"
   env.response.content_type = mime_type
   env.response.content_length = data.bytesize

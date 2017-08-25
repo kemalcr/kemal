@@ -4,7 +4,7 @@ module Kemal
     include HTTP::Handler
     INSTANCE = new
 
-    def call(context)
+    def call(context : HTTP::Server::Context)
       begin
         call_next(context)
       rescue ex : Kemal::Exceptions::RouteNotFound

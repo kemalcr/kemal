@@ -3,7 +3,7 @@ module Kemal
   abstract class BaseLogHandler
     include HTTP::Handler
 
-    abstract def call(context)
+    abstract def call(context : HTTP::Server::Context)
     abstract def write(message : String)
   end
 end

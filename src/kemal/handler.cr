@@ -21,7 +21,7 @@ module Kemal
     end
   end
 
-    def call(env)
+    def call(env : HTTP::Server::Context)
       call_next(env)
     end
 
@@ -40,7 +40,7 @@ module Kemal
     #         puts "If the path is / i will be doing some processing here."
     #       end
     #     end
-    def only_match?(env)
+    def only_match?(env : HTTP::Server::Context)
       @@only_routes_tree.find(radix_path(env.request.method, env.request.path)).found?
     end
 
@@ -59,7 +59,7 @@ module Kemal
     #         puts "If the path is not / i will be doing some processing here."
     #       end
     #     end
-    def exclude_match?(env)
+    def exclude_match?(env : HTTP::Server::Context)
       @@exclude_routes_tree.find(radix_path(env.request.method, env.request.path)).found?
     end
 

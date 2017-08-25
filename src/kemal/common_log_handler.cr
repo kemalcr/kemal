@@ -7,7 +7,7 @@ module Kemal
       @handler = io
     end
 
-    def call(context)
+    def call(context : HTTP::Server::Context)
       time = Time.now
       call_next(context)
       elapsed_text = elapsed_text(Time.now - time)

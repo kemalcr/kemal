@@ -4,7 +4,7 @@
 
 module Kemal
   class StaticFileHandler < HTTP::StaticFileHandler
-    def call(context)
+    def call(context : HTTP::Server::Context)
       return call_next(context) if context.request.path.not_nil! == "/"
 
       unless context.request.method == "GET" || context.request.method == "HEAD"
@@ -57,7 +57,7 @@ module Kemal
       end
     end
 
-    private def etag(context, file_path)
+    private def etag(context : HTTP::Server::Context, file_path : String)
       etag = %{W/"#{File.lstat(file_path).mtime.epoch.to_s}"}
       context.response.headers["ETag"] = etag
       return false if !context.request.headers["If-None-Match"]? || context.request.headers["If-None-Match"] != etag

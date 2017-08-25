@@ -7,7 +7,7 @@ module Kemal
       Kemal::RouteHandler::INSTANCE.add_ws_route @path
     end
 
-    def call(context)
+    def call(context : HTTP::Server::Context)
       return call_next(context) unless context.ws_route_defined?
       super
     end
