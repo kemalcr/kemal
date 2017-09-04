@@ -41,7 +41,7 @@ module Kemal
     {% end %}
 
     private def parse_body
-      content_type = @request.headers["Content-Type"]?
+      content_type = @request.content_type
       return unless content_type
       if content_type.try(&.starts_with?(URL_ENCODED_FORM))
         @body = parse_part(@request.body)
