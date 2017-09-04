@@ -42,8 +42,7 @@ module Kemal
     # Processes the route if it's a match. Otherwise renders 404.
     private def process_request(context)
       raise Kemal::Exceptions::RouteNotFound.new(context) unless context.route_defined?
-      route = context.route_lookup.payload.as(Route)
-      content = route.handler.call(context)
+      content = context.route.handler.call(context)
     ensure
       if Kemal.config.error_handlers.has_key?(context.response.status_code)
         raise Kemal::Exceptions::CustomException.new(context)

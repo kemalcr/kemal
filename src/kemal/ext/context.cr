@@ -32,6 +32,10 @@ class HTTP::Server
       @response.status_code = status_code
     end
 
+    def route
+      route_lookup.payload.as(Route)
+    end
+
     def route_lookup
       Kemal::RouteHandler::INSTANCE.lookup_route(@request.override_method.as(String), @request.path)
     end
