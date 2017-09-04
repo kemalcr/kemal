@@ -7,6 +7,10 @@ class HTTP::Request
     @override_method ||= check_for_method_override!
   end
 
+  def content_type
+    @headers["Content-Type"]?
+  end
+
   # Checks if method contained in _method param is valid one
   def self.override_method_valid?(override_method : String)
     return false unless override_method.is_a?(String)
