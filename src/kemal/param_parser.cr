@@ -60,7 +60,7 @@ module Kemal
     private def parse_url
       if params = @request.url_params
         params.each do |key, value|
-          @url[key.as(String)] = unescape_url_param(value).as(String)
+          @url[key] = unescape_url_param(value)
         end
       end
     end
@@ -88,7 +88,7 @@ module Kemal
       case json = JSON.parse(body).raw
       when Hash
         json.each do |key, value|
-          @json[key.as(String)] = value.as(AllParamTypes)
+          @json[key] = value.as(AllParamTypes)
         end
       when Array
         @json["_json"] = json
