@@ -5,7 +5,6 @@ module Kemal
   struct Route
     getter method, path, handler
     @handler : HTTP::Server::Context -> String
-    @method : String
 
     def initialize(@method : String, @path : String, &handler : HTTP::Server::Context -> _)
       @handler = ->(context : HTTP::Server::Context) do
