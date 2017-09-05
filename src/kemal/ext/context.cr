@@ -33,7 +33,7 @@ class HTTP::Server
     end
 
     def route
-      route_lookup.payload.as(Route)
+      route_lookup.payload.as(Kemal::Route)
     end
 
     def route_lookup
