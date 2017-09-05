@@ -1,7 +1,7 @@
-# Next
+# 0.21.0 (05-09-2017)
 
-- Dynamically insert handlers. Fixes #376.
-- Add context to WebSocket. This allows one to use `HTTP::Server::Context` in `ws` declarations. Fixes #349.
+- Dynamically insert handlers :muscle: Fixes [#376](https://github.com/kemalcr/kemal/pull/376).
+- Add context to WebSocket. This allows one to use `HTTP::Server::Context` in `ws` declarations :heart_eyes: Fixes [#349](https://github.com/kemalcr/kemal/pull/349).
 
 ```ruby
 ws "/:room_name" do |socket, env|
@@ -9,7 +9,7 @@ ws "/:room_name" do |socket, env|
 end
 ```
 
-- Add support for customizing the headers of built-in `Kemal::StaticFileHandler`. Useful for supporting `CORS`. 
+- Add support for customizing the headers of built-in `Kemal::StaticFileHandler` :hammer: Useful for supporting `CORS` for single page applications :clap:
 
 ```ruby
 static_headers do |response, filepath, filestat|
@@ -20,6 +20,12 @@ static_headers do |response, filepath, filestat|
   end
 end
 ```
+
+- Allow %w in Handler macros [#385](https://github.com/kemalcr/kemal/pull/385). Thanks @will :pray:
+
+- Security: X-Content-Type-Options: nosniff for static files. Fixes [#379](https://github.com/kemalcr/kemal/issues/379). Thanks @crisward :pray:
+
+- Performance: [Remove tempfile management to OS](https://github.com/kemalcr/kemal/commit/a1520de7ed3865fa73258343a80fad4f20666a99). This brings %10 - 15 performance boost to Kemal :rocket:
 
 # 0.20.0 (01-07-2017)
 
