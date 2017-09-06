@@ -11,16 +11,17 @@ module Kemal
     WEBSOCKET_HANDLERS = [] of HTTP::WebSocketHandler
     FILTER_HANDLERS    = [] of HTTP::Handler
     ERROR_HANDLERS     = {} of Int32 => HTTP::Server::Context, Exception -> String
+
     {% if flag?(:without_openssl) %}
     @ssl : Bool?
     {% else %}
     @ssl : OpenSSL::SSL::Context::Server?
     {% end %}
 
-    property host_binding, ssl, port, env, public_folder, logging, running,
-      always_rescue, serve_static : (Bool | Hash(String, Bool)), server, extra_options,
-      shutdown_message
     getter custom_handler_position
+    property host_binding, ssl, port, env, public_folder, logging, running
+    property always_rescue, server, extra_options, shutdown_message
+    property serve_static : (Bool | Hash(String, Bool))
     property static_headers : (HTTP::Server::Response, String, File::Stat -> Void)?
 
     def initialize
