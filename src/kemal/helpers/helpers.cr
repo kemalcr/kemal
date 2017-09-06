@@ -117,7 +117,7 @@ def send_file(env : HTTP::Server::Context, path : String, mime_type : String? = 
       end
     elsif request_headers.includes_word?("Accept-Encoding", "deflate") && config.is_a?(Hash) && config["gzip"]? == true && filesize > minsize && Kemal::Utils.zip_types(file_path)
       env.response.headers["Content-Encoding"] = "deflate"
-      Flate::Writer.new(env.response) do |deflate|
+      Flate::Writer.open(env.response) do |deflate|
         IO.copy(file, deflate)
       end
     else
