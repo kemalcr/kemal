@@ -21,6 +21,38 @@ module Kemal
       @body_parsed = false
       @json_parsed = false
     end
+    
+    # Checks each of the different parameter stores in turn for the given
+    # parameter name, and returns it if found
+    def get?(name : String) : AllParamTypes
+      {% for method in %w(json body query url) %}
+        return @{{method.id}}[name] if @{{method.id}}.has_key? name
+      {% end %}
+    end
+
+    # Checks each of the different parameter stores in turn for the given
+    # parameter name, and returns it if found. Otherwise, returns the default
+    def get(name : String, default : AllParamTypes = nil) : AllParamTypes
+      if value = get?(name)
+        return value
+      end
+
+      default
+    end
+
+    # Returns a hash containing parameters from all stores
+    def all : Hash(String, AllParamTypes)
+      params = {} of String => AllParamTypes
+
+      {% for method in %w(url query body json) %}
+        puts "{{method.id}}", @{{method.id}}
+        {{method.id}}.each do |key, value|
+          params[key] = value
+        end
+      {% end %}
+
+      params
+    end
 
     private def unescape_url_param(value : String)
       value.size == 0 ? value : URI.unescape(value)
