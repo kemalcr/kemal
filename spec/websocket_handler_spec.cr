@@ -3,7 +3,7 @@ require "./spec_helper"
 describe "Kemal::WebSocketHandler" do
   it "doesn't match on wrong route" do
     handler = Kemal::WebSocketHandler::INSTANCE
-    handler.next = Kemal::CommonExceptionHandler::INSTANCE
+    handler.next = Kemal::RouteHandler::INSTANCE
     ws "/" { }
     headers = HTTP::Headers{
       "Upgrade"           => "websocket",
@@ -14,15 +14,10 @@ describe "Kemal::WebSocketHandler" do
     io = IO::Memory.new
     response = HTTP::Server::Response.new(io)
     context = HTTP::Server::Context.new(request, response)
-    begin
+
+    expect_raises(Kemal::Exceptions::RouteNotFound) do
       handler.call context
-    rescue IO::Error
-      # Raises because the IO::Memory is empty
     end
-    response.close
-    io.rewind
-    client_response = HTTP::Client::Response.from_io(io, decompress: false)
-    client_response.status_code.should eq(404)
   end
 
   it "matches on given route" do
