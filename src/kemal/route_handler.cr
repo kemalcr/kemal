@@ -6,13 +6,10 @@ module Kemal
   class RouteHandler
     include HTTP::Handler
     INSTANCE = new
-
     property http_routes
-    property ws_routes
 
     def initialize
       @http_routes = Radix::Tree(Route).new
-      @ws_routes = Radix::Tree(String).new
     end
 
     def call(context : HTTP::Server::Context)
