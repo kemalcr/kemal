@@ -13,13 +13,7 @@ class HTTP::Server
     end
 
     def params
-      connection_type = @request.headers.fetch("Connection", nil)
-      @request.url_params ||= unless connection_type == "Upgrade"
-        route_lookup.params
-      else
-        ws_route_lookup.params
-      end
-
+      @request.url_params ||= route_lookup.params
       @params ||= if @request.param_parser
                     @request.param_parser.not_nil!
                   else
@@ -36,6 +30,10 @@ class HTTP::Server
       route_lookup.payload
     end
 
+    def websocket
+      ws_route_lookup.payload
+    end
+
     def route_lookup
       Kemal::RouteHandler::INSTANCE.lookup_route(@request.override_method.as(String), @request.path)
     end
@@ -45,7 +43,7 @@ class HTTP::Server
     end
 
     def ws_route_lookup
-      Kemal::RouteHandler::INSTANCE.lookup_ws_route(@request.path)
+      Kemal::WebSocketHandler::INSTANCE.lookup_ws_route(@request.path)
     end
 
     def ws_route_defined?

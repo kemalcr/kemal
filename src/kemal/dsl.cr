@@ -16,7 +16,7 @@ FILTER_METHODS = %w(get post put patch delete options all)
 
 def ws(path : String, &block : HTTP::WebSocket, HTTP::Server::Context -> Void)
   raise Kemal::Exceptions::InvalidPathStartException.new("ws", path) unless Kemal::Utils.path_starts_with_slash?(path)
-  Kemal::WebSocketHandler.new path, &block
+  Kemal::WebSocketHandler::INSTANCE.add_ws_route path, &block
 end
 
 def error(status_code : Int32, &block : HTTP::Server::Context, Exception -> _)

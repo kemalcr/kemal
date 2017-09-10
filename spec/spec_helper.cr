@@ -48,8 +48,7 @@ def create_ws_request_and_return_io(handler, request)
   rescue IO::Error
     # Raises because the IO::Memory is empty
   end
-  response.close
-  io
+  io.rewind
 end
 
 def call_request_on_app(request)
@@ -83,5 +82,5 @@ end
 Spec.after_each do
   Kemal.config.clear
   Kemal::RouteHandler::INSTANCE.http_routes = Radix::Tree(Route).new
-  Kemal::RouteHandler::INSTANCE.ws_routes = Radix::Tree(String).new
+  Kemal::WebSocketHandler::INSTANCE.ws_routes = Radix::Tree(WebSocket).new
 end

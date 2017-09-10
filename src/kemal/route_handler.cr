@@ -26,17 +26,9 @@ module Kemal
       add_to_http_radix_tree("HEAD", path, Route.new("HEAD", path) { |ctx| "" }) if method == "GET"
     end
 
-    def add_ws_route(path : String)
-      add_to_ws_radix_tree path
-    end
-
     # Check if a route is defined and returns the lookup
     def lookup_route(verb : String, path : String)
       @http_routes.find radix_path(verb, path)
-    end
-
-    def lookup_ws_route(path : String)
-      @ws_routes.find "/ws#{path}"
     end
 
     # Processes the route if it's a match. Otherwise renders 404.
@@ -58,11 +50,6 @@ module Kemal
     private def add_to_http_radix_tree(method, path, route)
       node = radix_path method, path
       @http_routes.add node, route
-    end
-
-    private def add_to_ws_radix_tree(path)
-      node = radix_path "ws", path
-      @ws_routes.add node, node
     end
   end
 end

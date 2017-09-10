@@ -12,7 +12,7 @@ describe "Macros" do
     it "adds a custom handler" do
       add_handler CustomTestHandler.new
       Kemal.config.setup
-      Kemal.config.handlers.size.should eq 6
+      Kemal.config.handlers.size.should eq 7
     end
   end
 

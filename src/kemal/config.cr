@@ -109,9 +109,9 @@ module Kemal
         setup_static_file_handler
         setup_custom_handlers
         setup_filter_handlers
-        setup_websocket_handlers
         @default_handlers_setup = true
         @router_included = true
+        HANDLERS.insert(HANDLERS.size, Kemal::WebSocketHandler::INSTANCE)
         HANDLERS.insert(HANDLERS.size, Kemal::RouteHandler::INSTANCE)
       end
     end

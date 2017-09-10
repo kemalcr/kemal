@@ -1,15 +1,38 @@
 module Kemal
   # Kemal::WebSocketHandler is used for building a WebSocket route.
   # For each WebSocket route a new handler is created and registered to global handlers.
-  class WebSocketHandler < HTTP::WebSocketHandler
-    def initialize(@path : String, &@proc : HTTP::WebSocket, HTTP::Server::Context -> Void)
-      Kemal.config.add_handler self
-      Kemal::RouteHandler::INSTANCE.add_ws_route @path
+  class WebSocketHandler
+    include HTTP::Handler
+    INSTANCE = new
+    property ws_routes
+
+    def initialize
+      @ws_routes = Radix::Tree(WebSocket).new
     end
 
     def call(context : HTTP::Server::Context)
       return call_next(context) unless context.ws_route_defined?
-      super
+      context.request.url_params ||= context.ws_route_lookup.params
+      content = context.websocket.call(context)
+      context.response.print(content)
+      context
+    end
+
+    def lookup_ws_route(path : String)
+      @ws_routes.find "/ws#{path}"
+    end
+
+    def add_ws_route(path : String, &handler : HTTP::WebSocket, HTTP::Server::Context -> Void)
+      add_to_ws_radix_tree path, WebSocket.new(path, &handler)
+    end
+
+    private def add_to_ws_radix_tree(path, websocket)
+      node = radix_path "ws", path
+      @ws_routes.add node, websocket
+    end
+
+    private def radix_path(method, path)
+      "/#{method.downcase}#{path}"
     end
   end
 end
