@@ -11,7 +11,7 @@ module Kemal
     end
 
     def call(context : HTTP::Server::Context)
-      return call_next(context) unless context.ws_route_defined?
+      return call_next(context) unless context.ws_route_defined? && websocket_upgrade_request?(context)
       context.request.url_params ||= context.ws_route_lookup.params
       content = context.websocket.call(context)
       context.response.print(content)
@@ -33,6 +33,13 @@ module Kemal
 
     private def radix_path(method, path)
       "/#{method.downcase}#{path}"
+    end
+
+    private def websocket_upgrade_request?(context)
+      return false unless upgrade = context.request.headers["Upgrade"]?
+      return false unless upgrade.compare("websocket", case_insensitive: true) == 0
+
+      context.request.headers.includes_word?("Connection", "Upgrade")
     end
   end
 end

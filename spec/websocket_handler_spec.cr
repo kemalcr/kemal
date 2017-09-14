@@ -47,4 +47,20 @@ describe "Kemal::WebSocketHandler" do
     io_with_context = create_ws_request_and_return_io(handler, request)
     io_with_context.to_s.should eq("HTTP/1.1 101 Switching Protocols\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-Websocket-Accept: s3pPLMBiTxaQ9kYGzzhZRbK+xOo=\r\n\r\n")
   end
+
+  it "matches correct verb" do
+    handler = Kemal::WebSocketHandler::INSTANCE
+    handler.next = Kemal::RouteHandler::INSTANCE
+    ws "/" { }
+    get "/" { "get" }
+    request = HTTP::Request.new("GET", "/")
+    io = IO::Memory.new
+    response = HTTP::Server::Response.new(io)
+    context = HTTP::Server::Context.new(request, response)
+    handler.call(context)
+    response.close
+    io.rewind
+    client_response = HTTP::Client::Response.from_io(io, decompress: false)
+    client_response.body.should eq("get")
+  end
 end
