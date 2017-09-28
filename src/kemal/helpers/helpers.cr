@@ -98,6 +98,7 @@ def send_file(env : HTTP::Server::Context, path : String, mime_type : String? = 
   file_path = File.expand_path(path, Dir.current)
   mime_type ||= Kemal::Utils.mime_type(file_path)
   env.response.content_type = mime_type
+  env.response.headers["Accept-Ranges"] = "bytes"
   env.response.headers["X-Content-Type-Options"] = "nosniff"
   minsize = 860 # http://webmasters.stackexchange.com/questions/31750/what-is-recommended-minimum-object-size-for-gzip-performance-benefits ??
   request_headers = env.request.headers
