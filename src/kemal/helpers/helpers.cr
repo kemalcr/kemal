@@ -98,6 +98,7 @@ def send_file(env : HTTP::Server::Context, path : String, mime_type : String? = 
   file_path = File.expand_path(path, Dir.current)
   mime_type ||= Kemal::Utils.mime_type(file_path)
   env.response.content_type = mime_type
+  env.response.headers["Accept-Ranges"] = "bytes"
   env.response.headers["X-Content-Type-Options"] = "nosniff"
   minsize = 860 # http://webmasters.stackexchange.com/questions/31750/what-is-recommended-minimum-object-size-for-gzip-performance-benefits ??
   request_headers = env.request.headers
@@ -149,14 +150,15 @@ private def multipart(file, env : HTTP::Server::Context)
   end
 
   if endb == 0
-    endb = fileb
+    endb = fileb - 1
   end
 
-  if startb < endb && endb <= fileb
+  if startb < endb && endb < fileb
+    content_length = 1 + endb - startb
     env.response.status_code = 206
-    env.response.content_length = endb - startb
+    env.response.content_length = content_length
     env.response.headers["Accept-Ranges"] = "bytes"
-    env.response.headers["Content-Range"] = "bytes #{startb}-#{endb - 1}/#{fileb}" # MUST
+    env.response.headers["Content-Range"] = "bytes #{startb}-#{endb}/#{fileb}" # MUST
 
     if startb > 1024
       skipped = 0
@@ -172,7 +174,7 @@ private def multipart(file, env : HTTP::Server::Context)
       file.skip(startb)
     end
 
-    IO.copy(file, env.response, endb - startb)
+    IO.copy(file, env.response, content_length)
   else
     env.response.content_length = fileb
     env.response.status_code = 200 # Range not satisfable, see 4.4 Note
