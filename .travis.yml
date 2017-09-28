@@ -4,7 +4,8 @@ crystal:
   - nightly
 
 script:
-  crystal spec --release
+  - crystal spec
+  - crystal spec --release
 
 matrix:
   allow_failures:
