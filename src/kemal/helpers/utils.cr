@@ -24,6 +24,7 @@ module Kemal
       when ".otf", ".ttf"  then "application/font-sfnt"
       when ".woff"         then "application/font-woff"
       when ".woff2"        then "font/woff2"
+      when ".mp4"          then "video/mp4"
       else                      "application/octet-stream"
       end
     end
