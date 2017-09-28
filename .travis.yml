@@ -5,7 +5,7 @@ crystal:
 
 script:
   - crystal spec
-  - crystal spec --release
+  - crystal spec --release --no-debug
 
 matrix:
   allow_failures:
