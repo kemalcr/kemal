@@ -152,9 +152,10 @@ private def multipart(file, env : HTTP::Server::Context)
     endb = fileb - 1
   end
 
-  if startb < endb && endb <= fileb
+  if startb < endb && endb < fileb
+    content_length = 1 + endb - startb
     env.response.status_code = 206
-    env.response.content_length = endb - startb
+    env.response.content_length = content_length
     env.response.headers["Accept-Ranges"] = "bytes"
     env.response.headers["Content-Range"] = "bytes #{startb}-#{endb}/#{fileb}" # MUST
 
@@ -172,7 +173,7 @@ private def multipart(file, env : HTTP::Server::Context)
       file.skip(startb)
     end
 
-    IO.copy(file, env.response, endb - startb)
+    IO.copy(file, env.response, content_length)
   else
     env.response.content_length = fileb
     env.response.status_code = 200 # Range not satisfable, see 4.4 Note
