@@ -2,6 +2,11 @@ language: crystal
 crystal:
   - latest
   - nightly
+
+script:
+  - crystal spec
+  - crystal spec --release --no-debug
+
 matrix:
   allow_failures:
     - crystal: nightly

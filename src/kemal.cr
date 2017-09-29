@@ -8,10 +8,14 @@ require "./kemal/helpers/*"
 
 module Kemal
   # Overload of self.run with the default startup logging
-  def self.run(port : Int32? = nil)
+  def self.run(port : Int32?)
     self.run port do
       log "[#{config.env}] Kemal is ready to lead at #{config.scheme}://#{config.host_binding}:#{config.port}"
     end
+  end
+  # Overload of self.run without port - fixex #399
+  def self.run 
+    self.run(nil)
   end
 
   # Overload of self.run to allow just a block
