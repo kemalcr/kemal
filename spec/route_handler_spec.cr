@@ -10,6 +10,15 @@ describe "Kemal::RouteHandler" do
     client_response.body.should eq("hello")
   end
 
+  it "routes should only return strings" do
+    get "/" do
+      100
+    end
+    request = HTTP::Request.new("GET", "/")
+    client_response = call_request_on_app(request)
+    client_response.body.should eq("")
+  end
+
   it "routes request with query string" do
     get "/" do |env|
       "hello #{env.params.query["message"]}"
@@ -155,4 +164,5 @@ describe "Kemal::RouteHandler" do
     client_response.status_code.should eq(302)
     client_response.headers.has_key?("Location").should eq(true)
   end
+  
 end
