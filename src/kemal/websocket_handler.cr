@@ -22,7 +22,7 @@ module Kemal
       @ws_routes.find "/ws#{path}"
     end
 
-    def add_ws_route(path : String, &handler : HTTP::WebSocket, HTTP::Server::Context -> Void)
+    def add_route(path : String, &handler : HTTP::WebSocket, HTTP::Server::Context -> Void)
       add_to_ws_radix_tree path, WebSocket.new(path, &handler)
     end
 

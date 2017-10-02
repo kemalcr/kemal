@@ -18,7 +18,7 @@ module Kemal
 
     # Adds a given route to routing tree. As an exception each `GET` route additionaly defines
     # a corresponding `HEAD` route.
-    def add_http_route(method : String, path : String, &handler : HTTP::Server::Context -> _)
+    def add_route(method : String, path : String, &handler : HTTP::Server::Context -> _)
       add_to_http_radix_tree method, path, Route.new(method, path, &handler)
       add_to_http_radix_tree("HEAD", path, Route.new("HEAD", path) { |ctx| "" }) if method == "GET"
     end
