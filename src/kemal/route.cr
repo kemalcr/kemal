@@ -8,7 +8,8 @@ module Kemal
 
     def initialize(@method : String, @path : String, &handler : HTTP::Server::Context -> _)
       @handler = ->(context : HTTP::Server::Context) do
-        handler.call(context).to_s
+        output = handler.call(context)
+        output.is_a?(String) ? output : ""
       end
     end
   end
