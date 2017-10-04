@@ -14,7 +14,7 @@ module Kemal
     end
   end
   # Overload of self.run without port - fixex #399
-  def self.run 
+  def self.run
     self.run(nil)
   end
 
@@ -31,11 +31,6 @@ module Kemal
     config = Kemal.config
     config.setup
     config.port = port if port
-
-    config.server = HTTP::Server.new(config.host_binding, config.port, config.handlers)
-    {% if !flag?(:without_openssl) %}
-    config.server.tls = config.ssl
-    {% end %}
 
     unless Kemal.config.error_handlers.has_key?(404)
       error 404 do |env|
@@ -63,15 +58,21 @@ module Kemal
       end
     end
 
+    server = HTTP::Server.new(config.host_binding, config.port, config.handlers)
+    {% if !flag?(:without_openssl) %}
+    server.tls = config.ssl
+    {% end %}
+    config.server ||= server
     config.running = true
+
     yield config
-    config.server.listen if config.env != "test"
+    config.server.not_nil!.listen if config.env != "test" && config.server
   end
 
   def self.stop
     if config.running
       if config.server
-        config.server.close
+        config.server.not_nil!.close
         config.running = false
       else
         raise "Kemal.config.server is not set. Please use Kemal.run to set the server."
