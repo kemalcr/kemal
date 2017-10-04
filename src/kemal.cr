@@ -13,6 +13,7 @@ module Kemal
       log "[#{config.env}] Kemal is ready to lead at #{config.scheme}://#{config.host_binding}:#{config.port}"
     end
   end
+
   # Overload of self.run without port - fixex #399
   def self.run
     self.run(nil)
@@ -58,11 +59,10 @@ module Kemal
       end
     end
 
-    server = HTTP::Server.new(config.host_binding, config.port, config.handlers)
+    config.server ||= HTTP::Server.new(config.host_binding, config.port, config.handlers)
     {% if !flag?(:without_openssl) %}
-    server.tls = config.ssl
+    config.server.not_nil!.tls = config.ssl
     {% end %}
-    config.server ||= server
     config.running = true
 
     yield config

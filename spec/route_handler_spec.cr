@@ -164,5 +164,4 @@ describe "Kemal::RouteHandler" do
     client_response.status_code.should eq(302)
     client_response.headers.has_key?("Location").should eq(true)
   end
-  
 end
