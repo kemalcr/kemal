@@ -8,7 +8,6 @@ module Kemal
     INSTANCE           = Config.new
     HANDLERS           = [] of HTTP::Handler
     CUSTOM_HANDLERS    = [] of Tuple(Nil | Int32, HTTP::Handler)
-    WEBSOCKET_HANDLERS = [] of HTTP::WebSocketHandler
     FILTER_HANDLERS    = [] of HTTP::Handler
     ERROR_HANDLERS     = {} of Int32 => HTTP::Server::Context, Exception -> String
 
@@ -59,7 +58,6 @@ module Kemal
       @default_handlers_setup = false
       HANDLERS.clear
       CUSTOM_HANDLERS.clear
-      WEBSOCKET_HANDLERS.clear
       FILTER_HANDLERS.clear
       ERROR_HANDLERS.clear
     end
@@ -79,10 +77,6 @@ module Kemal
 
     def add_handler(handler : HTTP::Handler, position : Int32)
       CUSTOM_HANDLERS << {position, handler}
-    end
-
-    def add_handler(handler : HTTP::WebSocketHandler)
-      WEBSOCKET_HANDLERS << handler
     end
 
     def add_filter_handler(handler : HTTP::Handler)
@@ -145,7 +139,6 @@ module Kemal
       end
     end
 
-    # Handle WebSocketHandler
     private def setup_custom_handlers
       CUSTOM_HANDLERS.each do |ch|
         position = ch[0]
@@ -156,12 +149,6 @@ module Kemal
           HANDLERS.insert(position, ch[1])
           @handler_position += 1
         end
-      end
-    end
-
-    private def setup_websocket_handlers
-      WEBSOCKET_HANDLERS.each do |h|
-        HANDLERS.insert(@handler_position, h)
       end
     end
 
