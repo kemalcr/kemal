@@ -8,5 +8,10 @@ dependencies:
   kilt:
     github: jeromegn/kilt
     version: ~> 0.4.0
+
+targets:
+  kemal:
+    main: src/kemal.cr
+
 author:
   - Serdar Dogruyol <dogruyolserdar@gmail.com>
