@@ -32,10 +32,11 @@ module Kemal
     private def process_request(context)
       raise Kemal::Exceptions::RouteNotFound.new(context) unless context.route_defined?
       content = context.route.handler.call(context)
-    ensure
-      if Kemal.config.error_handlers.has_key?(context.response.status_code)
+
+      if Kemal.config.error_handlers.size != 0 && Kemal.config.error_handlers.has_key?(context.response.status_code)
         raise Kemal::Exceptions::CustomException.new(context)
       end
+      
       context.response.print(content)
       context
     end
