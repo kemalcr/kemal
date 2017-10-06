@@ -3,8 +3,8 @@
 # goes between the first 4 and the last `Kemal::RouteHandler`.
 #
 # - `Kemal::InitHandler`
-# - `Kemal::CommonLogHandler`
-# - `Kemal::CommonExceptionHandler`
+# - `Kemal::LogHandler`
+# - `Kemal::ExceptionHandler`
 # - `Kemal::StaticFileHandler`
 # - Here goes custom handlers
 # - `Kemal::RouteHandler`
@@ -24,7 +24,7 @@ def public_folder(path : String)
 end
 
 # Logs the output via `logger`.
-# This is the built-in `Kemal::CommonLogHandler` by default which uses STDOUT.
+# This is the built-in `Kemal::LogHandler` by default which uses STDOUT.
 def log(message : String)
   Kemal.config.logger.write "#{message}\n"
 end
@@ -39,7 +39,7 @@ def logging(status : Bool)
   Kemal.config.logging = status
 end
 
-# This is used to replace the built-in `Kemal::CommonLogHandler` with a custom logger.
+# This is used to replace the built-in `Kemal::LogHandler` with a custom logger.
 #
 # A custom logger must inherit from `Kemal::BaseLogHandler` and must implement
 # `call(env)`, `write(message)` methods.

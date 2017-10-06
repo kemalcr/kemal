@@ -117,7 +117,7 @@ module Kemal
 
     private def setup_log_handler
       @logger ||= if @logging
-                    Kemal::CommonLogHandler.new
+                    Kemal::LogHandler.new
                   else
                     Kemal::NullLogHandler.new
                   end
@@ -127,7 +127,7 @@ module Kemal
 
     private def setup_error_handler
       if @always_rescue
-        @error_handler ||= Kemal::CommonExceptionHandler.new
+        @error_handler ||= Kemal::ExceptionHandler.new
         HANDLERS.insert(@handler_position, @error_handler.not_nil!)
         @handler_position += 1
       end
