@@ -9,18 +9,18 @@ module Kemal
     @@exclude_routes_tree = Radix::Tree(String).new
 
     macro only(paths, method = "GET")
-    class_name = {{@type.name}}
-    ({{paths}}).each do |path|
-      @@only_routes_tree.add "#{class_name}/#{{{method}}.downcase}#{path}", "/#{{{method}}.downcase}#{path}"
+      class_name = {{@type.name}}
+      ({{paths}}).each do |path|
+        @@only_routes_tree.add "#{class_name}/#{{{method}}.downcase}#{path}", "/#{{{method}}.downcase}#{path}"
+      end
     end
-  end
 
     macro exclude(paths, method = "GET")
-    class_name = {{@type.name}}
-    ({{paths}}).each do |path|
-      @@exclude_routes_tree.add "#{class_name}/#{{{method}}.downcase}#{path}", "/#{{{method}}.downcase}#{path}"
+      class_name = {{@type.name}}
+      ({{paths}}).each do |path|
+        @@exclude_routes_tree.add "#{class_name}/#{{{method}}.downcase}#{path}", "/#{{{method}}.downcase}#{path}"
+      end
     end
-  end
 
     def call(env : HTTP::Server::Context)
       call_next(env)
