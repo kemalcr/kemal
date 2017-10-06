@@ -81,6 +81,6 @@ end
 
 Spec.after_each do
   Kemal.config.clear
-  Kemal::RouteHandler::INSTANCE.http_routes = Radix::Tree(Route).new
-  Kemal::WebSocketHandler::INSTANCE.ws_routes = Radix::Tree(WebSocket).new
+  Kemal::RouteHandler::INSTANCE.routes = Radix::Tree(Route).new
+  Kemal::WebSocketHandler::INSTANCE.routes = Radix::Tree(WebSocket).new
 end

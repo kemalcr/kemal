@@ -6,10 +6,10 @@ module Kemal
   class RouteHandler
     include HTTP::Handler
     INSTANCE = new
-    property http_routes
+    property routes
 
     def initialize
-      @http_routes = Radix::Tree(Route).new
+      @routes = Radix::Tree(Route).new
     end
 
     def call(context : HTTP::Server::Context)
@@ -19,13 +19,13 @@ module Kemal
     # Adds a given route to routing tree. As an exception each `GET` route additionaly defines
     # a corresponding `HEAD` route.
     def add_route(method : String, path : String, &handler : HTTP::Server::Context -> _)
-      add_to_http_radix_tree method, path, Route.new(method, path, &handler)
-      add_to_http_radix_tree("HEAD", path, Route.new("HEAD", path) { |ctx| "" }) if method == "GET"
+      add_to_radix_tree method, path, Route.new(method, path, &handler)
+      add_to_radix_tree("HEAD", path, Route.new("HEAD", path) { |ctx| "" }) if method == "GET"
     end
 
     # Check if a route is defined and returns the lookup
     def lookup_route(verb : String, path : String)
-      @http_routes.find radix_path(verb, path)
+      @routes.find radix_path(verb, path)
     end
 
     # Processes the route if it's a match. Otherwise renders 404.
@@ -36,7 +36,7 @@ module Kemal
       if Kemal.config.error_handlers.size != 0 && Kemal.config.error_handlers.has_key?(context.response.status_code)
         raise Kemal::Exceptions::CustomException.new(context)
       end
-      
+
       context.response.print(content)
       context
     end
@@ -45,9 +45,9 @@ module Kemal
       "/#{method.downcase}#{path}"
     end
 
-    private def add_to_http_radix_tree(method, path, route)
+    private def add_to_radix_tree(method, path, route)
       node = radix_path method, path
-      @http_routes.add node, route
+      @routes.add node, route
     end
   end
 end

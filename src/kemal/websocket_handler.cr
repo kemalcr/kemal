@@ -4,10 +4,10 @@ module Kemal
   class WebSocketHandler
     include HTTP::Handler
     INSTANCE = new
-    property ws_routes
+    property routes
 
     def initialize
-      @ws_routes = Radix::Tree(WebSocket).new
+      @routes = Radix::Tree(WebSocket).new
     end
 
     def call(context : HTTP::Server::Context)
@@ -19,16 +19,16 @@ module Kemal
     end
 
     def lookup_ws_route(path : String)
-      @ws_routes.find "/ws#{path}"
+      @routes.find "/ws#{path}"
     end
 
     def add_route(path : String, &handler : HTTP::WebSocket, HTTP::Server::Context -> Void)
-      add_to_ws_radix_tree path, WebSocket.new(path, &handler)
+      add_to_radix_tree path, WebSocket.new(path, &handler)
     end
 
-    private def add_to_ws_radix_tree(path, websocket)
+    private def add_to_radix_tree(path, websocket)
       node = radix_path "ws", path
-      @ws_routes.add node, websocket
+      @routes.add node, websocket
     end
 
     private def radix_path(method, path)
