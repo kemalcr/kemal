@@ -1,5 +1,5 @@
 module Kemal
-  # Kemal::CommonExceptionHandler handles all the exceptions including 404, custom errors and 500.
+  # Handles all the exceptions, including 404, custom errors and 500.
   class CommonExceptionHandler
     include HTTP::Handler
     INSTANCE = new

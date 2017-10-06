@@ -1,7 +1,7 @@
 module Kemal
-  # ParamParser parses the request contents including query_params and body
-  # and converts them into a params hash which you can within the environment
-  # context.
+  # Parses the request contents including query_params and body
+  # and converts them into a params hash which you can use within
+  # the environment context.
   class ParamParser
     URL_ENCODED_FORM = "application/x-www-form-urlencoded"
     APPLICATION_JSON = "application/json"
@@ -78,9 +78,9 @@ module Kemal
     end
 
     # Parses JSON request body if Content-Type is `application/json`.
-    # If request body is a JSON Hash then all the params are parsed and added into `params`.
-    # If request body is a JSON Array it's added into `params` as `_json` and can be accessed
-    # like params["_json"]
+    #
+    # - If request body is a JSON `Hash` then all the params are parsed and added into `params`.
+    # - If request body is a JSON `Array` it's added into `params` as `_json` and can be accessed like `params["_json"]`.
     private def parse_json
       return unless @request.body && @request.headers["Content-Type"]?.try(&.starts_with?(APPLICATION_JSON))
 

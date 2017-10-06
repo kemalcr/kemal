@@ -10,7 +10,7 @@ module Kemal
       Kemal.config.add_filter_handler(self)
     end
 
-    # The call order of the filters is before_all -> before_x -> X -> after_x -> after_all
+    # The call order of the filters is `before_all -> before_x -> X -> after_x -> after_all`.
     def call(context : HTTP::Server::Context)
       return call_next(context) unless context.route_defined?
       call_block_for_path_type("ALL", context.request.path, :before, context)
@@ -24,7 +24,8 @@ module Kemal
       context
     end
 
-    # :nodoc: This shouldn't be called directly, it's not private because I need to call it for testing purpose since I can't call the macros in the spec.
+    # :nodoc: This shouldn't be called directly, it's not private because
+    # I need to call it for testing purpose since I can't call the macros in the spec.
     # It adds the block for the corresponding verb/path/type combination to the tree.
     def _add_route_filter(verb : String, path, type, &block : HTTP::Server::Context -> _)
       lookup = lookup_filters_for_path_type(verb, path, type)
@@ -35,12 +36,16 @@ module Kemal
       end
     end
 
-    # This can be called directly but it's simpler to just use the macros, it will check if another filter is not already defined for this verb/path/type and proceed to call `add_route_filter`
+    # This can be called directly but it's simpler to just use the macros,
+    # it will check if another filter is not already defined for this
+    # verb/path/type and proceed to call `add_route_filter`
     def before(verb : String, path : String = "*", &block : HTTP::Server::Context -> _)
       _add_route_filter verb, path, :before, &block
     end
 
-    # This can be called directly but it's simpler to just use the macros, it will check if another filter is not already defined for this verb/path/type and proceed to call `add_route_filter`
+    # This can be called directly but it's simpler to just use the macros,
+    # it will check if another filter is not already defined for this
+    # verb/path/type and proceed to call `add_route_filter`
     def after(verb : String, path : String = "*", &block : HTTP::Server::Context -> _)
       _add_route_filter verb, path, :after, &block
     end

@@ -7,26 +7,26 @@ require "./kemal/ext/*"
 require "./kemal/helpers/*"
 
 module Kemal
-  # Overload of self.run with the default startup logging
+  # Overload of `self.run` with the default startup logging.
   def self.run(port : Int32?)
     self.run port do
       log "[#{config.env}] Kemal is ready to lead at #{config.scheme}://#{config.host_binding}:#{config.port}"
     end
   end
 
-  # Overload of self.run without port - fixex #399
+  # Overload of `self.run` without port.
   def self.run
     self.run(nil)
   end
 
-  # Overload of self.run to allow just a block
+  # Overload of `self.run` to allow just a block.
   def self.run(&block)
     self.run nil, &block
   end
 
   # The command to run a `Kemal` application.
-  # The port can be given to `#run` but is optional.
-  # If not given Kemal will use `Kemal::Config#port`
+  #
+  # If *port* is not given Kemal will use `Kemal::Config#port`
   def self.run(port : Int32? = nil, &block)
     Kemal::CLI.new
     config = Kemal.config
@@ -61,7 +61,7 @@ module Kemal
 
     config.server ||= HTTP::Server.new(config.host_binding, config.port, config.handlers)
     {% if !flag?(:without_openssl) %}
-    config.server.not_nil!.tls = config.ssl
+      config.server.not_nil!.tls = config.ssl
     {% end %}
     config.running = true
 
