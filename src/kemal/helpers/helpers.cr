@@ -46,7 +46,6 @@ end
 #
 # ```
 # class MyCustomLogger < Kemal::BaseLogHandler
-#
 #   def call(env)
 #     puts "I'm logging some custom stuff here."
 #     call_next(env) # => This calls the next handler
