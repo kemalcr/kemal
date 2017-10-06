@@ -1,9 +1,10 @@
 module Kemal
-  # Kemal::Config stores all the configuration options for a Kemal application.
+  # Stores all the configuration options for a Kemal application.
   # It's a singleton and you can access it like.
   #
-  #   Kemal.config
-  #
+  # ```
+  # Kemal.config
+  # ```
   class Config
     INSTANCE           = Config.new
     HANDLERS           = [] of HTTP::Handler
@@ -12,9 +13,9 @@ module Kemal
     ERROR_HANDLERS     = {} of Int32 => HTTP::Server::Context, Exception -> String
 
     {% if flag?(:without_openssl) %}
-    @ssl : Bool?
+      @ssl : Bool?
     {% else %}
-    @ssl : OpenSSL::SSL::Context::Server?
+      @ssl : OpenSSL::SSL::Context::Server?
     {% end %}
 
     getter custom_handler_position

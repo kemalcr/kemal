@@ -1,5 +1,7 @@
 # Kemal DSL is defined here and it's baked into global scope.
-# The DSL currently consists of
+#
+# The DSL currently consists of:
+#
 # - get post put patch delete options
 # - WebSocket(ws)
 # - before_*

@@ -1,5 +1,5 @@
 module Kemal
-  # Kemal::WebSocketHandler is used for building a WebSocket route.
+  # Used for building a WebSocket route.
   # For each WebSocket route a new handler is created and registered to global handlers.
   class WebSocketHandler
     include HTTP::Handler

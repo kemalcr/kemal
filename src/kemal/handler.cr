@@ -1,5 +1,6 @@
 module Kemal
   # `Kemal::Handler` is a subclass of `HTTP::Handler`.
+  #
   # It adds `only`, `only_match?`, `exclude`, `exclude_match?`.
   # These methods are useful for custom handlers for conditional execution.
   class Handler
@@ -32,14 +33,16 @@ module Kemal
     #
     # However this is not done automatically. All handlers must inherit from `Kemal::Handler`.
     #
-    #     class OnlyHandler < Kemal::Handler
-    #       only ["/"]
+    # ```
+    # class OnlyHandler < Kemal::Handler
+    #   only ["/"]
     #
-    #       def call(env)
-    #         return call_next(env) unless only_match?(env)
-    #         puts "If the path is / i will be doing some processing here."
-    #       end
-    #     end
+    #   def call(env)
+    #     return call_next(env) unless only_match?(env)
+    #     puts "If the path is / i will be doing some processing here."
+    #   end
+    # end
+    # ```
     def only_match?(env : HTTP::Server::Context)
       @@only_routes_tree.find(radix_path(env.request.method, env.request.path)).found?
     end
@@ -51,14 +54,16 @@ module Kemal
     #
     # However this is not done automatically. All handlers must inherit from `Kemal::Handler`.
     #
-    #     class ExcludeHandler < Kemal::Handler
-    #       exclude ["/"]
+    # ```
+    # class ExcludeHandler < Kemal::Handler
+    #   exclude ["/"]
     #
-    #       def call(env)
-    #         return call_next(env) if exclude_match?(env)
-    #         puts "If the path is not / i will be doing some processing here."
-    #       end
-    #     end
+    #   def call(env)
+    #     return call_next(env) if exclude_match?(env)
+    #     puts "If the path is not / i will be doing some processing here."
+    #   end
+    # end
+    # ```
     def exclude_match?(env : HTTP::Server::Context)
       @@exclude_routes_tree.find(radix_path(env.request.method, env.request.path)).found?
     end

@@ -13,16 +13,20 @@ CONTENT_FOR_BLOCKS = Hash(String, Tuple(String, Proc(String))).new
 # You call `content_for`, generally from a view, to capture a block of markup
 # giving it an identifier:
 #
-#     # index.ecr
-#     <% content_for "some_key" do %>
-#       <chunk of="html">...</chunk>
-#     <% end %>
+# ```
+# # index.ecr
+# <% content_for "some_key" do %>
+#   <chunk of="html">...</chunk>
+# <% end %>
+# ```
 #
 # Then, you call `yield_content` with that identifier, generally from a
 # layout, to render the captured block:
 #
-#     # layout.ecr
-#     <%= yield_content "some_key" %>
+# ```
+# # layout.ecr
+# <%= yield_content "some_key" %>
+# ```
 #
 # ## And How Is This Useful?
 #
@@ -53,8 +57,9 @@ end
 
 # Render view with a layout as the superview.
 #
-#   render "src/views/index.ecr", "src/views/layout.ecr"
-#
+# ```
+# render "src/views/index.ecr", "src/views/layout.ecr"
+# ```
 macro render(filename, layout)
   __content_filename__ = {{filename}}
   content = render {{filename}}
@@ -69,7 +74,9 @@ end
 # Halt execution with the current context.
 # Returns 200 and an empty response by default.
 #
-#   halt env, status_code: 403, response: "Forbidden"
+# ```
+# halt env, status_code: 403, response: "Forbidden"
+# ```
 macro halt(env, status_code = 200, response = "")
   {{env}}.response.status_code = {{status_code}}
   {{env}}.response.print {{response}}
@@ -79,12 +86,13 @@ end
 
 # Extends context storage with user defined types.
 #
+# ```
 # class User
 #   property name
 # end
 #
 # add_context_storage_type(User)
-#
+# ```
 macro add_context_storage_type(type)
   {{ HTTP::Server::Context::STORE_MAPPINGS.push(type) }}
 end

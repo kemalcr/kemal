@@ -1,5 +1,6 @@
-# HTTP::Server::Context is the class which holds HTTP::Request and HTTP::Server::Response alongside with
-# information such as request params, request/response content_type, session e.g
+# `HTTP::Server::Context` is the class which holds `HTTP::Request` and
+# `HTTP::Server::Response` alongside with information such as request params,
+# request/response content_type, session data and alike.
 #
 # Instances of this class are passed to an `HTTP::Server` handler.
 class HTTP::Server
