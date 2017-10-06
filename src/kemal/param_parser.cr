@@ -29,15 +29,15 @@ module Kemal
     end
 
     {% for method in %w(url query body json) %}
-    def {{method.id}}
-      # check memoization
-      return @{{method.id}} if @{{method.id}}_parsed
+      def {{method.id}}
+        # check memoization
+        return @{{method.id}} if @{{method.id}}_parsed
 
-      parse_{{method.id}}
-      # memoize
-      @{{method.id}}_parsed = true
-      @{{method.id}}
-    end
+        parse_{{method.id}}
+        # memoize
+        @{{method.id}}_parsed = true
+        @{{method.id}}
+      end
     {% end %}
 
     private def parse_body
