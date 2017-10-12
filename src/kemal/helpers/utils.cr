@@ -25,6 +25,7 @@ module Kemal
       when ".woff"         then "application/font-woff"
       when ".woff2"        then "font/woff2"
       when ".mp4"          then "video/mp4"
+      when ".webm"         then "video/webm"
       else                      "application/octet-stream"
       end
     end
