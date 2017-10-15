@@ -5,13 +5,13 @@ class Kemal::Base
 
     macro included
       # :nodoc:
-      DEFAULT_HANDLERS = [] of {String, String, (HTTP::Server::Context -> Nil)}
+      DEFAULT_HANDLERS = [] of {String, String, (HTTP::Server::Context -> String)}
       # :nodoc:
       WEBSOCKET_HANDLERS = [] of {String, (HTTP::WebSocket, HTTP::Server::Context -> Void)}
       # :nodoc:
-      DEFAULT_ERROR_HANDLERS = [] of {Int32, (HTTP::Server::Context, Exception -> Nil)}
+      DEFAULT_ERROR_HANDLERS = [] of {Int32, (HTTP::Server::Context, Exception -> String)}
       # :nodoc:
-      DEFAULT_FILTERS = [] of {Symbol, String, String, (HTTP::Server::Context -> Nil)}
+      DEFAULT_FILTERS = [] of {Symbol, String, String, (HTTP::Server::Context -> String)}
     end
 
     {% for method in HTTP_METHODS %}
@@ -62,18 +62,20 @@ class Kemal::Base
         end
       end
     end
+  end
 
-    {% for method in HTTP_METHODS %}
-      def self.{{method.id}}(path, &block : HTTP::Server::Context -> _)
+  module ClassDSL
+    {% for method in DSL::HTTP_METHODS %}
+      def {{method.id}}(path, &block : HTTP::Server::Context -> _)
         DEFAULT_HANDLERS << { {{method}}, path, block }
       end
     {% end %}
 
-    def self.ws(path, &block : HTTP::WebSocket, HTTP::Server::Context -> Void)
+    def ws(path, &block : HTTP::WebSocket, HTTP::Server::Context -> Void)
       WEBSOCKET_HANDLERS << {path, block}
     end
 
-    def self.error(status_code, &block : HTTP::Server::Context, Exception -> _)
+    def error(status_code, &block : HTTP::Server::Context, Exception -> _)
       DEFAULT_ERROR_HANDLERS << {status_code, block}
     end
 
@@ -81,8 +83,8 @@ class Kemal::Base
     #  - before_all, before_get, before_post, before_put, before_patch, before_delete, before_options
     #  - after_all, after_get, after_post, after_put, after_patch, after_delete, after_options
     {% for type in [:before, :after] %}
-      {% for method in FILTER_METHODS %}
-        def self.{{type.id}}_{{method.id}}(path = "*", &block : HTTP::Server::Context -> _)
+      {% for method in DSL::FILTER_METHODS %}
+        def {{type.id}}_{{method.id}}(path = "*", &block : HTTP::Server::Context -> _)
           DEFAULT_FILTERS << { {{type}}, {{method}}, path, block }
         end
       {% end %}

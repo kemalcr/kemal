@@ -13,6 +13,7 @@ class Kemal::Base
   include Macros
   include Base::DSL
   include Base::Builder
+  extend Base::ClassDSL
 
   # :nodoc:
   getter route_handler = Kemal::RouteHandler.new
@@ -56,6 +57,20 @@ class Kemal::Base
     start_server(port) do
       yield self
     end
+  end
+
+  def self.run(port : Int32? = nil)
+    new.tap do |app|
+      Kemal::CLI.new(app.config)
+
+      app.run(port) do
+        yield app
+      end
+    end
+  end
+
+  def self.run(port : Int32? = nil)
+    run(port) {  }
   end
 
   # DEPRECATED: This method should be replaced with `#running?`
