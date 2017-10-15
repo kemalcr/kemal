@@ -116,3 +116,5 @@ class Kemal::Base
     logger.write "#{message}\n"
   end
 end
+
+require "./main"
