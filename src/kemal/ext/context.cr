@@ -8,8 +8,6 @@ class HTTP::Server
     # :nodoc:
     STORE_MAPPINGS = [Nil, String, Int32, Int64, Float64, Bool]
 
-    property! app : Kemal::Base
-
     macro finished
       alias StoreTypes = Union({{ *STORE_MAPPINGS }})
       @store = {} of String => StoreTypes
