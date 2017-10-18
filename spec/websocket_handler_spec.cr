@@ -63,8 +63,8 @@ describe "Kemal::WebSocketHandler" do
 
   it "matches correct verb" do
     app = Kemal::Base.new
-    handler =  app.websocket_handler
-    handler.next =  app.route_handler
+    handler = app.websocket_handler
+    handler.next = app.route_handler
     app.ws "/" { }
     app.get "/" { "get" }
     request = HTTP::Request.new("GET", "/")

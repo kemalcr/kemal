@@ -22,7 +22,6 @@ module Kemal
     property extra_options : (OptionParser ->)?
     property static_headers : (HTTP::Server::Response, String, File::Stat -> Void)?
 
-
     # Creates a config with default values.
     def initialize(
                    @host_binding = "0.0.0.0",
