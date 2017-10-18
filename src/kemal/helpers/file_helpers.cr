@@ -1,5 +1,6 @@
 module Kemal::FileHelpers
   extend self
+
   # Send a file with given path and base the mime-type on the file extension
   # or default `application/octet-stream` mime_type.
   #

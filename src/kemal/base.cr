@@ -68,7 +68,7 @@ class Kemal::Base
   end
 
   def self.run(port : Int32? = nil)
-    run(port) {  }
+    run(port) { }
   end
 
   # DEPRECATED: This method should be replaced with `#running?`
