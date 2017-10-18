@@ -4,13 +4,17 @@ module Kemal
 
     property routes
 
-    def initialize
+    getter app : Kemal::Base
+
+    def initialize(@app)
       @routes = Radix::Tree(WebSocket).new
     end
 
     def call(context : HTTP::Server::Context)
-      return call_next(context) unless context.ws_route_found? && websocket_upgrade_request?(context)
-      content = context.websocket.call(context)
+      route = lookup_ws_route(context.request.path)
+      return call_next(context) unless route.found? && websocket_upgrade_request?(context)
+      context.request.url_params ||= route.params
+      content = route.payload.call(context)
       context.response.print(content)
       context
     end
