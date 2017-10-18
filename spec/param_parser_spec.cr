@@ -22,13 +22,13 @@ describe "ParamParser" do
   end
 
   it "parses url params" do
-    kemal = Kemal.application.route_handler
-    kemal.add_route "POST", "/hello/:hasan" do |env|
+    route_handler = Kemal.application.route_handler
+    route_handler.add_route "POST", "/hello/:hasan" do |env|
       "hello #{env.params.url["hasan"]}"
     end
     request = HTTP::Request.new("POST", "/hello/cemal")
     # Radix tree MUST be run to parse url params.
-    io_with_context = create_request_and_return_io(kemal, request)
+    io_with_context = create_request_and_return_io(route_handler, request)
     url_params = Kemal::ParamParser.new(request).url
     url_params["hasan"].should eq "cemal"
   end
