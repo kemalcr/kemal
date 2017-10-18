@@ -14,11 +14,7 @@ class HTTP::Server
     end
 
     def params
-      @params ||= if @request.param_parser
-                    @request.param_parser.not_nil!
-                  else
-                    Kemal::ParamParser.new(@request)
-                  end
+      @request.param_parser
     end
 
     def redirect(url : String, status_code : Int32 = 302)

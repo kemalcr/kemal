@@ -1,7 +1,7 @@
 class HTTP::Request
   property override_method
   property url_params : Hash(String, String)?
-  getter param_parser : Kemal::ParamParser?
+  @param_parser : Kemal::ParamParser?
 
   def override_method
     @override_method ||= check_for_method_override!
@@ -9,6 +9,10 @@ class HTTP::Request
 
   def content_type
     @headers["Content-Type"]?
+  end
+
+  def param_parser
+    @param_parser ||= Kemal::ParamParser.new(self)
   end
 
   # Checks if method contained in _method param is valid one
@@ -22,8 +26,7 @@ class HTTP::Request
   private def check_for_method_override!
     @override_method = @method
     if @method == "POST"
-      @param_parser = Kemal::ParamParser.new(self)
-      params = @param_parser.not_nil!.body
+      params = param_parser.body
       if params.has_key?("_method") && HTTP::Request.override_method_valid?(params["_method"])
         @override_method = params["_method"]
       end
