@@ -49,7 +49,7 @@ module Kemal::FileHelpers
   end
 
   def send_file(env, path : String, mime_type : String? = nil)
-    send_file(env, path, env.app.config, mime_type)
+    send_file(env, path, config, mime_type)
   end
 
   private def multipart(file, env : HTTP::Server::Context)

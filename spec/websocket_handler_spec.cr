@@ -1,6 +1,6 @@
 require "./spec_helper"
 
-private def create_ws_request_and_return_io(handler, request, app)
+private def create_ws_request_and_return_io(handler, request, app = Kemal.application)
   io = IO::Memory.new
   response = HTTP::Server::Response.new(io)
   context = HTTP::Server::Context.new(request, response)
@@ -16,8 +16,8 @@ end
 describe "Kemal::WebSocketHandler" do
   it "doesn't match on wrong route" do
     app = Kemal::Base.new
-    handler = Kemal::WebSocketHandler.new
-    handler.next = Kemal::RouteHandler.new
+    handler = app.websocket_handler
+    handler.next = app.route_handler
     app.ws "/" { }
     headers = HTTP::Headers{
       "Upgrade"           => "websocket",
@@ -28,7 +28,6 @@ describe "Kemal::WebSocketHandler" do
     io = IO::Memory.new
     response = HTTP::Server::Response.new(io)
     context = HTTP::Server::Context.new(request, response)
-    context.app = app
 
     expect_raises(Kemal::Exceptions::RouteNotFound) do
       handler.call context
@@ -37,7 +36,7 @@ describe "Kemal::WebSocketHandler" do
 
   it "matches on given route" do
     app = Kemal::Base.new
-    handler = Kemal::WebSocketHandler.new
+    handler =  app.websocket_handler
     app.ws "/" { |socket, context| socket.send("Match") }
     app.ws "/no_match" { |socket, context| socket.send "No Match" }
     headers = HTTP::Headers{
@@ -53,7 +52,7 @@ describe "Kemal::WebSocketHandler" do
 
   it "fetches named url parameters" do
     app = Kemal::Base.new
-    handler = Kemal::WebSocketHandler.new
+    handler =  app.websocket_handler
     app.ws "/:id" { |s, c| c.params.url["id"] }
     headers = HTTP::Headers{
       "Upgrade"           => "websocket",
@@ -67,15 +66,14 @@ describe "Kemal::WebSocketHandler" do
 
   it "matches correct verb" do
     app = Kemal::Base.new
-    handler = Kemal::WebSocketHandler.new
-    handler.next = Kemal::RouteHandler.new
+    handler =  app.websocket_handler
+    handler.next =  app.route_handler
     app.ws "/" { }
     app.get "/" { "get" }
     request = HTTP::Request.new("GET", "/")
     io = IO::Memory.new
     response = HTTP::Server::Response.new(io)
     context = HTTP::Server::Context.new(request, response)
-    context.app = app
     handler.call(context)
     response.close
     io.rewind

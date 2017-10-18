@@ -64,7 +64,6 @@ describe "Context" do
     io = IO::Memory.new
     response = HTTP::Server::Response.new(io)
     context = HTTP::Server::Context.new(request, response)
-    context.app = app
     app.filter_handler.call(context)
     app.route_handler.call(context)
     context.store["key"].should eq "value"

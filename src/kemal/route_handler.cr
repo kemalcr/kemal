@@ -8,7 +8,9 @@ module Kemal
 
     property routes
 
-    def initialize
+    getter app : Kemal::Base
+
+    def initialize(@app)
       @routes = Radix::Tree(Route).new
     end
 
@@ -28,12 +30,21 @@ module Kemal
       @routes.find radix_path(verb, path)
     end
 
+    def lookup_route(request)
+      lookup_route request.override_method.as(String), request.path
+    end
+
+    def route_defined?(request)
+      lookup_route(request).found?
+    end
+
     # Processes the route if it's a match. Otherwise renders 404.
     private def process_request(context)
-      raise Kemal::Exceptions::RouteNotFound.new(context) unless context.route_defined?
-      content = context.route.handler.call(context)
+      raise Kemal::Exceptions::RouteNotFound.new(context) unless route_defined?(context.request)
+      route = lookup_route(context.request).payload
+      content = route.handler.call(context)
 
-      if context.app.error_handlers.has_key?(context.response.status_code)
+      if !app.error_handlers.empty? && app.error_handlers.has_key?(context.response.status_code)
         raise Kemal::Exceptions::CustomException.new(context)
       end
 
