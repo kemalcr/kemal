@@ -77,13 +77,6 @@ class Kemal::Base
   end
 
   private def prepare_for_server_start
-    unless @config.env == "test"
-      Signal::INT.trap do
-        log "Kemal is going to take a rest!" if @config.shutdown_message?
-        stop if running?
-        exit
-      end
-    end
   end
 
   private def start_server(port)

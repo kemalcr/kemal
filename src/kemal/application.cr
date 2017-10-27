@@ -19,8 +19,14 @@ class Kemal::Application < Kemal::Base
       end
     end
 
-    # Test environment doesn't need to have signal trap, built-in images, and logging.
+    # Test environment doesn't need to have signal trap and built-in images.
     unless @config.env == "test"
+      Signal::INT.trap do
+        log "Kemal is going to take a rest!" if @config.shutdown_message?
+        stop if running?
+        exit
+      end
+
       # This route serves the built-in images for not_found and exceptions.
       self.get "/__kemal__/:image" do |env|
         image = env.params.url["image"]
