@@ -43,14 +43,8 @@ module Kemal
     private def parse_body
       content_type = @request.content_type
       return unless content_type
-      if content_type.try(&.starts_with?(URL_ENCODED_FORM))
-        @body = parse_part(@request.body)
-        return
-      end
-      if content_type.try(&.starts_with?(MULTIPART_FORM))
-        parse_file_upload
-        return
-      end
+      @body = parse_part(@request.body) if content_type.starts_with?(URL_ENCODED_FORM)
+      parse_file_upload if content_type.starts_with?(MULTIPART_FORM)
     end
 
     private def parse_query
@@ -75,6 +69,7 @@ module Kemal
           @body[upload.name] = upload.body.gets_to_end
         end
       end
+      @body = parse_part(@request.body)
     end
 
     # Parses JSON request body if Content-Type is `application/json`.
