@@ -72,7 +72,7 @@ module Kemal
         if !filename.nil?
           @files[upload.name] = FileUpload.new(upload: upload)
         else
-          @body[upload.name] = upload.body.gets_to_end
+          @body.add(upload.name, upload.body.gets_to_end)
         end
       end
     end
