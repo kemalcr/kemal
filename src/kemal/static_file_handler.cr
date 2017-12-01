@@ -5,7 +5,7 @@
 module Kemal
   class StaticFileHandler < HTTP::StaticFileHandler
     def call(context : HTTP::Server::Context)
-      return call_next(context) if context.request.path.not_nil! == "/"
+      # return call_next(context) if context.request.path.not_nil! == "/"
 
       unless context.request.method == "GET" || context.request.method == "HEAD"
         if @fallthrough
@@ -38,7 +38,12 @@ module Kemal
       file_path = File.join(@public_dir, expanded_path)
       is_dir = Dir.exists? file_path
 
-      if request_path != expanded_path || is_dir && !is_dir_path
+      is_root_path = expanded_path == "/"
+      if is_root_path 
+        file_path = File.join(@public_dir, "/index.html")
+      end
+
+      if request_path != expanded_path || is_dir && !is_dir_path && !is_root_path
         redirect_to context, "#{expanded_path}#{is_dir && !is_dir_path ? "/" : ""}"
       end
 
