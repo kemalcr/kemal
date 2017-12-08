@@ -100,13 +100,13 @@ module Kemal
         setup_init_handler
         setup_log_handler
         setup_error_handler
-        setup_static_file_handler
         setup_custom_handlers
         setup_filter_handlers
         @default_handlers_setup = true
         @router_included = true
         HANDLERS.insert(HANDLERS.size, Kemal::WebSocketHandler::INSTANCE)
         HANDLERS.insert(HANDLERS.size, Kemal::RouteHandler::INSTANCE)
+        setup_static_file_handler
       end
     end
 
@@ -135,8 +135,8 @@ module Kemal
 
     private def setup_static_file_handler
       if @serve_static.is_a?(Hash)
-        HANDLERS.insert(@handler_position, Kemal::StaticFileHandler.new(@public_folder))
         @handler_position += 1
+        HANDLERS.insert(@handler_position, Kemal::StaticFileHandler.new(@public_folder))
       end
     end
 
