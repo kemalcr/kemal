@@ -51,7 +51,7 @@ dependencies:
 - Support all REST verbs
 - Websocket support
 - Request/Response context, easy parameter handling
-- Middlewares
+- Middleware support
 - Built-in JSON support
 - Built-in static file serving
 - Built-in view templating via [Kilt](https://github.com/jeromegn/kilt)
