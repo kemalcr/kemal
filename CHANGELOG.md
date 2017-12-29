@@ -1,3 +1,13 @@
+# 0.22.0 (29-12-2017)
+
+- Crystal 0.24.1 support 🎉
+- Only return string from route.[#408](https://github.com/kemalcr/kemal/pull/408) thanks @crisward 🙏
+- Don't crash on empty path when compiled in --release. [#407](https://github.com/kemalcr/kemal/pull/407) thanks @crisward 🙏
+- Rename `Kemal::CommonLogHandler` to `Kemal::LogHandler` and `Kemal::CommonExceptionHandler` to `Kemal::ExceptionHandler`.
+- Allow videos to be opened with correct mime type. [#406](https://github.com/kemalcr/kemal/pull/406) thanks @crisward 🙏
+- Add webm mime type.[#413](https://github.com/kemalcr/kemal/pull/413) thanks @reindeer-cafe 🙏   
+
+
 # 0.21.0 (05-09-2017)
 
 - Dynamically insert handlers :muscle: Fixes [#376](https://github.com/kemalcr/kemal/pull/376).
@@ -148,7 +158,7 @@ To test
 
 # 0.17.0 (23-11-2016)
 
-- Reimplemented Request middleware / filter routing. 
+- Reimplemented Request middleware / filter routing.
 
 Now all requests will first go through the Middleware stack then Filters (before_*) and will finally reach the matching route.
 
@@ -161,7 +171,7 @@ Request -> Middleware -> Filter -> Route
 - Rename `return_with` as `halt`.
 - Route declaration must start with `/`.  Fixes [#242](https://github.com/sdogruyol/kemal/issues/242)
 - Set default exception Content-Type to text/html. Fixes [#202](https://github.com/sdogruyol/kemal/issues/242)
-- Add `only` and `exclude` paths for `Kemal::Handler`. This change requires that all handlers must inherit from `Kemal::Handler`. 
+- Add `only` and `exclude` paths for `Kemal::Handler`. This change requires that all handlers must inherit from `Kemal::Handler`.
 
 For example this handler will only work on `/` path. By default the HTTP method is `GET`.
 
@@ -169,7 +179,7 @@ For example this handler will only work on `/` path. By default the HTTP method 
 ```crystal
 class OnlyHandler < Kemal::Handler
   only ["/"]
-  
+
   def call(env)
     return call_next(env) unless only_match?(env)
     puts "If the path is / i will be doing some processing here."
@@ -182,7 +192,7 @@ The handlers using `exclude` will work on the paths that isn't specified. For ex
 ```crystal
 class ExcludeHandler < Kemal::Handler
   exclude ["/"]
-  
+
   def call(env)
     return call_next(env) unless only_match?(env)
     puts "If the path is NOT / i will be doing some processing here."
@@ -205,7 +215,7 @@ end
 # 0.16.1 (12-10-2016)
 
 - Improved Multipart support with more info on parsed files. `parse_multipart(env)` now yields
-an `UploadFile` object which has the following properties `field`,`data`,`meta`,`headers.	
+an `UploadFile` object which has the following properties `field`,`data`,`meta`,`headers.
 
 ```crystal
 post "/upload" do |env|
@@ -222,7 +232,7 @@ end
 # 0.16.0
 
 - Multipart support <3 (thanks @RX14). Now you can handle file uploads.
-  
+
 ```crystal
 post "/upload" do |env|
   parse_multipart(env) do |field, data|
@@ -257,5 +267,5 @@ Kemal.config.session["expire_time"] = 48.hours
 - Add `send_file` to helpers.
 - Add mime types.
 - Fix parsing JSON params when "charset" is present in "Content-Type" header.
-- Use http-only cookie for session 
+- Use http-only cookie for session
 - Inject STDOUT by default in CommonLogHandler
