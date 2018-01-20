@@ -33,6 +33,30 @@ describe "ParamParser" do
     url_params["hasan"].should eq "cemal"
   end
 
+  it "parses url params with defined type" do
+    kemal = Kemal::RouteHandler::INSTANCE
+    kemal.add_route "POST", "/hello/:id[int]" do |env|
+      "hello #{env.params.url["id"]}"
+    end
+    request = HTTP::Request.new("POST", "/hello/42")
+    # Radix tree MUST be run to parse url params.
+    io_with_context = create_request_and_return_io(kemal, request)
+    url_params = Kemal::ParamParser.new(request).url
+    url_params["id"].should eq 42
+  end
+
+  it "parses url params if not a permitted type" do
+    kemal = Kemal::RouteHandler::INSTANCE
+    kemal.add_route "POST", "/hello/:id[banana]" do |env|
+      "hello #{env.params.url["id[banana]"]}"
+    end
+    request = HTTP::Request.new("POST", "/hello/42")
+    # Radix tree MUST be run to parse url params.
+    io_with_context = create_request_and_return_io(kemal, request)
+    url_params = Kemal::ParamParser.new(request).url
+    url_params["id[banana]"].should eq "42"
+  end
+
   it "decodes url params" do
     kemal = Kemal::RouteHandler::INSTANCE
     kemal.add_route "POST", "/hello/:email/:money/:spanish" do |env|
@@ -48,6 +72,38 @@ describe "ParamParser" do
     url_params["email"].should eq "sam+spec@gmail.com"
     url_params["money"].should eq "$19.99"
     url_params["spanish"].should eq "año"
+  end
+
+  it "decodes url params with defined types" do
+    kemal = Kemal::RouteHandler::INSTANCE
+    kemal.add_route "POST", "/hello/:id[int]/:active[boolean]/:banana[string]" do |env|
+      id = env.params.url["id"]
+      active = env.params.url["active"]
+      spanish = env.params.url["banana"]
+    end
+    request = HTTP::Request.new("POST", "/hello/42/true/yellow")
+    # Radix tree MUST be run to parse url params.
+    io_with_context = create_request_and_return_io(kemal, request)
+    url_params = Kemal::ParamParser.new(request).url
+    url_params["id"].should eq 42
+    url_params["active"].should eq true
+    url_params["banana"].should eq "yellow"
+  end
+
+  it "decodes url params with defined types and undefined types" do
+    kemal = Kemal::RouteHandler::INSTANCE
+    kemal.add_route "POST", "/hello/:id[int]/:active/:banana[string]" do |env|
+      id = env.params.url["id"]
+      active = env.params.url["active"]
+      spanish = env.params.url["banana"]
+    end
+    request = HTTP::Request.new("POST", "/hello/42/true/yellow")
+    # Radix tree MUST be run to parse url params.
+    io_with_context = create_request_and_return_io(kemal, request)
+    url_params = Kemal::ParamParser.new(request).url
+    url_params["id"].should eq 42
+    url_params["active"].should eq "true"
+    url_params["banana"].should eq "yellow"
   end
 
   it "parses request body" do
