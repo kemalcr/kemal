@@ -7,15 +7,16 @@ module Kemal
     APPLICATION_JSON = "application/json"
     MULTIPART_FORM   = "multipart/form-data"
     PARTS = %w(url query body json)
-    PERMITTED_URL_TYPES = { 
-      "int" => Int32,
+    PERMITTED_URL_PARAM_TYPES = { 
+      "int" => Int64,
       "string" => String,
-      "boolean" => Bool
+      "boolean" => Bool,
+      "float" => Float64
     }
 
     # :nodoc:
     alias AllParamTypes = Nil | String | Int64 | Float64 | Bool | Hash(String, JSON::Type) | Array(JSON::Type)
-    alias AllUrlParamTypes = Int32 | String | Bool
+    alias AllUrlParamTypes = Int64 | String | Bool | Float64 
     getter files
 
     def initialize(@request : HTTP::Request)
@@ -71,9 +72,9 @@ module Kemal
           type = (/\[.*\]/).match(key).try &.[0]
           type = type.gsub(/[^a-z0-9]/i, "") unless type.nil?
 
-          if PERMITTED_URL_TYPES.keys.includes?(type)
+          if PERMITTED_URL_PARAM_TYPES.keys.includes?(type)
             parsed_key = key.gsub("[#{type}]", "")
-            @url[parsed_key] = UrlTypedParamHandler.cast_as(PERMITTED_URL_TYPES[type], value)
+            @url[parsed_key] = UrlTypedParamHandler.cast_as(PERMITTED_URL_PARAM_TYPES[type], value)
           else
             @url[key] = unescape_url_param(value)
           end

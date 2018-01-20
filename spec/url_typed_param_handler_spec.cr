@@ -21,8 +21,8 @@ describe "UrlTypedParamHandler" do
     end
 
     context "integer values" do
-      it "handles Int32 values" do
-        test = Kemal::UrlTypedParamHandler.cast_as(Int32, "42")
+      it "handles Int64 values" do
+        test = Kemal::UrlTypedParamHandler.cast_as(Int64, "42")
 
         test.should eq(42)
       end
@@ -39,6 +39,14 @@ describe "UrlTypedParamHandler" do
         test = Kemal::UrlTypedParamHandler.cast_as(String, "codalus")
 
         test.should eq("codalus")
+      end
+    end
+
+    context "float values" do
+      it "returns Float64 value" do
+        test = Kemal::UrlTypedParamHandler.cast_as(Float64, "0.42")
+
+        test.should eq(0.42)
       end
     end
   end
