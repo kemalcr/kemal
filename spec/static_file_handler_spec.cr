@@ -61,7 +61,7 @@ describe Kemal::StaticFileHandler do
     headers = HTTP::Headers{"Accept-Encoding" => "gzip, deflate, sdch, br"}
     response = handle HTTP::Request.new("GET", "/dir/test.txt", headers)
     response.status_code.should eq(200)
-    response.headers["Content-Encoding"]?.should eq nil
+    response.headers["Content-Encoding"]?.should be_nil
   end
 
   it "should not gzip a file if config is false, headers accept gzip and file is > 880 bytes" do
@@ -69,7 +69,7 @@ describe Kemal::StaticFileHandler do
     headers = HTTP::Headers{"Accept-Encoding" => "gzip, deflate, sdch, br"}
     response = handle HTTP::Request.new("GET", "/dir/bigger.txt", headers)
     response.status_code.should eq(200)
-    response.headers["Content-Encoding"]?.should eq nil
+    response.headers["Content-Encoding"]?.should be_nil
   end
 
   it "should not serve a not found file" do
@@ -117,7 +117,7 @@ describe Kemal::StaticFileHandler do
       if response.status_code == 206
         response.headers.has_key?("Content-Range").should eq true
         match = response.headers["Content-Range"].match(/bytes (\d+)-(\d+)\/(\d+)/)
-        match.should_not eq nil
+        match.should_not be_nil
         if match
           start_range = match[1].to_i { 0 }
           end_range = match[2].to_i { 0 }

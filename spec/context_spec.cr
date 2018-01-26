@@ -100,8 +100,8 @@ describe "Context" do
       Kemal::FilterHandler::INSTANCE.call(context)
       Kemal::RouteHandler::INSTANCE.call(context)
 
-      context.get?("non_existent_key").should eq nil
-      context.get?("another_non_existent_key").should eq nil
+      context.get?("non_existent_key").should be_nil
+      context.get?("another_non_existent_key").should be_nil
     end
   end
 end
