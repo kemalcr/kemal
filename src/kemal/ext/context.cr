@@ -10,7 +10,7 @@ class HTTP::Server
 
     macro finished
       alias StoreTypes = Union({{ *STORE_MAPPINGS }})
-      getter store = {} of String => StoreTypes
+      @store = {} of String => StoreTypes
     end
 
     def params
@@ -57,6 +57,10 @@ class HTTP::Server
 
     def set(name : String, value : StoreTypes)
       @store[name] = value
+    end
+
+    def get?(name : String)
+      @store[name]?
     end
   end
 end
