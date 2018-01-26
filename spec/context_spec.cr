@@ -44,9 +44,9 @@ describe "Context" do
 
       get "/" do |env|
         {
-          before_get:              env.get("before_get"),
-          before_get_int:          env.get("before_get_int"),
-          before_get_float:        env.get("before_get_float")
+          before_get:       env.get("before_get"),
+          before_get_int:   env.get("before_get_int"),
+          before_get_float: env.get("before_get_float"),
         }
       end
 
@@ -75,7 +75,7 @@ describe "Context" do
       get "/" do |env|
         {
           before_get_context_test: env.get("before_get_context_test"),
-          another_context_test: env.get("another_context_test"),
+          another_context_test:    env.get("another_context_test"),
         }
       end
 
@@ -91,7 +91,7 @@ describe "Context" do
     end
 
     it "fetches non-existent keys from store with get?" do
-      get "/" {}
+      get "/" { }
 
       request = HTTP::Request.new("GET", "/")
       io = IO::Memory.new
