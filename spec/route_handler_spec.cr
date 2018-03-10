@@ -85,6 +85,7 @@ describe "Kemal::RouteHandler" do
     post "/" do |env|
       skills = env.params.json["skills"].as(Array)
       skills_from_languages = skills.map do |skill|
+        skill = skill.as(Hash)
         skill["language"]
       end
       "Skills #{skills_from_languages.each.join(',')}"

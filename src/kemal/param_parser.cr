@@ -8,7 +8,7 @@ module Kemal
     MULTIPART_FORM   = "multipart/form-data"
     PARTS            = %w(url query body json)
     # :nodoc:
-    alias AllParamTypes = Nil | String | Int64 | Float64 | Bool | Hash(String, JSON::Any) | Array(JSON::Any)
+    alias AllParamTypes = Nil | String | Int64 | Float64 | Bool | Hash(String, JSON::Type) | Array(JSON::Type)
     getter files
 
     def initialize(@request : HTTP::Request)
@@ -89,7 +89,7 @@ module Kemal
       case json = JSON.parse(body).raw
       when Hash
         json.each do |key, value|
-          @json[key] = value.raw
+          @json[key] = value.as(AllParamTypes)
         end
       when Array
         @json["_json"] = json
