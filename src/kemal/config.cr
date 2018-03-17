@@ -18,7 +18,6 @@ module Kemal
       @ssl : OpenSSL::SSL::Context::Server?
     {% end %}
 
-    getter custom_handler_position
     property host_binding, ssl, port, env, public_folder, logging, running
     property always_rescue, server : HTTP::Server?, extra_options, shutdown_message
     property serve_static : (Bool | Hash(String, Bool))

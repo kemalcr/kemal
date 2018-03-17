@@ -3,6 +3,7 @@ module Kemal
   # *Content-Type* or *X-Powered-By* headers.
   class InitHandler
     include HTTP::Handler
+
     INSTANCE = new
 
     def call(context : HTTP::Server::Context)

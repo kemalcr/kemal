@@ -5,6 +5,7 @@ module Kemal
   # These methods are useful for the conditional execution of custom handlers .
   class Handler
     include HTTP::Handler
+
     @@only_routes_tree = Radix::Tree(String).new
     @@exclude_routes_tree = Radix::Tree(String).new
 

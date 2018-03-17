@@ -60,9 +60,11 @@ module Kemal
     end
 
     config.server ||= HTTP::Server.new(config.host_binding, config.port, config.handlers)
+
     {% if !flag?(:without_openssl) %}
       config.server.not_nil!.tls = config.ssl
     {% end %}
+
     config.running = true
 
     yield config

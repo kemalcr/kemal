@@ -3,6 +3,7 @@ require "radix"
 module Kemal
   class RouteHandler
     include HTTP::Handler
+
     INSTANCE = new
     property routes
 
