@@ -2,7 +2,7 @@ module Kemal
   # `Kemal::Handler` is a subclass of `HTTP::Handler`.
   #
   # It adds `only`, `only_match?`, `exclude`, `exclude_match?`.
-  # These methods are useful for custom handlers for conditional execution.
+  # These methods are useful for the conditional execution of custom handlers .
   class Handler
     include HTTP::Handler
     @@only_routes_tree = Radix::Tree(String).new

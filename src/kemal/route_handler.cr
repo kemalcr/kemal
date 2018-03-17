@@ -1,8 +1,6 @@
 require "radix"
 
 module Kemal
-  # Main handler which handles all the HTTP requests.
-  # Routing, parsing, rendering e.g are done in this handler.
   class RouteHandler
     include HTTP::Handler
     INSTANCE = new
