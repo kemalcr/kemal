@@ -48,9 +48,9 @@ module Kemal
       end
 
       # This route serves the built-in images for not_found and exceptions.
-      get "/__kemal__/:image" do |env|
-        image = env.params.url["image"]
-        file_path = File.expand_path("lib/kemal/images/#{image}", Dir.current)
+      get "/__kemal__/404.png" do |env|
+        file_path = File.expand_path("lib/kemal/images/404.png", Dir.current)
+        
         if File.exists? file_path
           send_file env, file_path
         else
