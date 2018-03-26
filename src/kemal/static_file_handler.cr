@@ -1,3 +1,4 @@
+require "./helpers/etag"
 {% if !flag?(:without_zlib) %}
   require "zlib"
 {% end %}
@@ -50,21 +51,18 @@ module Kemal
           return call_next(context)
         end
       elsif File.exists?(file_path)
-        return if etag(context, file_path)
+        etag = Kemal::Etag.from_file(file_path)
+        Kemal::Etag.add_header(context.response.headers, etag)
+
+        if Kemal::Etag.matches?(context.request.headers, etag)
+          Kemal::Etag.set_not_modified(context.response)
+          return
+        end
+
         send_file(context, file_path)
       else
         call_next(context)
       end
-    end
-
-    private def etag(context : HTTP::Server::Context, file_path : String)
-      etag = %{W/"#{File.lstat(file_path).mtime.epoch.to_s}"}
-      context.response.headers["ETag"] = etag
-      return false if !context.request.headers["If-None-Match"]? || context.request.headers["If-None-Match"] != etag
-      context.response.headers.delete "Content-Type"
-      context.response.content_length = 0
-      context.response.status_code = 304 # not modified
-      return true
     end
   end
 end
