@@ -119,7 +119,7 @@ def send_file(env : HTTP::Server::Context, path : String, mime_type : String? = 
   minsize = 860 # http://webmasters.stackexchange.com/questions/31750/what-is-recommended-minimum-object-size-for-gzip-performance-benefits ??
   request_headers = env.request.headers
   filesize = File.size(file_path)
-  filestat = File.stat(file_path)
+  filestat = File.info(file_path)
 
   Kemal.config.static_headers.try(&.call(env.response, file_path, filestat))
 
@@ -234,6 +234,6 @@ end
 #   response.headers.add("Content-Size", filestat.size.to_s)
 # end
 # ```
-def static_headers(&headers : HTTP::Server::Response, String, File::Stat -> Void)
+def static_headers(&headers : HTTP::Server::Response, String, File::Info -> Void)
   Kemal.config.static_headers = headers
 end
