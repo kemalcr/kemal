@@ -46,6 +46,8 @@ dependencies:
     github: kemalcr/kemal
 ```
 
+See also [Getting Started](http://kemalcr.com/guide/).
+
 # Features
 
 - Support all REST verbs
