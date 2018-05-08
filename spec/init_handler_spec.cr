@@ -27,6 +27,6 @@ describe "Kemal::InitHandler" do
     response = HTTP::Server::Response.new(io)
     context = HTTP::Server::Context.new(request, response)
     Kemal::InitHandler::INSTANCE.call(context)
-    context.response.headers["X-Powered-By"]?.should eq nil
+    context.response.headers["X-Powered-By"]?.should be_nil
   end
 end
