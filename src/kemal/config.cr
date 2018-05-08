@@ -22,6 +22,7 @@ module Kemal
     property always_rescue, server : HTTP::Server?, extra_options, shutdown_message
     property serve_static : (Bool | Hash(String, Bool))
     property static_headers : (HTTP::Server::Response, String, File::Stat -> Void)?
+    property powered_by_header : Bool = true
 
     def initialize
       @host_binding = "0.0.0.0"

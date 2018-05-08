@@ -17,6 +17,10 @@ describe "Config" do
     config.env.should eq "production"
   end
 
+  it "sets default powered_by_header to true" do
+    Kemal.config.powered_by_header.should eq true
+  end
+
   it "sets host binding" do
     config = Kemal.config
     config.host_binding = "127.0.0.1"
