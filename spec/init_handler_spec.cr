@@ -19,4 +19,14 @@ describe "Kemal::InitHandler" do
     Kemal::InitHandler::INSTANCE.call(context)
     context.response.headers["X-Powered-By"].should eq "Kemal"
   end
+
+  it "does not initialize context with X-Powered-By: Kemal if disabled" do
+    Kemal.config.powered_by_header = false
+    request = HTTP::Request.new("GET", "/")
+    io = IO::Memory.new
+    response = HTTP::Server::Response.new(io)
+    context = HTTP::Server::Context.new(request, response)
+    Kemal::InitHandler::INSTANCE.call(context)
+    context.response.headers["X-Powered-By"]?.should be_nil
+  end
 end
