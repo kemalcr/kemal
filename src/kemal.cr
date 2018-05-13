@@ -34,7 +34,7 @@ module Kemal
     config.port = port if port
 
     unless Kemal.config.error_handlers.has_key?(404)
-      error 404 do |env|
+      error 404 do
         render_404
       end
     end
@@ -50,7 +50,7 @@ module Kemal
       # This route serves the built-in images for not_found and exceptions.
       get "/__kemal__/404.png" do |env|
         file_path = File.expand_path("lib/kemal/images/404.png", Dir.current)
-        
+
         if File.exists? file_path
           send_file env, file_path
         else

@@ -66,7 +66,7 @@ def build_main_handler
   Kemal.config.setup
   main_handler = Kemal.config.handlers.first
   current_handler = main_handler
-  Kemal.config.handlers.each_with_index do |handler, index|
+  Kemal.config.handlers.each do |handler|
     current_handler.next = handler
     current_handler = handler
   end

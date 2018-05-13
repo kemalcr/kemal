@@ -104,7 +104,7 @@ describe "Kemal::RouteHandler" do
   end
 
   it "checks for _method param in POST request to simulate PUT" do
-    put "/" do |env|
+    put "/" do
       "Hello World from PUT"
     end
     request = HTTP::Request.new(
@@ -118,7 +118,7 @@ describe "Kemal::RouteHandler" do
   end
 
   it "checks for _method param in POST request to simulate PATCH" do
-    patch "/" do |env|
+    patch "/" do
       "Hello World from PATCH"
     end
     request = HTTP::Request.new(
@@ -132,10 +132,9 @@ describe "Kemal::RouteHandler" do
   end
 
   it "checks for _method param in POST request to simulate DELETE" do
-    delete "/" do |env|
+    delete "/" do
       "Hello World from DELETE"
     end
-    json_payload = {"_method": "DELETE"}
     request = HTTP::Request.new(
       "POST",
       "/",
@@ -147,7 +146,7 @@ describe "Kemal::RouteHandler" do
   end
 
   it "can process HTTP HEAD requests for defined GET routes" do
-    get "/" do |env|
+    get "/" do
       "Hello World from GET"
     end
     request = HTTP::Request.new("HEAD", "/")

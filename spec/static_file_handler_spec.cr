@@ -14,7 +14,6 @@ end
 describe Kemal::StaticFileHandler do
   file = File.open "#{__DIR__}/static/dir/test.txt"
   file_size = file.size
-  file_text = file.to_s
 
   it "should serve a file with content type and etag" do
     response = handle HTTP::Request.new("GET", "/dir/test.txt")

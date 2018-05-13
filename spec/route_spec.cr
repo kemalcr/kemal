@@ -3,10 +3,10 @@ require "./spec_helper"
 describe "Route" do
   describe "match?" do
     it "matches the correct route" do
-      get "/route1" do |env|
+      get "/route1" do
         "Route 1"
       end
-      get "/route2" do |env|
+      get "/route2" do
         "Route 2"
       end
       request = HTTP::Request.new("GET", "/route2")
@@ -16,7 +16,7 @@ describe "Route" do
 
     it "doesn't allow a route declaration start without /" do
       expect_raises Kemal::Exceptions::InvalidPathStartException, "Route declaration get \"route\" needs to start with '/', should be get \"/route\"" do
-        get "route" do |env|
+        get "route" do
           "Route 1"
         end
       end
