@@ -31,7 +31,7 @@ describe "Macros" do
 
   describe "#halt" do
     it "can break block with halt macro" do
-      get "/non-breaking" do |env|
+      get "/non-breaking" do
         "hello"
         "world"
       end

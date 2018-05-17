@@ -2,22 +2,22 @@
 # Currently it contains templates for 404 and 500 error codes.
 
 def render_404
-  template = <<-HTML
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <style type="text/css">
-        body { text-align:center;font-family:helvetica,arial;font-size:22px;
-          color:#888;margin:20px}
-        img { max-width: 579px; width: 100%; }
-        #c {margin:0 auto;width:500px;text-align:left}
-        </style>
-      </head>
-      <body>
-        <h2>Kemal doesn't know this way.</h2>
-        <img src="/__kemal__/404.png">
-      </body>
-      </html>
+  <<-HTML
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <style type="text/css">
+      body { text-align:center;font-family:helvetica,arial;font-size:22px;
+        color:#888;margin:20px}
+      img { max-width: 579px; width: 100%; }
+      #c {margin:0 auto;width:500px;text-align:left}
+      </style>
+    </head>
+    <body>
+      <h2>Kemal doesn't know this way.</h2>
+      <img src="/__kemal__/404.png">
+    </body>
+    </html>
   HTML
 end
 

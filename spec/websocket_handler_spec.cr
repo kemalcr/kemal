@@ -22,8 +22,8 @@ describe "Kemal::WebSocketHandler" do
 
   it "matches on given route" do
     handler = Kemal::WebSocketHandler::INSTANCE
-    ws "/" { |socket, context| socket.send("Match") }
-    ws "/no_match" { |socket, context| socket.send "No Match" }
+    ws "/" { |socket| socket.send("Match") }
+    ws "/no_match" { |socket| socket.send "No Match" }
     headers = HTTP::Headers{
       "Upgrade"           => "websocket",
       "Connection"        => "Upgrade",
@@ -37,7 +37,7 @@ describe "Kemal::WebSocketHandler" do
 
   it "fetches named url parameters" do
     handler = Kemal::WebSocketHandler::INSTANCE
-    ws "/:id" { |s, c| c.params.url["id"] }
+    ws "/:id" { |_, c| c.params.url["id"] }
     headers = HTTP::Headers{
       "Upgrade"           => "websocket",
       "Connection"        => "Upgrade",

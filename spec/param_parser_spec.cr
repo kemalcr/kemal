@@ -2,7 +2,7 @@ require "./spec_helper"
 
 describe "ParamParser" do
   it "parses query params" do
-    route = Route.new "POST", "/" do |env|
+    Route.new "POST", "/" do |env|
       hasan = env.params.query["hasan"]
       "Hello #{hasan}"
     end
@@ -12,7 +12,7 @@ describe "ParamParser" do
   end
 
   it "parses multiple values for query params" do
-    route = Route.new "POST", "/" do |env|
+    Route.new "POST", "/" do |env|
       hasan = env.params.query["hasan"]
       "Hello #{hasan}"
     end
@@ -28,7 +28,7 @@ describe "ParamParser" do
     end
     request = HTTP::Request.new("POST", "/hello/cemal")
     # Radix tree MUST be run to parse url params.
-    io_with_context = create_request_and_return_io(kemal, request)
+    create_request_and_return_io(kemal, request)
     url_params = Kemal::ParamParser.new(request).url
     url_params["hasan"].should eq "cemal"
   end
@@ -43,7 +43,7 @@ describe "ParamParser" do
     end
     request = HTTP::Request.new("POST", "/hello/sam%2Bspec%40gmail.com/%2419.99/a%C3%B1o")
     # Radix tree MUST be run to parse url params.
-    io_with_context = create_request_and_return_io(kemal, request)
+    create_request_and_return_io(kemal, request)
     url_params = Kemal::ParamParser.new(request).url
     url_params["email"].should eq "sam+spec@gmail.com"
     url_params["money"].should eq "$19.99"
@@ -51,7 +51,7 @@ describe "ParamParser" do
   end
 
   it "parses request body" do
-    route = Route.new "POST", "/" do |env|
+    Route.new "POST", "/" do |env|
       name = env.params.query["name"]
       age = env.params.query["age"]
       hasan = env.params.body["hasan"]
@@ -77,7 +77,7 @@ describe "ParamParser" do
   end
 
   it "parses multiple values in request body" do
-    route = Route.new "POST", "/" do |env|
+    Route.new "POST", "/" do |env|
       hasan = env.params.body["hasan"]
       "Hello #{hasan}"
     end
@@ -95,7 +95,7 @@ describe "ParamParser" do
 
   context "when content type is application/json" do
     it "parses request body" do
-      route = Route.new "POST", "/" { }
+      Route.new "POST", "/" { }
 
       request = HTTP::Request.new(
         "POST",
@@ -109,7 +109,7 @@ describe "ParamParser" do
     end
 
     it "parses request body when passed charset" do
-      route = Route.new "POST", "/" { }
+      Route.new "POST", "/" { }
 
       request = HTTP::Request.new(
         "POST",
@@ -123,7 +123,7 @@ describe "ParamParser" do
     end
 
     it "parses request body for array" do
-      route = Route.new "POST", "/" { }
+      Route.new "POST", "/" { }
 
       request = HTTP::Request.new(
         "POST",
@@ -137,7 +137,7 @@ describe "ParamParser" do
     end
 
     it "parses request body and query params" do
-      route = Route.new "POST", "/" { }
+      Route.new "POST", "/" { }
 
       request = HTTP::Request.new(
         "POST",
@@ -156,7 +156,7 @@ describe "ParamParser" do
     end
 
     it "handles no request body" do
-      route = Route.new "GET", "/" { }
+      Route.new "GET", "/" { }
 
       request = HTTP::Request.new(
         "GET",
@@ -180,7 +180,7 @@ describe "ParamParser" do
 
   context "when content type is incorrect" do
     it "does not parse request body" do
-      route = Route.new "POST", "/" do |env|
+      Route.new "POST", "/" do |env|
         name = env.params.body["name"]
         age = env.params.body["age"]
         hasan = env.params.query["hasan"]

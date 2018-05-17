@@ -2,7 +2,7 @@ require "./spec_helper"
 
 describe "Kemal::ExceptionHandler" do
   it "renders 404 on route not found" do
-    get "/" do |env|
+    get "/" do
       "Hello"
     end
 
@@ -39,7 +39,7 @@ describe "Kemal::ExceptionHandler" do
   end
 
   it "renders custom 500 error" do
-    error 500 do |env|
+    error 500 do
       "Something happened"
     end
     get "/" do |env|
@@ -60,7 +60,7 @@ describe "Kemal::ExceptionHandler" do
   end
 
   it "keeps the specified error Content-Type" do
-    error 500 do |env|
+    error 500 do
       "Something happened"
     end
     get "/" do |env|
@@ -82,7 +82,7 @@ describe "Kemal::ExceptionHandler" do
   end
 
   it "renders custom error with env and error" do
-    error 500 do |env, err|
+    error 500 do |_, err|
       err.message
     end
     get "/" do |env|

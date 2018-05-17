@@ -79,7 +79,7 @@ describe "Handler" do
     end
     add_handler CustomTestHandler.new
 
-    get "/" do |env|
+    get "/" do
       " Great"
     end
     request = HTTP::Request.new("GET", "/")
@@ -89,7 +89,7 @@ describe "Handler" do
   end
 
   it "runs specified only_routes in middleware" do
-    get "/only" do |env|
+    get "/only" do
       "Get"
     end
     add_handler OnlyHandler.new
@@ -99,7 +99,7 @@ describe "Handler" do
   end
 
   it "doesn't run specified exclude_routes in middleware" do
-    get "/" do |env|
+    get "/" do
       "Get"
     end
     get "/exclude" do

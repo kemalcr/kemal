@@ -2,7 +2,6 @@ require "./spec_helper"
 
 describe "Kemal::LogHandler" do
   it "logs to the given IO" do
-    config = Kemal.config
     io = IO::Memory.new
     logger = Kemal::LogHandler.new io
     logger.write "Something"
