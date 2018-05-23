@@ -50,7 +50,7 @@ module Kemal
       # This route serves the built-in images for not_found and exceptions.
       get "/__kemal__/404.png" do |env|
         file_path = File.expand_path("lib/kemal/images/404.png", Dir.current)
-        
+
         if File.exists? file_path
           send_file env, file_path
         else
@@ -59,7 +59,7 @@ module Kemal
       end
     end
 
-    config.server ||= HTTP::Server.new(config.host_binding, config.port, config.handlers)
+    server = config.server ||= HTTP::Server.new(config.handlers)
 
     {% if !flag?(:without_openssl) %}
       config.server.not_nil!.tls = config.ssl
@@ -68,7 +68,7 @@ module Kemal
     config.running = true
 
     yield config
-    config.server.not_nil!.listen if config.env != "test" && config.server
+    server.listen(config.host_binding, config.port) if config.env != "test"
   end
 
   def self.stop
