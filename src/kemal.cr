@@ -59,7 +59,7 @@ module Kemal
       end
     end
 
-    config.server ||= HTTP::Server.new(config.host_binding, config.port, config.handlers)
+    server = config.server ||= HTTP::Server.new(config.handlers)
 
     {% if !flag?(:without_openssl) %}
       config.server.not_nil!.tls = config.ssl
@@ -68,13 +68,13 @@ module Kemal
     config.running = true
 
     yield config
-    config.server.not_nil!.listen if config.env != "test" && config.server
+    server.listen(config.host_binding, config.port) if config.env != "test"
   end
 
   def self.stop
     if config.running
-      if config.server
-        config.server.not_nil!.close
+      if server = config.server
+        server.close unless server.closed?
         config.running = false
       else
         raise "Kemal.config.server is not set. Please use Kemal.run to set the server."
