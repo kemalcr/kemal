@@ -54,6 +54,7 @@ module Kemal
     end
 
     def clear
+      @powered_by_header = true
       @router_included = false
       @handler_position = 0
       @default_handlers_setup = false
