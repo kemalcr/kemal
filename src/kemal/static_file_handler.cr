@@ -58,7 +58,7 @@ module Kemal
     end
 
     private def etag(context : HTTP::Server::Context, file_path : String)
-      etag = %{W/"#{File.lstat(file_path).mtime.epoch.to_s}"}
+      etag = %{W/"#{File.info(file_path).modification_time.epoch.to_s}"}
       context.response.headers["ETag"] = etag
       return false if !context.request.headers["If-None-Match"]? || context.request.headers["If-None-Match"] != etag
       context.response.headers.delete "Content-Type"
