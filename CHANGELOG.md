@@ -1,3 +1,10 @@
+# 0.23.0 (17-06-2018)
+
+- Crystal 0.25.0 support 🎉
+- Add `Kemal::Context.get?` to safely access context storage :sunglasses:
+- [Security] Don't serve 404 image dynamically :thumbsup:
+- Disable `X-Powered-By` header. Thanks @Blacksmoke16 [https://github.com/kemalcr/kemal/pull/449][#449].
+
 # 0.22.0 (29-12-2017)
 
 - Crystal 0.24.1 support 🎉
