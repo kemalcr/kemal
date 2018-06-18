@@ -2,13 +2,11 @@ require "./spec_helper"
 
 describe "Config" do
   it "sets default port to 3000" do
-    config = Kemal.config
-    config.port.should eq 3000
+    Kemal::Config.new.port.should eq 3000
   end
 
   it "sets default environment to development" do
-    config = Kemal.config
-    config.env.should eq "development"
+    Kemal::Config.new.env.should eq "development"
   end
 
   it "sets environment to production" do
@@ -18,7 +16,7 @@ describe "Config" do
   end
 
   it "sets default powered_by_header to true" do
-    Kemal.config.powered_by_header.should be_true
+    Kemal::Config.new.powered_by_header.should be_true
   end
 
   it "sets host binding" do
