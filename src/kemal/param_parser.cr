@@ -16,7 +16,7 @@ module Kemal
       @query = HTTP::Params.new({} of String => Array(String))
       @body = HTTP::Params.new({} of String => Array(String))
       @json = {} of String => AllParamTypes
-      @files = {} of String => FileUpload
+      @files = [] of FileUpload
       @url_parsed = false
       @query_parsed = false
       @body_parsed = false
@@ -71,7 +71,7 @@ module Kemal
         next unless upload
         filename = upload.filename
         if !filename.nil?
-          @files[upload.name] = FileUpload.new(upload: upload)
+          @files << FileUpload.new(upload: upload)
         else
           @body.add(upload.name, upload.body.gets_to_end)
         end
