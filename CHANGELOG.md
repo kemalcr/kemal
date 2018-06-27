@@ -1,3 +1,23 @@
+# Next
+
+- `env.params.files` is now an `Array(FileUpload)`. You can iterate over to access the images.
+
+```ruby
+env.params.files.each do |file|
+
+  filename = file.filename
+
+  if !filename.is_a?(String)
+    "No filename included in upload"
+  else
+    file_path = ::File.join [Kemal.config.public_folder, "uploads/", filename]
+    File.open(file_path, "w") do |f|
+    IO.copy(file.tmpfile, f)
+  end
+  "Upload OK"
+end
+```
+
 # 0.23.0 (17-06-2018)
 
 - Crystal 0.25.0 support 🎉
