@@ -5,6 +5,10 @@ describe "Config" do
     Kemal::Config.new.port.should eq 3000
   end
 
+  it "sets default amount of workers to 1" do
+    Kemal::Config.new.workers.should eq 1
+  end
+
   it "sets default environment to development" do
     Kemal::Config.new.env.should eq "development"
   end
