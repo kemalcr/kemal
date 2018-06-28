@@ -18,7 +18,7 @@ module Kemal
       @ssl : OpenSSL::SSL::Context::Server?
     {% end %}
 
-    property host_binding, ssl, port, env, public_folder, logging, running
+    property host_binding, ssl, port, env, public_folder, logging, running, workers, worker_processes, worker
     property always_rescue, server : HTTP::Server?, extra_options, shutdown_message
     property serve_static : (Bool | Hash(String, Bool))
     property static_headers : (HTTP::Server::Response, String, File::Info -> Void)?
@@ -39,6 +39,9 @@ module Kemal
       @running = false
       @shutdown_message = true
       @handler_position = 0
+      @workers = 1
+      @worker_processes = [] of Process
+      @worker = false
     end
 
     def logger
