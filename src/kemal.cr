@@ -31,30 +31,10 @@ module Kemal
     config.setup
     config.port = port if port
 
-    unless Kemal.config.error_handlers.has_key?(404)
-      error 404 do
-        render_404
-      end
-    end
-
     # Test environment doesn't need to have signal trap, built-in images, and logging.
-    unless config.env == "test"
-      Signal::INT.trap do
-        log "Kemal is going to take a rest!" if config.shutdown_message
-        Kemal.stop
-        exit
-      end
-
-      # This route serves the built-in images for not_found and exceptions.
-      get "/__kemal__/404.png" do |env|
-        file_path = File.expand_path("lib/kemal/images/404.png", Dir.current)
-
-        if File.exists? file_path
-          send_file env, file_path
-        else
-          halt env, 404
-        end
-      end
+    if config.env != "test"
+      setup_404
+      setup_trap_signal
     end
 
     server = config.server ||= HTTP::Server.new(config.handlers)
@@ -94,6 +74,32 @@ module Kemal
       end
     else
       raise "Kemal is already stopped."
+    end
+  end
+
+  private def self.setup_404
+    unless Kemal.config.error_handlers.has_key?(404)
+      get "/__kemal__/404.png" do |env|
+        file_path = File.expand_path("lib/kemal/images/404.png", Dir.current)
+
+        if File.exists? file_path
+          send_file env, file_path
+        else
+          halt env, 404
+        end
+      end
+
+      error 404 do
+        render_404
+      end
+    end
+  end
+
+  private def self.setup_trap_signal
+    Signal::INT.trap do
+      log "Kemal is going to take a rest!" if Kemal.config.shutdown_message
+      Kemal.stop
+      exit
     end
   end
 end
