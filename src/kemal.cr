@@ -9,9 +9,7 @@ require "./kemal/helpers/*"
 module Kemal
   # Overload of `self.run` with the default startup logging.
   def self.run(port : Int32?)
-    self.run port do
-      log "[#{config.env}] Kemal is ready to lead at #{config.scheme}://#{config.host_binding}:#{config.port}"
-    end
+    self.run(port) { }
   end
 
   # Overload of `self.run` without port.
@@ -68,7 +66,22 @@ module Kemal
     config.running = true
 
     yield config
-    server.listen(config.host_binding, config.port) if config.env != "test"
+
+    # Abort if block called `Kemal.stop`
+    return unless config.running
+
+    unless server.each_address { |_| break true }
+      server.bind_tcp(config.host_binding, config.port)
+    end
+
+    display_startup_message(config, server)
+
+    server.listen unless config.env == "test"
+  end
+
+  def self.display_startup_message(config, server)
+    addresses = server.addresses.map { |address| "#{config.scheme}://#{address}" }.join ", "
+    log "[#{config.env}] Kemal is ready to lead at #{addresses}"
   end
 
   def self.stop
