@@ -31,7 +31,7 @@ module Kemal
     config.setup
     config.port = port if port
 
-    # Test environment doesn't need to have signal trap, built-in images, and logging.
+    # Test environment doesn't need to have signal trap and logging.
     if config.env != "test"
       setup_404
       setup_trap_signal
@@ -79,16 +79,6 @@ module Kemal
 
   private def self.setup_404
     unless Kemal.config.error_handlers.has_key?(404)
-      get "/__kemal__/404.png" do |env|
-        file_path = File.expand_path("lib/kemal/images/404.png", Dir.current)
-
-        if File.exists? file_path
-          send_file env, file_path
-        else
-          halt env, 404
-        end
-      end
-
       error 404 do
         render_404
       end
