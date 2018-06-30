@@ -11,8 +11,7 @@ module Kemal
     alias AllParamTypes = Nil | String | Int64 | Float64 | Bool | Hash(String, JSON::Any) | Array(JSON::Any)
     getter files
 
-    def initialize(@request : HTTP::Request)
-      @url = {} of String => String
+    def initialize(@request : HTTP::Request, @url : Hash(String, String) = {} of String => String)
       @query = HTTP::Params.new({} of String => Array(String))
       @body = HTTP::Params.new({} of String => Array(String))
       @json = {} of String => AllParamTypes
@@ -42,7 +41,7 @@ module Kemal
     {% end %}
 
     private def parse_body
-      content_type = @request.content_type
+      content_type = @request.headers["Content-Type"]?
       return unless content_type
       if content_type.try(&.starts_with?(URL_ENCODED_FORM))
         @body = parse_part(@request.body)
@@ -59,11 +58,7 @@ module Kemal
     end
 
     private def parse_url
-      if params = @request.url_params
-        params.each do |key, value|
-          @url[key] = unescape_url_param(value)
-        end
-      end
+      @url.each { |key, value| @url[key] = unescape_url_param(value) }
     end
 
     private def parse_file_upload

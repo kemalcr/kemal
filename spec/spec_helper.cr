@@ -29,17 +29,17 @@ end
 add_context_storage_type(TestContextStorageType)
 add_context_storage_type(AnotherContextStorageType)
 
-def create_request_and_return_io(handler, request)
+def create_request_and_return_io_and_context(handler, request)
   io = IO::Memory.new
   response = HTTP::Server::Response.new(io)
   context = HTTP::Server::Context.new(request, response)
   handler.call(context)
   response.close
   io.rewind
-  io
+  {io, context}
 end
 
-def create_ws_request_and_return_io(handler, request)
+def create_ws_request_and_return_io_and_context(handler, request)
   io = IO::Memory.new
   response = HTTP::Server::Response.new(io)
   context = HTTP::Server::Context.new(request, response)
@@ -49,6 +49,7 @@ def create_ws_request_and_return_io(handler, request)
     # Raises because the IO::Memory is empty
   end
   io.rewind
+  {io, context}
 end
 
 def call_request_on_app(request)

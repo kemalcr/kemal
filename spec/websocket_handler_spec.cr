@@ -32,13 +32,13 @@ describe "Kemal::WebSocketHandler" do
     }
     request = HTTP::Request.new("GET", "/", headers)
 
-    io_with_context = create_ws_request_and_return_io(handler, request)
+    io_with_context = create_ws_request_and_return_io_and_context(handler, request)[0]
     io_with_context.to_s.should eq("HTTP/1.1 101 Switching Protocols\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Accept: s3pPLMBiTxaQ9kYGzzhZRbK+xOo=\r\n\r\n\x81\u0005Match")
   end
 
   it "fetches named url parameters" do
     handler = Kemal::WebSocketHandler::INSTANCE
-    ws "/:id" { |_, c| c.params.url["id"] }
+    ws "/:id" { |_, c| c.ws_route_lookup.params["id"] }
     headers = HTTP::Headers{
       "Upgrade"               => "websocket",
       "Connection"            => "Upgrade",
@@ -46,7 +46,7 @@ describe "Kemal::WebSocketHandler" do
       "Sec-WebSocket-Version" => "13",
     }
     request = HTTP::Request.new("GET", "/1234", headers)
-    io_with_context = create_ws_request_and_return_io(handler, request)
+    io_with_context = create_ws_request_and_return_io_and_context(handler, request)[0]
     io_with_context.to_s.should eq("HTTP/1.1 101 Switching Protocols\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Accept: s3pPLMBiTxaQ9kYGzzhZRbK+xOo=\r\n\r\n")
   end
 

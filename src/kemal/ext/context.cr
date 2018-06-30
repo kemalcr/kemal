@@ -14,9 +14,7 @@ class HTTP::Server
     end
 
     def params
-      @request.url_params ||= route_lookup.params
-      @params ||= Kemal::ParamParser.new(@request)
-
+      @params ||= Kemal::ParamParser.new(@request, route_lookup.params)
     end
 
     def redirect(url : String, status_code : Int32 = 302)
