@@ -8,7 +8,7 @@ module Kemal::Exceptions
 
   class RouteNotFound < Exception
     def initialize(context : HTTP::Server::Context)
-      super "Requested path: '#{context.request.override_method}:#{context.request.path}' was not found."
+      super "Requested path: '#{context.request.method}:#{context.request.path}' was not found."
     end
   end
 
