@@ -15,11 +15,8 @@ class HTTP::Server
 
     def params
       @request.url_params ||= route_lookup.params
-      @params ||= if @request.param_parser
-                    @request.param_parser.not_nil!
-                  else
-                    Kemal::ParamParser.new(@request)
-                  end
+      @params ||= Kemal::ParamParser.new(@request)
+
     end
 
     def redirect(url : String, status_code : Int32 = 302)
@@ -36,7 +33,7 @@ class HTTP::Server
     end
 
     def route_lookup
-      Kemal::RouteHandler::INSTANCE.lookup_route(@request.override_method.as(String), @request.path)
+      Kemal::RouteHandler::INSTANCE.lookup_route(@request.method.as(String), @request.path)
     end
 
     def route_defined?

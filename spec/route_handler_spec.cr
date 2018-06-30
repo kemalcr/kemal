@@ -102,48 +102,6 @@ describe "Kemal::RouteHandler" do
     client_response.body.should eq("Skills ruby,crystal")
   end
 
-  it "checks for _method param in POST request to simulate PUT" do
-    put "/" do
-      "Hello World from PUT"
-    end
-    request = HTTP::Request.new(
-      "POST",
-      "/",
-      body: "_method=PUT",
-      headers: HTTP::Headers{"Content-Type" => "application/x-www-form-urlencoded"}
-    )
-    client_response = call_request_on_app(request)
-    client_response.body.should eq("Hello World from PUT")
-  end
-
-  it "checks for _method param in POST request to simulate PATCH" do
-    patch "/" do
-      "Hello World from PATCH"
-    end
-    request = HTTP::Request.new(
-      "POST",
-      "/",
-      body: "_method=PATCH",
-      headers: HTTP::Headers{"Content-Type" => "application/x-www-form-urlencoded; charset=UTF-8"}
-    )
-    client_response = call_request_on_app(request)
-    client_response.body.should eq("Hello World from PATCH")
-  end
-
-  it "checks for _method param in POST request to simulate DELETE" do
-    delete "/" do
-      "Hello World from DELETE"
-    end
-    request = HTTP::Request.new(
-      "POST",
-      "/",
-      body: "_method=DELETE",
-      headers: HTTP::Headers{"Content-Type" => "application/x-www-form-urlencoded; charset=UTF-8"}
-    )
-    client_response = call_request_on_app(request)
-    client_response.body.should eq("Hello World from DELETE")
-  end
-
   it "can process HTTP HEAD requests for defined GET routes" do
     get "/" do
       "Hello World from GET"
