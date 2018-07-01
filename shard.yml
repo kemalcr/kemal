@@ -8,6 +8,9 @@ dependencies:
   kilt:
     github: jeromegn/kilt
     version: ~> 0.4.0
+  exception_page:
+    github: crystal-loot/exception_page
+    version: ~> 0.1.1
 
 targets:
   kemal:
