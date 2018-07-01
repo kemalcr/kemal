@@ -22,13 +22,14 @@ def render_404
 end
 
 def render_500(context, exception, verbosity)
+  context.response.status_code = 500
+
   template = if verbosity
                Kemal::ExceptionPage.for_runtime_exception(context, exception).to_s
              else
                Kemal::ExceptionPage.for_production_exception
              end
 
-  context.response.status_code = 500
   context.response.print template
   context
 end
