@@ -9,13 +9,11 @@ module Kemal
     PARTS            = %w(url query body json)
     # :nodoc:
     alias AllParamTypes = Nil | String | Int64 | Float64 | Bool | Hash(String, JSON::Any) | Array(JSON::Any)
-    getter files
 
     def initialize(@request : HTTP::Request, @url : Hash(String, String) = {} of String => String)
       @query = HTTP::Params.new({} of String => Array(String))
       @body = HTTP::Params.new({} of String => Array(String))
       @json = {} of String => AllParamTypes
-      @files = [] of FileUpload
       @url_parsed = false
       @query_parsed = false
       @body_parsed = false
@@ -47,10 +45,6 @@ module Kemal
         @body = parse_part(@request.body)
         return
       end
-      if content_type.try(&.starts_with?(MULTIPART_FORM))
-        parse_file_upload
-        return
-      end
     end
 
     private def parse_query
@@ -59,18 +53,6 @@ module Kemal
 
     private def parse_url
       @url.each { |key, value| @url[key] = unescape_url_param(value) }
-    end
-
-    private def parse_file_upload
-      HTTP::FormData.parse(@request) do |upload|
-        next unless upload
-        filename = upload.filename
-        if !filename.nil?
-          @files << FileUpload.new(upload: upload)
-        else
-          @body.add(upload.name, upload.body.gets_to_end)
-        end
-      end
     end
 
     # Parses JSON request body if Content-Type is `application/json`.
