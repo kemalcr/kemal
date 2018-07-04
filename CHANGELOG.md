@@ -1,22 +1,33 @@
 # Next
 
-- `env.params.files` is now an `Array(FileUpload)`. You can iterate over to access the images.
+- *[breaking change]* Removed `env.params.files`. You can use Crystal's built-in `HTTP::FormData.parse` instead
 
 ```ruby
-env.params.files.each do |file|
+post "/upload" do |env|
+  HTTP::FormData.parse(env.request) do |upload|
+    filename = file.filename
 
-  filename = file.filename
-
-  if !filename.is_a?(String)
-    "No filename included in upload"
-  else
-    file_path = ::File.join [Kemal.config.public_folder, "uploads/", filename]
-    File.open(file_path, "w") do |f|
-    IO.copy(file.tmpfile, f)
+    if !filename.is_a?(String)
+      "No filename included in upload"
+    else
+      file_path = ::File.join [Kemal.config.public_folder, "uploads/", filename]
+      File.open(file_path, "w") do |f|
+      IO.copy(file.tmpfile, f)
+    end
+    "Upload OK"
   end
-  "Upload OK"
 end
 ```
+
+- *[breaking change]* From now on to access dynamic url params in a WebSocket route you have to use
+
+```ruby
+ws "/:id" do |socket, context|
+  id = context.ws_route_lookup.params["id"]
+end
+```
+
+- *[breaking change]* Removed `_method` magic param
 
 # 0.23.0 (17-06-2018)
 
