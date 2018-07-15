@@ -25,7 +25,7 @@ describe "Config" do
     config.host_binding.should eq "127.0.0.1"
   end
 
-  pending "adds a custom handler" do
+  it "adds a custom handler" do
     config = Kemal.config
     config.add_handler CustomTestHandler.new
     Kemal.config.setup
