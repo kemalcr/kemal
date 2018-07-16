@@ -54,4 +54,12 @@ describe "Config" do
     Kemal::CLI.new
     test_option.should eq("FOOBAR")
   end
+
+  it "returns a string" do
+    Kemal::VERSION.should be_a(String)
+  end
+
+  it "gets the version from shards.yml" do
+    Kemal::VERSION.should eq("0.23.0")
+  end
 end
