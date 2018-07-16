@@ -50,21 +50,17 @@ module Kemal
           return call_next(context)
         end
       elsif File.exists?(file_path)
-        return if etag(context, file_path)
+        last_modified = modification_time(file_path)
+        add_cache_headers(context.response.headers, last_modified)
+
+        if cache_request?(context, last_modified)
+          context.response.status_code = 304
+          return
+        end
         send_file(context, file_path)
       else
         call_next(context)
       end
-    end
-
-    private def etag(context : HTTP::Server::Context, file_path : String)
-      etag = %{W/"#{File.info(file_path).modification_time.epoch.to_s}"}
-      context.response.headers["ETag"] = etag
-      return false if !context.request.headers["If-None-Match"]? || context.request.headers["If-None-Match"] != etag
-      context.response.headers.delete "Content-Type"
-      context.response.content_length = 0
-      context.response.status_code = 304 # not modified
-      return true
     end
   end
 end
