@@ -60,6 +60,18 @@ describe "Macros" do
       client_response.status_code.should eq(200)
       client_response.body.should eq("")
     end
+
+    it "prevents handler execution if called within filter" do
+      before_all "/*" do |env|
+        halt env
+      end
+      get "/" do
+        "test"
+      end
+      request = HTTP::Request.new("GET", "/")
+      client_response = call_request_on_app(request)
+      client_response.body.should_not eq("test")
+    end
   end
 
   describe "#headers" do
