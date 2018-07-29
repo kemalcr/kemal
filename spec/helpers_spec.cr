@@ -63,14 +63,14 @@ describe "Macros" do
 
     it "prevents handler execution if called within filter" do
       before_all "/halt" do |env|
-        halt env
+        halt env, response: "halted"
       end
       get "/halt" do
         "test"
       end
       request = HTTP::Request.new("GET", "/halt")
       client_response = call_request_on_app(request)
-      client_response.body.should_not eq("test")
+      client_response.body.should eq("halted")
     end
   end
 

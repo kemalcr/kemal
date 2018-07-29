@@ -183,6 +183,22 @@ describe "Kemal::FilterHandler" do
     client_response = HTTP::Client::Response.from_io(io_with_context, decompress: false)
     client_response.body.should eq("true")
   end
+
+  it "prevents handler execution if halt macro is called" do
+    filter_middleware = Kemal::FilterHandler.new
+    filter_middleware._add_route_filter("GET", "/halt", :before) do |env|
+      halt env, response: "halted"
+    end
+
+    kemal = Kemal::RouteHandler::INSTANCE
+    kemal.add_route "GET", "/halt" { "test" }
+
+    request = HTTP::Request.new("GET", "/halt")
+    create_request_and_return_io(filter_middleware, request)
+    io_with_context = create_request_and_return_io(kemal, request)
+    client_response = HTTP::Client::Response.from_io(io_with_context, decompress: false)
+    client_response.body.should eq("halted")
+  end
 end
 
 class FilterTest
