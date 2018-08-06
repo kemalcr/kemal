@@ -13,8 +13,8 @@ describe "Kemal::FilterHandler" do
 
     test_filter.modified.should eq("false")
     request = HTTP::Request.new("GET", "/greetings")
-    create_request_and_return_io(filter_middleware, request)
-    io_with_context = create_request_and_return_io(kemal, request)
+    create_request_and_return_io_and_context(filter_middleware, request)
+    io_with_context = create_request_and_return_io_and_context(kemal, request)[0]
     client_response = HTTP::Client::Response.from_io(io_with_context, decompress: false)
     client_response.body.should eq("true")
   end
@@ -33,14 +33,14 @@ describe "Kemal::FilterHandler" do
     test_filter.modified.should eq("false")
 
     request = HTTP::Request.new("GET", "/greetings")
-    create_request_and_return_io(filter_middleware, request)
-    io_with_context = create_request_and_return_io(kemal, request)
+    create_request_and_return_io_and_context(filter_middleware, request)
+    io_with_context = create_request_and_return_io_and_context(kemal, request)[0]
     client_response = HTTP::Client::Response.from_io(io_with_context, decompress: false)
     client_response.body.should eq("true")
 
     request = HTTP::Request.new("POST", "/greetings")
-    create_request_and_return_io(filter_middleware, request)
-    io_with_context = create_request_and_return_io(kemal, request)
+    create_request_and_return_io_and_context(filter_middleware, request)
+    io_with_context = create_request_and_return_io_and_context(kemal, request)[0]
     client_response = HTTP::Client::Response.from_io(io_with_context, decompress: false)
     client_response.body.should eq("true")
   end
@@ -61,14 +61,14 @@ describe "Kemal::FilterHandler" do
     test_filter.modified.should eq("false")
 
     request = HTTP::Request.new("GET", "/greetings")
-    create_request_and_return_io(filter_middleware, request)
-    io_with_context = create_request_and_return_io(kemal, request)
+    create_request_and_return_io_and_context(filter_middleware, request)
+    io_with_context = create_request_and_return_io_and_context(kemal, request)[0]
     client_response = HTTP::Client::Response.from_io(io_with_context, decompress: false)
     client_response.body.should eq("false")
 
     request = HTTP::Request.new("POST", "/greetings")
-    create_request_and_return_io(filter_middleware, request)
-    io_with_context = create_request_and_return_io(kemal, request)
+    create_request_and_return_io_and_context(filter_middleware, request)
+    io_with_context = create_request_and_return_io_and_context(kemal, request)[0]
     client_response = HTTP::Client::Response.from_io(io_with_context, decompress: false)
     client_response.body.should eq("false")
   end
@@ -85,8 +85,8 @@ describe "Kemal::FilterHandler" do
 
     test_filter.modified.should eq("false")
     request = HTTP::Request.new("GET", "/greetings")
-    create_request_and_return_io(filter_middleware, request)
-    io_with_context = create_request_and_return_io(kemal, request)
+    create_request_and_return_io_and_context(filter_middleware, request)
+    io_with_context = create_request_and_return_io_and_context(kemal, request)[0]
     client_response = HTTP::Client::Response.from_io(io_with_context, decompress: false)
     client_response.body.should eq("true")
   end
@@ -105,14 +105,14 @@ describe "Kemal::FilterHandler" do
     test_filter.modified.should eq("false")
 
     request = HTTP::Request.new("GET", "/greetings")
-    create_request_and_return_io(filter_middleware, request)
-    io_with_context = create_request_and_return_io(kemal, request)
+    create_request_and_return_io_and_context(filter_middleware, request)
+    io_with_context = create_request_and_return_io_and_context(kemal, request)[0]
     client_response = HTTP::Client::Response.from_io(io_with_context, decompress: false)
     client_response.body.should eq("true")
 
     request = HTTP::Request.new("POST", "/greetings")
-    create_request_and_return_io(filter_middleware, request)
-    io_with_context = create_request_and_return_io(kemal, request)
+    create_request_and_return_io_and_context(filter_middleware, request)
+    io_with_context = create_request_and_return_io_and_context(kemal, request)[0]
     client_response = HTTP::Client::Response.from_io(io_with_context, decompress: false)
     client_response.body.should eq("true")
   end
@@ -132,14 +132,14 @@ describe "Kemal::FilterHandler" do
 
     test_filter.modified.should eq("false")
     request = HTTP::Request.new("GET", "/greetings")
-    create_request_and_return_io(filter_middleware, request)
-    io_with_context = create_request_and_return_io(kemal, request)
+    create_request_and_return_io_and_context(filter_middleware, request)
+    io_with_context = create_request_and_return_io_and_context(kemal, request)[0]
     client_response = HTTP::Client::Response.from_io(io_with_context, decompress: false)
     client_response.body.should eq("false")
 
     request = HTTP::Request.new("POST", "/greetings")
-    create_request_and_return_io(filter_middleware, request)
-    io_with_context = create_request_and_return_io(kemal, request)
+    create_request_and_return_io_and_context(filter_middleware, request)
+    io_with_context = create_request_and_return_io_and_context(kemal, request)[0]
     client_response = HTTP::Client::Response.from_io(io_with_context, decompress: false)
     client_response.body.should eq("false")
   end
@@ -166,20 +166,20 @@ describe "Kemal::FilterHandler" do
     test_filter_second.modified.should eq("false")
     test_filter_third.modified.should eq("false")
     request = HTTP::Request.new("GET", "/greetings")
-    create_request_and_return_io(filter_middleware, request)
-    io_with_context = create_request_and_return_io(kemal, request)
+    create_request_and_return_io_and_context(filter_middleware, request)
+    io_with_context = create_request_and_return_io_and_context(kemal, request)[0]
     client_response = HTTP::Client::Response.from_io(io_with_context, decompress: false)
     client_response.body.should eq("true")
 
     request = HTTP::Request.new("POST", "/greetings")
-    create_request_and_return_io(filter_middleware, request)
-    io_with_context = create_request_and_return_io(kemal, request)
+    create_request_and_return_io_and_context(filter_middleware, request)
+    io_with_context = create_request_and_return_io_and_context(kemal, request)[0]
     client_response = HTTP::Client::Response.from_io(io_with_context, decompress: false)
     client_response.body.should eq("false")
 
     request = HTTP::Request.new("PUT", "/greetings")
-    create_request_and_return_io(filter_middleware, request)
-    io_with_context = create_request_and_return_io(kemal, request)
+    create_request_and_return_io_and_context(filter_middleware, request)
+    io_with_context = create_request_and_return_io_and_context(kemal, request)[0]
     client_response = HTTP::Client::Response.from_io(io_with_context, decompress: false)
     client_response.body.should eq("true")
   end

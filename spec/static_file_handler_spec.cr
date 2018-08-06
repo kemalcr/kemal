@@ -30,6 +30,7 @@ describe Kemal::StaticFileHandler do
 
     headers = HTTP::Headers{"If-None-Match" => etag}
     response = handle HTTP::Request.new("GET", "/dir/test.txt", headers)
+    response.headers["Content-Type"]?.should be_nil
     response.status_code.should eq(304)
     response.body.should eq ""
   end
