@@ -39,10 +39,6 @@ module Kemal
 
     server = config.server ||= HTTP::Server.new(config.handlers)
 
-    {% if !flag?(:without_openssl) %}
-      config.server.not_nil!.tls = config.ssl
-    {% end %}
-
     config.running = true
 
     yield config
@@ -51,7 +47,15 @@ module Kemal
     return unless config.running
 
     unless server.each_address { |_| break true }
-      server.bind_tcp(config.host_binding, config.port)
+      {% if flag?(:without_openssl) %}
+        server.bind_tcp(config.host_binding, config.port)
+      {% else %}
+        if ssl = config.ssl
+          server.bind_ssl(config.host_binding, config.port, ssl)
+        else
+          server.bind_tcp(config.host_binding, config.port)
+        end
+      {% end %}
     end
 
     display_startup_message(config, server)
