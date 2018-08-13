@@ -12,7 +12,7 @@ module Kemal
 
     # The call order of the filters is `before_all -> before_x -> X -> after_x -> after_all`.
     def call(context : HTTP::Server::Context)
-      return call_next(context) unless context.route_defined?
+      return call_next(context) unless context.route_found?
       call_block_for_path_type("ALL", context.request.path, :before, context)
       call_block_for_path_type(context.request.method, context.request.path, :before, context)
       if Kemal.config.error_handlers.has_key?(context.response.status_code)

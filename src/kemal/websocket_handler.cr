@@ -10,7 +10,7 @@ module Kemal
     end
 
     def call(context : HTTP::Server::Context)
-      return call_next(context) unless context.ws_route_defined? && websocket_upgrade_request?(context)
+      return call_next(context) unless context.ws_route_found? && websocket_upgrade_request?(context)
       content = context.websocket.call(context)
       context.response.print(content)
       context

@@ -34,7 +34,7 @@ class HTTP::Server
       Kemal::RouteHandler::INSTANCE.lookup_route(@request.method.as(String), @request.path)
     end
 
-    def route_defined?
+    def route_found?
       route_lookup.found?
     end
 
@@ -42,7 +42,7 @@ class HTTP::Server
       Kemal::WebSocketHandler::INSTANCE.lookup_ws_route(@request.path)
     end
 
-    def ws_route_defined?
+    def ws_route_found?
       ws_route_lookup.found?
     end
 
