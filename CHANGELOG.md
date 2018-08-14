@@ -1,4 +1,4 @@
-# Next
+# 0.24.0 (14-08-2018)
 
 - *[breaking change]* Removed `env.params.files`. You can use Crystal's built-in `HTTP::FormData.parse` instead
 
@@ -19,7 +19,7 @@ post "/upload" do |env|
 end
 ```
 
-- *[breaking change]* From now on to access dynamic url params in a WebSocket route you have to use
+- *[breaking change]* From now on to access dynamic url params in a WebSocket route you have to use:
 
 ```ruby
 ws "/:id" do |socket, context|
@@ -27,7 +27,19 @@ ws "/:id" do |socket, context|
 end
 ```
 
-- *[breaking change]* Removed `_method` magic param
+- *[breaking change]* Removed `_method` magic param.
+
+- Added new exception page [#466](https://github.com/kemalcr/kemal/pull/466). Thanks @mamantoha 🙏
+
+- Support custom port binding. Thanks @straight-shoota 🙏
+
+```ruby
+Kemal.run do |config|
+  server = config.server.not_nil!
+  server.bind_tcp "127.0.0.1", 3000, reuse_port: true
+  server.bind_tcp "0.0.0.0", 3001, reuse_port: true
+end
+```
 
 # 0.23.0 (17-06-2018)
 
