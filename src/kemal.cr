@@ -22,6 +22,10 @@ module Kemal
     self.run nil, &block
   end
 
+  def self.run(port : Int32?, args : ARGV)
+    self.run(port,args) { }
+  end
+
   # The command to run a `Kemal` application.
   #
   # If *port* is not given Kemal will use `Kemal::Config#port`
