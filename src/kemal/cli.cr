@@ -3,13 +3,13 @@ require "option_parser"
 module Kemal
   # Handles all the initialization from the command line.
   class CLI
-    def initialize
+    def initialize(args)
       @ssl_enabled = false
       @key_file = ""
       @cert_file = ""
       @config = Kemal.config
       read_env
-      if @config.parse_params
+      if args != nil
       	parse
       end
       configure_ssl
