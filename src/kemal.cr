@@ -22,7 +22,7 @@ module Kemal
     self.run nil, &block
   end
 
-  def self.run(port : Int32?, args : ARGV)
+  def self.run(port : Int32?, args = ARGV )
     self.run(port,args) { }
   end
 
