@@ -26,7 +26,7 @@ module Kemal
   #
   # If *port* is not given Kemal will use `Kemal::Config#port`
   def self.run(port : Int32? = nil, args = ARGV, &block)
-    Kemal::CLI.new
+    Kemal::CLI.new args
     config = Kemal.config
     config.setup
     config.port = port if port
