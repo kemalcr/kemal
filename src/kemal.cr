@@ -17,6 +17,10 @@ module Kemal
     self.run(nil)
   end
 
+  def self.run(args = ARGV)
+    self.run(nil,args: args)
+  end
+
   # Overload of `self.run` to allow just a block.
   def self.run(&block)
     self.run nil, &block
