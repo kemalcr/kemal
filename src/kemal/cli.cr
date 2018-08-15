@@ -9,8 +9,8 @@ module Kemal
       @cert_file = ""
       @config = Kemal.config
       read_env
-      if args 
-      	parse args
+      if args
+        parse args
       end
       configure_ssl
     end
