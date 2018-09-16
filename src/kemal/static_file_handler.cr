@@ -30,16 +30,20 @@ module Kemal
       end
 
       expanded_path = File.expand_path(request_path, "/")
-      if is_dir_path && !expanded_path.ends_with? "/"
-        expanded_path = "#{expanded_path}/"
-      end
-      is_dir_path = expanded_path.ends_with? "/"
+      is_dir_path = if original_path.ends_with?('/') && !expanded_path.ends_with? '/'
+                      expanded_path = expanded_path + '/'
+                      true
+                    else
+                      expanded_path.ends_with? '/'
+                    end
 
       file_path = File.join(@public_dir, expanded_path)
       is_dir = Dir.exists? file_path
 
-      if request_path != expanded_path || is_dir && !is_dir_path
-        redirect_to context, "#{expanded_path}#{is_dir && !is_dir_path ? "/" : ""}"
+      if request_path != expanded_path
+        redirect_to context, expanded_path
+      elsif is_dir && !is_dir_path
+        redirect_to context, expanded_path + '/'
       end
 
       if Dir.exists?(file_path)
