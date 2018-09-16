@@ -7,7 +7,9 @@ module Kemal
     def call(context : HTTP::Server::Context)
       return call_next(context) if context.request.path.not_nil! == "/"
 
-      unless context.request.method == "GET" || context.request.method == "HEAD"
+      case context.request.method
+      when "GET", "HEAD"
+      else
         if @fallthrough
           call_next(context)
         else
@@ -19,7 +21,6 @@ module Kemal
 
       config = Kemal.config.serve_static
       original_path = context.request.path.not_nil!
-      is_dir_path = original_path.ends_with? "/"
       request_path = URI.unescape(original_path)
 
       # File path cannot contains '\0' (NUL) because all filesystem I know

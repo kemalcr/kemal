@@ -144,15 +144,10 @@ module Kemal
     end
 
     private def setup_custom_handlers
-      CUSTOM_HANDLERS.each do |ch|
-        position = ch[0]
-        if !position
-          HANDLERS.insert(@handler_position, ch[1])
-          @handler_position += 1
-        else
-          HANDLERS.insert(position, ch[1])
-          @handler_position += 1
-        end
+      CUSTOM_HANDLERS.each do |ch0, ch1|
+        position = ch0
+        HANDLERS.insert (position || @handler_position), ch1
+        @handler_position += 1
       end
     end
 

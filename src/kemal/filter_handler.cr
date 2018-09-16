@@ -30,7 +30,7 @@ module Kemal
     def _add_route_filter(verb : String, path, type, &block : HTTP::Server::Context -> _)
       lookup = lookup_filters_for_path_type(verb, path, type)
       if lookup.found? && lookup.payload.is_a?(Array(FilterBlock))
-        (lookup.payload.as(Array(FilterBlock))) << FilterBlock.new(&block)
+        lookup.payload << FilterBlock.new(&block)
       else
         @tree.add radix_path(verb, path, type), [FilterBlock.new(&block)]
       end
@@ -54,8 +54,8 @@ module Kemal
     private def call_block_for_path_type(verb : String?, path : String, type, context : HTTP::Server::Context)
       lookup = lookup_filters_for_path_type(verb, path, type)
       if lookup.found? && lookup.payload.is_a? Array(FilterBlock)
-        blocks = lookup.payload.as(Array(FilterBlock))
-        blocks.each { |block| block.call(context) }
+        blocks = lookup.payload
+        blocks.each &.call(context)
       end
     end
 

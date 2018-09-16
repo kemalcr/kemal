@@ -8,7 +8,7 @@ module Kemal
       time = Time.now
       call_next(context)
       elapsed_text = elapsed_text(Time.now - time)
-      @io << time << " " << context.response.status_code << " " << context.request.method << " " << context.request.resource << " " << elapsed_text << "\n"
+      @io << time << ' ' << context.response.status_code << ' ' << context.request.method << ' ' << context.request.resource << ' ' << elapsed_text << '\n'
       context
     end
 
