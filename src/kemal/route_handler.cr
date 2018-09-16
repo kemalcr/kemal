@@ -4,7 +4,8 @@ module Kemal
   class RouteHandler
     include HTTP::Handler
 
-    INSTANCE = new
+    INSTANCE            = new
+    CACHED_ROUTES_LIMIT = 1024
     property routes, cached_routes
 
     def initialize
@@ -33,7 +34,11 @@ module Kemal
 
       route = @routes.find(lookup_path)
 
-      @cached_routes[lookup_path] = route if route.found?
+      if route.found? && @cached_routes.size < CACHED_ROUTES_LIMIT
+        @cached_routes[lookup_path] = route
+      else
+        @cached_routes.clear
+      end
 
       route
     end
