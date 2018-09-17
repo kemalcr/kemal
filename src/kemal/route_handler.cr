@@ -34,10 +34,9 @@ module Kemal
 
       route = @routes.find(lookup_path)
 
-      if route.found? && @cached_routes.size < CACHED_ROUTES_LIMIT
+      if route.found?
+        @cached_routes.clear if @cached_routes.size == CACHED_ROUTES_LIMIT
         @cached_routes[lookup_path] = route
-      else
-        @cached_routes.clear
       end
 
       route
