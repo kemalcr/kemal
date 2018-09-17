@@ -4,11 +4,13 @@ module Kemal
   class RouteHandler
     include HTTP::Handler
 
-    INSTANCE = new
-    property routes
+    INSTANCE            = new
+    CACHED_ROUTES_LIMIT = 1024
+    property routes, cached_routes
 
     def initialize
       @routes = Radix::Tree(Route).new
+      @cached_routes = Hash(String, Radix::Result(Route)).new
     end
 
     def call(context : HTTP::Server::Context)
@@ -22,9 +24,22 @@ module Kemal
       add_to_radix_tree("HEAD", path, Route.new("HEAD", path) { }) if method == "GET"
     end
 
-    # Check if a route is defined and returns the lookup
+    # Looks up the route from the Radix::Tree for the first time and caches to improve performance.
     def lookup_route(verb : String, path : String)
-      @routes.find radix_path(verb, path)
+      lookup_path = radix_path(verb, path)
+
+      if cached_route = @cached_routes[lookup_path]?
+        return cached_route
+      end
+
+      route = @routes.find(lookup_path)
+
+      if route.found?
+        @cached_routes.clear if @cached_routes.size == CACHED_ROUTES_LIMIT
+        @cached_routes[lookup_path] = route
+      end
+
+      route
     end
 
     # Processes the route if it's a match. Otherwise renders 404.
