@@ -50,7 +50,7 @@ module Kemal
         server.bind_tcp(config.host_binding, config.port)
       {% else %}
         if ssl = config.ssl
-          server.bind_ssl(config.host_binding, config.port, ssl)
+          server.bind_tls(config.host_binding, config.port, ssl)
         else
           server.bind_tcp(config.host_binding, config.port)
         end
