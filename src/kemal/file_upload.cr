@@ -1,7 +1,7 @@
 module Kemal
   # :nodoc:
   struct FileUpload
-    getter tmpfile : Tempfile
+    getter tempfile : File
     getter filename : String?
     getter headers : HTTP::Headers
     getter creation_time : Time?
@@ -10,8 +10,8 @@ module Kemal
     getter size : UInt64?
 
     def initialize(upload)
-      @tmpfile = Tempfile.new(filename)
-      ::File.open(@tmpfile.path, "w") do |file|
+      @tempfile = File.tempfile
+      ::File.open(@tempfile.path, "w") do |file|
         IO.copy(upload.body, file)
       end
       @filename = upload.filename

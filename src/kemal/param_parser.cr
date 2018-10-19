@@ -15,11 +15,12 @@ module Kemal
       @query = HTTP::Params.new({} of String => Array(String))
       @body = HTTP::Params.new({} of String => Array(String))
       @json = {} of String => AllParamTypes
-      @files = [] of FileUpload
+      @files = {} of String => FileUpload
       @url_parsed = false
       @query_parsed = false
       @body_parsed = false
       @json_parsed = false
+      @files_parsed = false
     end
 
     private def unescape_url_param(value : String)
@@ -42,14 +43,16 @@ module Kemal
 
     private def parse_body
       content_type = @request.headers["Content-Type"]?
+
       return unless content_type
+
       if content_type.try(&.starts_with?(URL_ENCODED_FORM))
         @body = parse_part(@request.body)
         return
       end
+
       if content_type.try(&.starts_with?(MULTIPART_FORM))
-        parse_file_upload
-        return
+        parse_files
       end
     end
 
@@ -61,16 +64,22 @@ module Kemal
       @url.each { |key, value| @url[key] = unescape_url_param(value) }
     end
 
-    private def parse_file_upload
+    private def parse_files
+      return if @files_parsed
+
       HTTP::FormData.parse(@request) do |upload|
         next unless upload
+
         filename = upload.filename
+
         if !filename.nil?
-          @files << FileUpload.new(upload: upload)
+          @files[upload.name] = FileUpload.new(upload)
         else
           @body.add(upload.name, upload.body.gets_to_end)
         end
       end
+
+      @files_parsed = true
     end
 
     # Parses JSON request body if Content-Type is `application/json`.
