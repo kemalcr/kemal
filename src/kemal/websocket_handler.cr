@@ -17,7 +17,7 @@ module Kemal
     end
 
     def lookup_ws_route(path : String)
-      @routes.find "/ws#{path}"
+      @routes.find "/ws" + path
     end
 
     def add_route(path : String, &handler : HTTP::WebSocket, HTTP::Server::Context -> Void)
@@ -30,12 +30,12 @@ module Kemal
     end
 
     private def radix_path(method, path)
-      "/#{method.downcase}#{path}"
+      '/' + method.downcase + path
     end
 
     private def websocket_upgrade_request?(context)
-      return false unless upgrade = context.request.headers["Upgrade"]?
-      return false unless upgrade.compare("websocket", case_insensitive: true) == 0
+      return unless upgrade = context.request.headers["Upgrade"]?
+      return unless upgrade.compare("websocket", case_insensitive: true) == 0
 
       context.request.headers.includes_word?("Connection", "Upgrade")
     end

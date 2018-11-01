@@ -7,7 +7,9 @@ module Kemal
     def call(context : HTTP::Server::Context)
       return call_next(context) if context.request.path.not_nil! == "/"
 
-      unless context.request.method == "GET" || context.request.method == "HEAD"
+      case context.request.method
+      when "GET", "HEAD"
+      else
         if @fallthrough
           call_next(context)
         else
@@ -19,7 +21,6 @@ module Kemal
 
       config = Kemal.config.serve_static
       original_path = context.request.path.not_nil!
-      is_dir_path = original_path.ends_with? "/"
       request_path = URI.unescape(original_path)
 
       # File path cannot contains '\0' (NUL) because all filesystem I know
@@ -30,16 +31,20 @@ module Kemal
       end
 
       expanded_path = File.expand_path(request_path, "/")
-      if is_dir_path && !expanded_path.ends_with? "/"
-        expanded_path = "#{expanded_path}/"
-      end
-      is_dir_path = expanded_path.ends_with? "/"
+      is_dir_path = if original_path.ends_with?('/') && !expanded_path.ends_with? '/'
+                      expanded_path = expanded_path + '/'
+                      true
+                    else
+                      expanded_path.ends_with? '/'
+                    end
 
       file_path = File.join(@public_dir, expanded_path)
       is_dir = Dir.exists? file_path
 
-      if request_path != expanded_path || is_dir && !is_dir_path
-        redirect_to context, "#{expanded_path}#{is_dir && !is_dir_path ? "/" : ""}"
+      if request_path != expanded_path
+        redirect_to context, expanded_path
+      elsif is_dir && !is_dir_path
+        redirect_to context, expanded_path + '/'
       end
 
       if Dir.exists?(file_path)

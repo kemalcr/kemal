@@ -127,12 +127,14 @@ def send_file(env : HTTP::Server::Context, path : String, mime_type : String? = 
     if env.request.method == "GET" && env.request.headers.has_key?("Range")
       next multipart(file, env)
     end
-    if request_headers.includes_word?("Accept-Encoding", "gzip") && config.is_a?(Hash) && config["gzip"] == true && filesize > minsize && Kemal::Utils.zip_types(file_path)
+
+    condition = config.is_a?(Hash) && config["gzip"]? == true && filesize > minsize && Kemal::Utils.zip_types(file_path)
+    if condition && request_headers.includes_word?("Accept-Encoding", "gzip")
       env.response.headers["Content-Encoding"] = "gzip"
       Gzip::Writer.open(env.response) do |deflate|
         IO.copy(file, deflate)
       end
-    elsif request_headers.includes_word?("Accept-Encoding", "deflate") && config.is_a?(Hash) && config["gzip"]? == true && filesize > minsize && Kemal::Utils.zip_types(file_path)
+    elsif condition && request_headers.includes_word?("Accept-Encoding", "deflate")
       env.response.headers["Content-Encoding"] = "deflate"
       Flate::Writer.open(env.response) do |deflate|
         IO.copy(file, deflate)
@@ -148,28 +150,16 @@ end
 private def multipart(file, env : HTTP::Server::Context)
   # See http://httpwg.org/specs/rfc7233.html
   fileb = file.size
+  startb = endb = 0
 
-  range = env.request.headers["Range"]
-  match = range.match(/bytes=(\d{1,})-(\d{0,})/)
-
-  startb = 0
-  endb = 0
-
-  if match
-    if match.size >= 2
-      startb = match[1].to_i { 0 }
-    end
-
-    if match.size >= 3
-      endb = match[2].to_i { 0 }
-    end
+  if match = env.request.headers["Range"].match /bytes=(\d{1,})-(\d{0,})/
+    startb = match[1].to_i { 0 } if match.size >= 2
+    endb = match[2].to_i { 0 } if match.size >= 3
   end
 
-  if endb == 0
-    endb = fileb - 1
-  end
+  endb = fileb - 1 if endb == 0
 
-  if startb < endb && endb < fileb
+  if startb < endb < fileb
     content_length = 1 + endb - startb
     env.response.status_code = 206
     env.response.content_length = content_length
@@ -179,12 +169,12 @@ private def multipart(file, env : HTTP::Server::Context)
     if startb > 1024
       skipped = 0
       # file.skip only accepts values less or equal to 1024 (buffer size, undocumented)
-      until skipped + 1024 > startb
+      until (increase_skipped = skipped + 1024) > startb
         file.skip(1024)
-        skipped += 1024
+        skipped = increase_skipped
       end
-      if skipped - startb > 0
-        file.skip(skipped - startb)
+      if (skipped_minus_startb = skipped - startb) > 0
+        file.skip skipped_minus_startb
       end
     else
       file.skip(startb)

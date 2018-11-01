@@ -56,7 +56,7 @@ module Kemal
     end
 
     private def radix_path(method, path)
-      "/#{method.downcase}#{path}"
+      '/' + method.downcase + path
     end
 
     private def add_to_radix_tree(method, path, route)
