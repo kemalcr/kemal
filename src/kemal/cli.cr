@@ -43,14 +43,8 @@ module Kemal
     private def configure_ssl
       {% if !flag?(:without_openssl) %}
       if @ssl_enabled
-        unless @key_file
-          puts "SSL Key Not Found"
-          exit
-        end
-        unless @cert_file
-          puts "SSL Certificate Not Found"
-          exit
-        end
+        abort "SSL Key Not Found" if !@key_file
+        abort "SSL Certificate Not Found" if !@cert_file
         ssl = Kemal::SSL.new
         ssl.key_file = @key_file.not_nil!
         ssl.cert_file =  @cert_file.not_nil!
@@ -60,7 +54,9 @@ module Kemal
     end
 
     private def read_env
-      @config.env = ENV["KEMAL_ENV"] if ENV.has_key?("KEMAL_ENV")
+      if kemal_env = ENV["KEMAL_ENV"]?
+        @config.env = kemal_env
+      end
     end
   end
 end

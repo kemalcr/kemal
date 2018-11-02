@@ -11,15 +11,17 @@ module Kemal
 
     macro only(paths, method = "GET")
       class_name = {{@type.name}}
+      method_downcase = {{method}}.downcase
+      class_name_method = "#{class_name}/#{method_downcase}"
       ({{paths}}).each do |path|
-        @@only_routes_tree.add "#{class_name}/#{{{method}}.downcase}#{path}", "/#{{{method}}.downcase}#{path}"
+        @@only_routes_tree.add class_name_method + path, '/' + method_downcase + path
       end
     end
 
     macro exclude(paths, method = "GET")
       class_name = {{@type.name}}
       ({{paths}}).each do |path|
-        @@exclude_routes_tree.add "#{class_name}/#{{{method}}.downcase}#{path}", "/#{{{method}}.downcase}#{path}"
+        @@exclude_routes_tree.add class_name_method + path, '/' + method_downcase + path
       end
     end
 

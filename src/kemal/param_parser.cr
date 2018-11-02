@@ -21,7 +21,7 @@ module Kemal
     end
 
     private def unescape_url_param(value : String)
-      value.size == 0 ? value : URI.unescape(value)
+      value.empty? ? value : URI.unescape(value)
     rescue
       value
     end
@@ -74,19 +74,11 @@ module Kemal
     end
 
     private def parse_part(part : IO?)
-      if part
-        HTTP::Params.parse(part.gets_to_end)
-      else
-        HTTP::Params.parse("")
-      end
+      HTTP::Params.parse(part ? part.gets_to_end : "")
     end
 
     private def parse_part(part : String?)
-      if part
-        HTTP::Params.parse(part.to_s)
-      else
-        HTTP::Params.parse("")
-      end
+      HTTP::Params.parse part.to_s
     end
   end
 end

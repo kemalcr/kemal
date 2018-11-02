@@ -1,7 +1,6 @@
 require "http"
 require "json"
 require "uri"
-require "tempfile"
 require "./kemal/*"
 require "./kemal/ext/*"
 require "./kemal/helpers/*"
@@ -51,7 +50,7 @@ module Kemal
         server.bind_tcp(config.host_binding, config.port)
       {% else %}
         if ssl = config.ssl
-          server.bind_ssl(config.host_binding, config.port, ssl)
+          server.bind_tls(config.host_binding, config.port, ssl)
         else
           server.bind_tcp(config.host_binding, config.port)
         end
@@ -69,15 +68,12 @@ module Kemal
   end
 
   def self.stop
-    if config.running
-      if server = config.server
-        server.close unless server.closed?
-        config.running = false
-      else
-        raise "Kemal.config.server is not set. Please use Kemal.run to set the server."
-      end
+    raise "Kemal is already stopped." if !config.running
+    if server = config.server
+      server.close unless server.closed?
+      config.running = false
     else
-      raise "Kemal is already stopped."
+      raise "Kemal.config.server is not set. Please use Kemal.run to set the server."
     end
   end
 
