@@ -1,3 +1,7 @@
+# 0.25.1 (06-10-2018)
+
+- Fix `params.files` memoization https://github.com/kemalcr/kemal/pull/503. Thanks @mamantoha :pray:
+
 # 0.25.0 (05-10-2018)
 
 - Crystal 0.27.0 support.
