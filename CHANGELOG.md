@@ -9,16 +9,16 @@
 
 Here's a fully working sample for reading a image file upload `image1` and saving it under `public/uploads`.
 
-  ```crystal
+```crystal
 post "/upload" do |env|
-  file = env.params.files["image1"].tmpfile
-  file_path = ::File.join [Kemal.config.public_folder, "uploads/", file.filename]
+  file = env.params.files["image1"].tempfile
+  file_path = ::File.join [Kemal.config.public_folder, "uploads/", File.basename(file.path)]
   File.open(file_path, "w") do |f|
     IO.copy(file, f)
   end
   "Upload ok"
 end
-  ```
+```
 
 To test
 
