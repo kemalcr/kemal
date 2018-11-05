@@ -6,7 +6,7 @@ module Kemal
     URL_ENCODED_FORM = "application/x-www-form-urlencoded"
     APPLICATION_JSON = "application/json"
     MULTIPART_FORM   = "multipart/form-data"
-    PARTS            = %w(url query body json)
+    PARTS            = %w(url query body json files)
     # :nodoc:
     alias AllParamTypes = Nil | String | Int64 | Float64 | Bool | Hash(String, JSON::Any) | Array(JSON::Any)
     getter files
