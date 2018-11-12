@@ -1,3 +1,31 @@
+# 0.25.1 (06-10-2018)
+
+- Fix `params.files` memoization https://github.com/kemalcr/kemal/pull/503. Thanks @mamantoha :pray:
+
+# 0.25.0 (05-10-2018)
+
+- Crystal 0.27.0 support.
+-  *[breaking change]* Added back `env.params.files`.
+
+Here's a fully working sample for reading a image file upload `image1` and saving it under `public/uploads`.
+
+```crystal
+post "/upload" do |env|
+  file = env.params.files["image1"].tempfile
+  file_path = ::File.join [Kemal.config.public_folder, "uploads/", File.basename(file.path)]
+  File.open(file_path, "w") do |f|
+    IO.copy(file, f)
+  end
+  "Upload ok"
+end
+```
+
+To test
+
+`curl -F "image1=@/Users/serdar/Downloads/kemal.png" http://localhost:3000/upload`
+
+- Cache HTTP routes to increase performance :rocket: https://github.com/kemalcr/kemal/pull/493
+
 # 0.24.0 (14-08-2018)
 
 - *[breaking change]* Removed `env.params.files`. You can use Crystal's built-in `HTTP::FormData.parse` instead
@@ -55,7 +83,7 @@ end
 - Don't crash on empty path when compiled in --release. [#407](https://github.com/kemalcr/kemal/pull/407) thanks @crisward 🙏
 - Rename `Kemal::CommonLogHandler` to `Kemal::LogHandler` and `Kemal::CommonExceptionHandler` to `Kemal::ExceptionHandler`.
 - Allow videos to be opened with correct mime type. [#406](https://github.com/kemalcr/kemal/pull/406) thanks @crisward 🙏
-- Add webm mime type.[#413](https://github.com/kemalcr/kemal/pull/413) thanks @reindeer-cafe 🙏   
+- Add webm mime type.[#413](https://github.com/kemalcr/kemal/pull/413) thanks @reindeer-cafe 🙏
 
 
 # 0.21.0 (05-09-2017)
