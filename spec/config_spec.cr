@@ -51,7 +51,7 @@ describe "Config" do
         test_option = opt
       end
     end
-    Kemal::CLI.new
+    Kemal::CLI.new ARGV
     test_option.should eq("FOOBAR")
   end
 

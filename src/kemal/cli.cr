@@ -3,18 +3,20 @@ require "option_parser"
 module Kemal
   # Handles all the initialization from the command line.
   class CLI
-    def initialize
+    def initialize(args)
       @ssl_enabled = false
       @key_file = ""
       @cert_file = ""
       @config = Kemal.config
       read_env
-      parse
+      if args
+        parse args
+      end
       configure_ssl
     end
 
-    private def parse
-      OptionParser.parse! do |opts|
+    private def parse(args : Array(String))
+      OptionParser.parse args do |opts|
         opts.on("-b HOST", "--bind HOST", "Host to bind (defaults to 0.0.0.0)") do |host_binding|
           @config.host_binding = host_binding
         end

@@ -7,25 +7,28 @@ require "./kemal/helpers/*"
 
 module Kemal
   # Overload of `self.run` with the default startup logging.
-  def self.run(port : Int32?)
-    self.run(port) { }
+  def self.run(port : Int32?, args = ARGV)
+    self.run(port, args) { }
   end
 
   # Overload of `self.run` without port.
-  def self.run
-    self.run(nil)
+  def self.run(args = ARGV)
+    self.run(nil, args: args)
   end
 
   # Overload of `self.run` to allow just a block.
-  def self.run(&block)
-    self.run nil, &block
+  def self.run(args = ARGV, &block)
+    self.run(nil, args: args, &block)
   end
 
   # The command to run a `Kemal` application.
   #
   # If *port* is not given Kemal will use `Kemal::Config#port`
-  def self.run(port : Int32? = nil, &block)
-    Kemal::CLI.new
+  #
+  # To use custom command line arguments, set args to nil 
+  #
+  def self.run(port : Int32? = nil, args = ARGV, &block)
+    Kemal::CLI.new args
     config = Kemal.config
     config.setup
     config.port = port if port
