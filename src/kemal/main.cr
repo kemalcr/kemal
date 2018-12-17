@@ -1,7 +1,6 @@
 require "http"
 require "json"
 require "uri"
-require "tempfile"
 require "./application"
 require "./base_log_handler"
 require "./cli"

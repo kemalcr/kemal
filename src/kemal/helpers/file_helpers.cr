@@ -22,7 +22,7 @@ module Kemal::FileHelpers
     minsize = 860 # http://webmasters.stackexchange.com/questions/31750/what-is-recommended-minimum-object-size-for-gzip-performance-benefits ??
     request_headers = env.request.headers
     filesize = File.size(file_path)
-    filestat = File.stat(file_path)
+    filestat = File.info(file_path)
 
     config.static_headers.try(&.call(env.response, file_path, filestat))
     gzip = config.serve_static?("gzip")

@@ -80,12 +80,18 @@ class Kemal::Base
   end
 
   private def start_server(port)
-    @server = server = HTTP::Server.new(@config.host_binding, port || @config.port, @handlers)
-    {% if !flag?(:without_openssl) %}
-    server.tls = config.ssl
+    @server = server = HTTP::Server.new(@handlers)
+
+    {% if flag?(:without_openssl) %}
+      server.bind_tcp(@config.host_binding, port || @config.port)
+    {% else %}
+      if ssl = config.ssl
+        server.bind_tls(@config.host_binding, port || @config.port, ssl)
+      else
+        server.bind_tcp(@config.host_binding, port || @config.port)
+      end
     {% end %}
 
-    server.bind
     @running = true
 
     yield
