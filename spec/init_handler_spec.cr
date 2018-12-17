@@ -28,7 +28,8 @@ describe "Kemal::InitHandler" do
     io = IO::Memory.new
     response = HTTP::Server::Response.new(io)
     context = HTTP::Server::Context.new(request, response)
-    Kemal::InitHandler::INSTANCE.call(context)
+    init_handler = Kemal::InitHandler.new(Kemal::Base.new)
+    init_handler.call(context)
     context.response.headers["X-Powered-By"]?.should be_nil
   end
 end

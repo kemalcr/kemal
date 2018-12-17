@@ -21,7 +21,7 @@ module Kemal
         log("Exception: #{ex.inspect_with_backtrace}")
         return call_exception_with_status_code(context, ex, 500) if app.error_handlers.has_key?(500)
         verbosity = app.config.env == "production" ? false : true
-        return app.render_500(context, ex.inspect_with_backtrace, verbosity)
+        return app.render_500(context, ex, verbosity)
       end
     end
 

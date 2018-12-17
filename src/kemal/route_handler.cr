@@ -54,8 +54,11 @@ module Kemal
 
     # Processes the route if it's a match. Otherwise renders 404.
     private def process_request(context)
-      raise Kemal::Exceptions::RouteNotFound.new(context) unless context.route_found?
-      content = context.route.handler.call(context)
+      raise Kemal::Exceptions::RouteNotFound.new(context) unless route_defined?(context.request)
+
+      tree_result = lookup_route(context.request)
+      context.request.url_params = tree_result.params
+      content = tree_result.payload.handler.call(context)
 
       if !app.error_handlers.empty? && app.error_handlers.has_key?(context.response.status_code)
         raise Kemal::Exceptions::CustomException.new(context)
@@ -76,6 +79,7 @@ module Kemal
 
     def clear
       @routes = Radix::Tree(Route).new
+      @cached_routes = Hash(String, Radix::Result(Route)).new
     end
   end
 end

@@ -46,7 +46,7 @@ describe "Kemal::WebSocketHandler" do
     request = HTTP::Request.new("GET", "/", headers)
 
     io_with_context = create_ws_request_and_return_io(app.websocket_handler, request)
-    io_with_context.to_s.should eq("HTTP/1.1 101 Switching Protocols\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-Websocket-Accept: s3pPLMBiTxaQ9kYGzzhZRbK+xOo=\r\n\r\n\x81\u0005Match")
+    io_with_context.to_s.should eq("HTTP/1.1 101 Switching Protocols\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Accept: s3pPLMBiTxaQ9kYGzzhZRbK+xOo=\r\n\r\n\x81\u0005Match")
   end
 
   it "fetches named url parameters" do
@@ -60,7 +60,7 @@ describe "Kemal::WebSocketHandler" do
     }
     request = HTTP::Request.new("GET", "/1234", headers)
     io_with_context = create_ws_request_and_return_io(app.websocket_handler, request)
-    io_with_context.to_s.should eq("HTTP/1.1 101 Switching Protocols\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-Websocket-Accept: s3pPLMBiTxaQ9kYGzzhZRbK+xOo=\r\n\r\n")
+    io_with_context.to_s.should eq("HTTP/1.1 101 Switching Protocols\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Accept: s3pPLMBiTxaQ9kYGzzhZRbK+xOo=\r\n\r\n")
   end
 
   it "matches correct verb" do

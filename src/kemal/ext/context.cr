@@ -10,40 +10,16 @@ class HTTP::Server
 
     macro finished
       alias StoreTypes = Union({{ *STORE_MAPPINGS }})
-      @store = {} of String => StoreTypes
+      getter store = {} of String => StoreTypes
     end
 
     def params
-      @params ||= Kemal::ParamParser.new(@request, route_lookup.params)
+      @params ||= Kemal::ParamParser.new(@request)
     end
 
     def redirect(url : String, status_code : Int32 = 302)
       @response.headers.add "Location", url
       @response.status_code = status_code
-    end
-
-    def route
-      route_lookup.payload
-    end
-
-    def websocket
-      ws_route_lookup.payload
-    end
-
-    def route_lookup
-      app.route_handler.lookup_route(@request.override_method.as(String), @request.path)
-    end
-
-    def route_found?
-      route_lookup.found?
-    end
-
-    def ws_route_lookup
-      app.websocket_handler.lookup_ws_route(@request.path)
-    end
-
-    def ws_route_found?
-      ws_route_lookup.found?
     end
 
     def get(name : String)

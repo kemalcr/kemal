@@ -10,8 +10,9 @@ module Kemal
     # :nodoc:
     alias AllParamTypes = Nil | String | Int64 | Float64 | Bool | Hash(String, JSON::Any) | Array(JSON::Any)
     getter files
+    getter url : Hash(String, String)
 
-    def initialize(@request : HTTP::Request, @url : Hash(String, String) = {} of String => String)
+    def initialize(@request : HTTP::Request)
       @query = HTTP::Params.new({} of String => Array(String))
       @body = HTTP::Params.new({} of String => Array(String))
       @json = {} of String => AllParamTypes
@@ -21,6 +22,7 @@ module Kemal
       @body_parsed = false
       @json_parsed = false
       @files_parsed = false
+      @url = {} of String => String
     end
 
     private def unescape_url_param(value : String)
@@ -61,7 +63,12 @@ module Kemal
     end
 
     private def parse_url
-      @url.each { |key, value| @url[key] = unescape_url_param(value) }
+      unless @request.url_params.nil?
+        @request.url_params.not_nil!.each { |key, value| @url[key] = unescape_url_param(value) }
+      else
+        @url
+      end
+
     end
 
     private def parse_files
