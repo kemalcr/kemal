@@ -109,7 +109,13 @@ end
 # ```
 # send_file env, "./path/to/file", "image/jpeg"
 # ```
-def send_file(env : HTTP::Server::Context, path : String, mime_type : String? = nil)
+#
+# Also you can set the filename and the disposition
+#
+# ```
+# send_file env, "./path/to/file", filename: "image.jpg", disposition: "attachment"
+# ```
+def send_file(env : HTTP::Server::Context, path : String, mime_type : String? = nil, *, filename : String? = nil, disposition : String? = nil)
   config = Kemal.config.serve_static
   file_path = File.expand_path(path, Dir.current)
   mime_type ||= Kemal::Utils.mime_type(file_path)
@@ -120,6 +126,7 @@ def send_file(env : HTTP::Server::Context, path : String, mime_type : String? = 
   request_headers = env.request.headers
   filesize = File.size(file_path)
   filestat = File.info(file_path)
+  attachment(env, filename, disposition)
 
   Kemal.config.static_headers.try(&.call(env.response, file_path, filestat))
 
@@ -145,6 +152,31 @@ def send_file(env : HTTP::Server::Context, path : String, mime_type : String? = 
     end
   end
   return
+end
+
+# Send a file with given data and default `application/octet-stream` mime_type.
+#
+# ```
+# send_file env, data_slice
+# ```
+#
+# Optionally you can override the mime_type
+#
+# ```
+# send_file env, data_slice, "image/jpeg"
+# ```
+#
+# Also you can set the filename and the disposition
+#
+# ```
+# send_file env, data_slice, filename: "image.jpg", disposition: "attachment"
+# ```
+def send_file(env : HTTP::Server::Context, data : Slice(UInt8), mime_type : String? = nil, *, filename : String? = nil, disposition : String? = nil)
+  mime_type ||= "application/octet-stream"
+  env.response.content_type = mime_type
+  env.response.content_length = data.bytesize
+  attachment(env, filename, disposition)
+  env.response.write data
 end
 
 private def multipart(file, env : HTTP::Server::Context)
@@ -188,22 +220,13 @@ private def multipart(file, env : HTTP::Server::Context)
   end
 end
 
-# Send a file with given data and default `application/octet-stream` mime_type.
-#
-# ```
-# send_file env, data_slice
-# ```
-#
-# Optionally you can override the mime_type
-#
-# ```
-# send_file env, data_slice, "image/jpeg"
-# ```
-def send_file(env : HTTP::Server::Context, data : Slice(UInt8), mime_type : String? = nil)
-  mime_type ||= "application/octet-stream"
-  env.response.content_type = mime_type
-  env.response.content_length = data.bytesize
-  env.response.write data
+# Set the Content-Disposition to "attachment" with the specified filename,
+# instructing the user agents to prompt to save.
+private def attachment(env : HTTP::Server::Context, filename : String? = nil, disposition : String? = nil)
+  disposition = "attachment" if disposition.nil? && filename
+  if disposition && filename
+    env.response.headers["Content-Disposition"] = "#{disposition}; filename=\"#{File.basename(filename)}\""
+  end
 end
 
 # Configures an `HTTP::Server::Response` to compress the response
