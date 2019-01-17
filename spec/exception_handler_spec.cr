@@ -102,4 +102,14 @@ describe "Kemal::ExceptionHandler" do
     response.headers["Content-Type"].should eq "application/json"
     response.body.should eq "Rendered error with 500"
   end
+
+  it "does not do anything on a closed io" do
+    get "/" do |env|
+      halt env, status_code: 404
+    end
+
+    request = HTTP::Request.new("GET", "/")
+    client_response = call_request_on_app(request)
+    client_response.status_code.should eq 404
+  end
 end
