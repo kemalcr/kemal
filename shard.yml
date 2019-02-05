@@ -1,6 +1,9 @@
 name: kemal
 version: 0.25.1
 
+authors:
+  - Serdar Dogruyol <dogruyolserdar@gmail.com>
+
 dependencies:
   radix:
     github: luislavena/radix
@@ -17,6 +20,3 @@ targets:
     main: src/kemal.cr
 
 crystal: 0.27.1
-
-author:
-  - Serdar Dogruyol <dogruyolserdar@gmail.com>
