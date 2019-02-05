@@ -15,8 +15,4 @@ dependencies:
     github: crystal-loot/exception_page
     version: ~> 0.1.1
 
-targets:
-  kemal:
-    main: src/kemal.cr
-
 crystal: 0.27.1
