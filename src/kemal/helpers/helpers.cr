@@ -1,3 +1,5 @@
+require "mime"
+
 # Adds given `Kemal::Handler` to handlers chain.
 # There are 5 handlers by default and all the custom handlers
 # goes between the first 4 and the last `Kemal::RouteHandler`.
@@ -118,7 +120,7 @@ end
 def send_file(env : HTTP::Server::Context, path : String, mime_type : String? = nil, *, filename : String? = nil, disposition : String? = nil)
   config = Kemal.config.serve_static
   file_path = File.expand_path(path, Dir.current)
-  mime_type ||= Kemal::Utils.mime_type(file_path)
+  mime_type ||= MIME.from_filename(file_path, "application/octet-stream")
   env.response.content_type = mime_type
   env.response.headers["Accept-Ranges"] = "bytes"
   env.response.headers["X-Content-Type-Options"] = "nosniff"
