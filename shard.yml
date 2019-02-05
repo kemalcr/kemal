@@ -16,5 +16,7 @@ targets:
   kemal:
     main: src/kemal.cr
 
+crystal: 0.27.1
+
 author:
   - Serdar Dogruyol <dogruyolserdar@gmail.com>
