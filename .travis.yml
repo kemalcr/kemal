@@ -6,6 +6,7 @@ crystal:
 script:
   - crystal spec
   - crystal spec --release --no-debug
+  - crystal tool format --check
 
 matrix:
   allow_failures:

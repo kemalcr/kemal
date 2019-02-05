@@ -25,7 +25,7 @@ module Kemal
   #
   # If *port* is not given Kemal will use `Kemal::Config#port`
   #
-  # To use custom command line arguments, set args to nil 
+  # To use custom command line arguments, set args to nil
   #
   def self.run(port : Int32? = nil, args = ARGV, &block)
     Kemal::CLI.new args
