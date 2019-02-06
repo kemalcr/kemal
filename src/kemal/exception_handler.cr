@@ -14,7 +14,7 @@ module Kemal
       log("Exception: #{ex.inspect_with_backtrace}")
       return call_exception_with_status_code(context, ex, 500) if Kemal.config.error_handlers.has_key?(500)
       verbosity = Kemal.config.env == "production" ? false : true
-      return render_500(context, ex, verbosity)
+      render_500(context, ex, verbosity)
     end
 
     private def call_exception_with_status_code(context : HTTP::Server::Context, exception : Exception, status_code : Int32)

@@ -52,7 +52,7 @@ module Kemal
           context.response.content_type = "text/html"
           directory_listing(context.response, request_path, file_path)
         else
-          return call_next(context)
+          call_next(context)
         end
       elsif File.exists?(file_path)
         last_modified = modification_time(file_path)
