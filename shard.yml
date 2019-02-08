@@ -1,5 +1,5 @@
 name: kemal
-version: 0.25.1
+version: 0.25.2
 
 authors:
   - Serdar Dogruyol <dogruyolserdar@gmail.com>
@@ -15,6 +15,6 @@ dependencies:
     github: crystal-loot/exception_page
     version: ~> 0.1.1
 
-crystal: 0.27.1
+crystal: 0.27.2
 
 license: MIT

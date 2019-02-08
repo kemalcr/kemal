@@ -1,3 +1,18 @@
+# 0.25.2 (08-02-2019)
+
+- Add option to config to parse or not command line parameters [#483](https://github.com/kemalcr/kemal/pull/483). Thanks @diegogub :pray:
+
+- Allow to set filename for `send_file` [#512](https://github.com/kemalcr/kemal/pull/512). Thanks @mamantoha :pray:
+
+
+```ruby
+send_file env, "./asset/image.jpeg", filename: "image.jpg"
+```
+
+- Set `status_code` before response [#513](https://github.com/kemalcr/kemal/pull/513). Thanks @mamantohoa :pray:
+
+- Use Crystal MIME registry. [#516](https://github.com/kemalcr/kemal/pull/516) Thanks @Sija :pray:
+
 # 0.25.1 (06-10-2018)
 
 - Fix `params.files` memoization https://github.com/kemalcr/kemal/pull/503. Thanks @mamantoha :pray:
