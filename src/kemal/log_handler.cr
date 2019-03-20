@@ -5,10 +5,9 @@ module Kemal
     end
 
     def call(context : HTTP::Server::Context)
-      time = Time.now
-      call_next(context)
-      elapsed_text = elapsed_text(Time.now - time)
-      @io << time << ' ' << context.response.status_code << ' ' << context.request.method << ' ' << context.request.resource << ' ' << elapsed_text << '\n'
+      elapsed_time = Time.measure { call_next(context) }
+      elapsed_text = elapsed_text(elapsed_time)
+      @io << Time.now << ' ' << context.response.status_code << ' ' << context.request.method << ' ' << context.request.resource << ' ' << elapsed_text << '\n'
       context
     end
 
