@@ -41,6 +41,6 @@ module Kemal
   end
 end
 
-def namespace(n : String | Symbol)
+def namespace(n : String)
   with Kemal::Namespace.new(n) yield
 end
