@@ -42,7 +42,7 @@ module Kemal
 
       # prevent symlinks out of the public dir
       if File.symlink?(file_path) && !File.real_path(file_path).starts_with?(@public_dir)
-        call_next(context)
+        context.response.status_code = 404
         return
       end
 
