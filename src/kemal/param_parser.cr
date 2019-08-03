@@ -24,7 +24,7 @@ module Kemal
     end
 
     private def unescape_url_param(value : String)
-      value.empty? ? value : URI.unescape(value)
+      value.empty? ? value : URI.decode(value)
     rescue
       value
     end
