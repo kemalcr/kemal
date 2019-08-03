@@ -184,26 +184,26 @@ end
 private def multipart(file, env : HTTP::Server::Context)
   # See http://httpwg.org/specs/rfc7233.html
   fileb = file.size
-  startb = endb = 0
+  startb = endb = 0_i64
 
   if match = env.request.headers["Range"].match /bytes=(\d{1,})-(\d{0,})/
-    startb = match[1].to_i { 0 } if match.size >= 2
-    endb = match[2].to_i { 0 } if match.size >= 3
+    startb = match[1].to_i64 { 0_i64 } if match.size >= 2
+    endb = match[2].to_i64 { 0_i64 } if match.size >= 3
   end
 
   endb = fileb - 1 if endb == 0
 
   if startb < endb < fileb
-    content_length = 1 + endb - startb
+    content_length = 1_i64 + endb - startb
     env.response.status_code = 206
     env.response.content_length = content_length
     env.response.headers["Accept-Ranges"] = "bytes"
     env.response.headers["Content-Range"] = "bytes #{startb}-#{endb}/#{fileb}" # MUST
 
     if startb > 1024
-      skipped = 0
+      skipped = 0_i64
       # file.skip only accepts values less or equal to 1024 (buffer size, undocumented)
-      until (increase_skipped = skipped + 1024) > startb
+      until (increase_skipped = skipped + 1024_i64) > startb
         file.skip(1024)
         skipped = increase_skipped
       end
