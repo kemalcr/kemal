@@ -63,6 +63,24 @@ describe "Macros" do
     end
   end
 
+  describe "#callbacks" do
+    it "can break block with halt macro from before_* callback" do
+      filter_middleware = Kemal::FilterHandler.new
+      filter_middleware._add_route_filter("GET", "/", :before) do |env|
+        halt env, status_code: 400, response: "Missing origin."
+      end
+
+      get "/" do |env|
+        "Hello world"
+      end
+
+      request = HTTP::Request.new("GET", "/")
+      client_response = call_request_on_app(request)
+      client_response.status_code.should eq(400)
+      client_response.body.should eq("Missing origin.")
+    end
+  end
+
   describe "#headers" do
     it "can add headers" do
       get "/headers" do |env|
