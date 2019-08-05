@@ -1,3 +1,9 @@
+# 0.26.0 (05-08-2019)
+
+- Crystal 0.30.0 support :tada: [#548](https://github.com/kemalcr/kemal/pull/548) and [#544](https://github.com/kemalcr/kemal/pull/544). Thanks @bcardiff and @straight-shoota :pray:
+- Add support for serving files greater than 2^31 bytes [#546](https://github.com/kemalcr/kemal/pull/546). Thanks @omarroth :pray:
+- Properly measure request time using `Time.monotonic` [#527](https://github.com/kemalcr/kemal/pull/527). Thanks @spinscale :pray:
+
 # 0.25.2 (08-02-2019)
 
 - Add option to config to parse or not command line parameters [#483](https://github.com/kemalcr/kemal/pull/483). Thanks @diegogub :pray:

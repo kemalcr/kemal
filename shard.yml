@@ -1,5 +1,5 @@
 name: kemal
-version: 0.25.2
+version: 0.26.0
 
 authors:
   - Serdar Dogruyol <dogruyolserdar@gmail.com>
@@ -20,6 +20,6 @@ development_dependencies:
     github: veelenga/ameba
     version: ~> 0.10.0
 
-crystal: 0.27.2
+crystal: 0.30.0
 
 license: MIT
