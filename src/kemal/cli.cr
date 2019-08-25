@@ -8,7 +8,6 @@ module Kemal
       @key_file = ""
       @cert_file = ""
       @config = Kemal.config
-      read_env
       if args
         parse args
       end
@@ -51,12 +50,6 @@ module Kemal
           Kemal.config.ssl = ssl.context
         end
       {% end %}
-    end
-
-    private def read_env
-      if kemal_env = ENV["KEMAL_ENV"]?
-        @config.env = kemal_env
-      end
     end
   end
 end
