@@ -4,6 +4,7 @@
 
 module Kemal
   class StaticFileHandler < HTTP::StaticFileHandler
+    # ameba:disable Metrics/CyclomaticComplexity
     def call(context : HTTP::Server::Context)
       return call_next(context) if context.request.path.not_nil! == "/"
 
