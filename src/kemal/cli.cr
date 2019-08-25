@@ -42,15 +42,15 @@ module Kemal
 
     private def configure_ssl
       {% if !flag?(:without_openssl) %}
-      if @ssl_enabled
-        abort "SSL Key Not Found" if !@key_file
-        abort "SSL Certificate Not Found" if !@cert_file
-        ssl = Kemal::SSL.new
-        ssl.key_file = @key_file.not_nil!
-        ssl.cert_file =  @cert_file.not_nil!
-        Kemal.config.ssl = ssl.context
-      end
-    {% end %}
+        if @ssl_enabled
+          abort "SSL Key Not Found" if !@key_file
+          abort "SSL Certificate Not Found" if !@cert_file
+          ssl = Kemal::SSL.new
+          ssl.key_file = @key_file.not_nil!
+          ssl.cert_file = @cert_file.not_nil!
+          Kemal.config.ssl = ssl.context
+        end
+      {% end %}
     end
 
     private def read_env
