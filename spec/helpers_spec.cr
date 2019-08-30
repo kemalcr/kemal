@@ -70,7 +70,7 @@ describe "Macros" do
         halt env, status_code: 400, response: "Missing origin."
       end
 
-      get "/" do |env|
+      get "/" do |_env|
         "Hello world"
       end
 

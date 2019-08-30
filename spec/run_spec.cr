@@ -6,12 +6,10 @@ private def run(code)
     #{code}
     CR
   String.build do |stdout|
-    stderr = String.build do |stderr|
-      Process.new("crystal", ["eval"], input: IO::Memory.new(code), output: stdout, error: stderr).wait
+    stderr = String.build do |io|
+      Process.new("crystal", ["eval"], input: IO::Memory.new(code), output: stdout, error: io).wait
     end
-    unless stderr.empty?
-      fail(stderr)
-    end
+    fail(stderr) unless stderr.empty?
   end
 end
 
