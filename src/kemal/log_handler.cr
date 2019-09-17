@@ -8,11 +8,14 @@ module Kemal
       elapsed_time = Time.measure { call_next(context) }
       elapsed_text = elapsed_text(elapsed_time)
       @io << Time.utc << ' ' << context.response.status_code << ' ' << context.request.method << ' ' << context.request.resource << ' ' << elapsed_text << '\n'
+      @io.flush
       context
     end
 
     def write(message : String)
       @io << message
+      @io.flush
+      @io
     end
 
     private def elapsed_text(elapsed)
