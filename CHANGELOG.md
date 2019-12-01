@@ -1,3 +1,11 @@
+# 0.26.1 (01-12-2019)
+
+- Fix process request when a response already closed [#550](https://github.com/kemalcr/kemal/pull/550). Thanks @mamantoha :pray:
+- Switch to new Ameba repository [#549](https://github.com/kemalcr/kemal/pull/549). Thanks @mamantoha :pray:
+- Check for `KEMAL_ENV` variable already in `Config#initialize`[#552](https://github.com/kemalcr/kemal/pull/552). Thanks @Sija :pray:
+- Cleanup Ameba warnings [#551](https://github.com/kemalcr/kemal/pull/551). Thanks @Sija :pray:
+- Flush io buffer after each write to log [#554](https://github.com/kemalcr/kemal/pull/554). Thanks @mang :pray:
+
 # 0.26.0 (05-08-2019)
 
 - Crystal 0.30.0 support :tada: [#548](https://github.com/kemalcr/kemal/pull/548) and [#544](https://github.com/kemalcr/kemal/pull/544). Thanks @bcardiff and @straight-shoota :pray:
