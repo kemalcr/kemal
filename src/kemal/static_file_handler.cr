@@ -39,7 +39,7 @@ module Kemal
                       expanded_path.ends_with? '/'
                     end
 
-      file_path = File.join(@public_dir, expanded_path)
+      file_path = File.join(@public_dir.to_s, expanded_path)
       is_dir = Dir.exists? file_path
 
       if request_path != expanded_path
