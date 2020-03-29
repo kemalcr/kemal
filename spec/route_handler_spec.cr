@@ -118,6 +118,18 @@ describe "Kemal::RouteHandler" do
     request = HTTP::Request.new("GET", "/")
     client_response = call_request_on_app(request)
     client_response.status_code.should eq(302)
+    client_response.body.should eq("")
+    client_response.headers.has_key?("Location").should eq(true)
+  end
+
+  it "redirects with body" do
+    get "/" do |env|
+      env.redirect "/login", body: "Redirecting to /login"
+    end
+    request = HTTP::Request.new("GET", "/")
+    client_response = call_request_on_app(request)
+    client_response.status_code.should eq(302)
+    client_response.body.should eq("Redirecting to /login")
     client_response.headers.has_key?("Location").should eq(true)
   end
 end
