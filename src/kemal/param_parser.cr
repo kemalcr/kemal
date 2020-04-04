@@ -97,6 +97,8 @@ module Kemal
         end
       when Array
         @json["_json"] = json
+      else
+        # Ignore non Array or Hash json values
       end
     end
 
