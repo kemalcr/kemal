@@ -1,3 +1,5 @@
+require "flate"
+require "gzip"
 require "mime"
 
 # Adds given `Kemal::Handler` to handlers chain.
