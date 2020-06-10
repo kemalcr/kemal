@@ -1,7 +1,3 @@
-{% if !flag?(:without_zlib) %}
-  require "zlib"
-{% end %}
-
 module Kemal
   class StaticFileHandler < HTTP::StaticFileHandler
     # ameba:disable Metrics/CyclomaticComplexity
