@@ -8,7 +8,7 @@ class HTTP::Server::Response
 
       ensure_headers_written
 
-      super
+      previous_def
     end
   end
 end
