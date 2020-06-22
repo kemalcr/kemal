@@ -11,7 +11,7 @@ module Kemal
 
     def call(context : HTTP::Server::Context)
       return call_next(context) unless context.ws_route_found? && websocket_upgrade_request?(context)
-      content = context.websocket.call(context)
+      context.websocket.call(context)
     end
 
     def lookup_ws_route(path : String)
