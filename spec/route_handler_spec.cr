@@ -10,6 +10,17 @@ describe "Kemal::RouteHandler" do
     client_response.body.should eq("hello")
   end
 
+  it "routes with long response body" do
+    long_response_body = "string" * 10_000
+
+    get "/" do
+      long_response_body
+    end
+    request = HTTP::Request.new("GET", "/")
+    client_response = call_request_on_app(request)
+    client_response.body.should eq(long_response_body)
+  end
+
   it "routes should only return strings" do
     get "/" do
       100
