@@ -59,7 +59,7 @@ describe Kemal::StaticFileHandler do
   it "should not gzip a file if config is true, headers accept gzip and file is < 880 bytes" do
     serve_static({"gzip" => true, "dir_listing" => true})
     headers = HTTP::Headers{"Accept-Encoding" => "gzip, deflate, sdch, br"}
-    response = handle HTTP::Request.new("GET", "/dir/test.txt", headers)
+    response = handle HTTP::Request.new("GET", "/dir/test.txt", headers), decompress: false
     response.status_code.should eq(200)
     response.headers["Content-Encoding"]?.should be_nil
   end
@@ -67,7 +67,7 @@ describe Kemal::StaticFileHandler do
   it "should not gzip a file if config is false, headers accept gzip and file is > 880 bytes" do
     serve_static({"gzip" => false, "dir_listing" => true})
     headers = HTTP::Headers{"Accept-Encoding" => "gzip, deflate, sdch, br"}
-    response = handle HTTP::Request.new("GET", "/dir/bigger.txt", headers)
+    response = handle HTTP::Request.new("GET", "/dir/bigger.txt", headers), decompress: false
     response.status_code.should eq(200)
     response.headers["Content-Encoding"]?.should be_nil
   end
