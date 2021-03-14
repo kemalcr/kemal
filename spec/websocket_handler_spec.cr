@@ -22,8 +22,8 @@ describe "Kemal::WebSocketHandler" do
 
   it "matches on given route" do
     handler = Kemal::WebSocketHandler::INSTANCE
-    ws "/" { |socket| socket.send("Match") }
-    ws "/no_match" { |socket| socket.send "No Match" }
+    ws("/", &.send("Match"))
+    ws("/no_match", &.send("No Match"))
     headers = HTTP::Headers{
       "Upgrade"               => "websocket",
       "Connection"            => "Upgrade",
