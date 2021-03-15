@@ -5,7 +5,7 @@
 
 Lightning Fast, Super Simple web framework.
 
-[![Build Status](https://travis-ci.org/kemalcr/kemal.svg?branch=master)](https://travis-ci.org/kemalcr/kemal)
+[![CI](https://github.com/kemalcr/kemal/actions/workflows/ci.yml/badge.svg)](https://github.com/kemalcr/kemal/actions/workflows/ci.yml)
 [![Join the chat at https://gitter.im/sdogruyol/kemal](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/sdogruyol/kemal?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 # Super Simple ⚡️
