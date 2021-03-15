@@ -66,7 +66,7 @@ module Kemal
   end
 
   def self.display_startup_message(config, server)
-    addresses = server.addresses.map { |address| "#{config.scheme}://#{address}" }.join ", "
+    addresses = server.addresses.join ", " { |address| "#{config.scheme}://#{address}" }
     log "[#{config.env}] Kemal is ready to lead at #{addresses}"
   end
 
