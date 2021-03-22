@@ -1,5 +1,5 @@
 name: kemal
-version: 0.27.0
+version: 1.0.0
 
 authors:
   - Serdar Dogruyol <dogruyolserdar@gmail.com>
@@ -20,6 +20,6 @@ development_dependencies:
     github: crystal-ameba/ameba
     version: ~> 0.14.0
 
-crystal: 0.35.0
+crystal: ">= 0.36.0"
 
 license: MIT

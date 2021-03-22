@@ -1,3 +1,10 @@
+# 1.0.0 (??-03-2021)
+
+- Crystal 1.0.0 support :tada:
+- Update Radix to use latest 0.4.0 [#596](https://github.com/kemalcr/kemal/pull/596). Thanks @luislavena :pray:
+- Use latest version of Ameba dependency (dev) [#597](https://github.com/kemalcr/kemal/pull/597). Thanks @luislavena :pray:
+- Fix StaticFileHandler failing spec [#599](https://github.com/kemalcr/kemal/pull/599). Thanks @jinn999 :pray:
+
 # 0.27.0 (28-11-2020)
 
 - Crystal 0.35.x support :tada: Thanks @bcardiff :pray:
