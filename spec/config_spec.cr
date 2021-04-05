@@ -58,4 +58,11 @@ describe "Config" do
   it "gets the version from shards.yml" do
     Kemal::VERSION.should_not be("")
   end
+
+  it "sets application name" do
+    config = Kemal.config
+    config.app_name.should eq "Kemal"
+    config.app_name = "testapp"
+    config.app_name.should eq "testapp"
+  end
 end
