@@ -24,9 +24,10 @@ module Kemal
     property always_rescue, server : HTTP::Server?, extra_options, shutdown_message
     property serve_static : (Bool | Hash(String, Bool))
     property static_headers : (HTTP::Server::Response, String, File::Info -> Void)?
-    property powered_by_header : Bool = true
+    property powered_by_header : Bool = true, app_name
 
     def initialize
+      @app_name = "Kemal"
       @host_binding = "0.0.0.0"
       @port = 3000
       @env = ENV["KEMAL_ENV"]? || "development"
