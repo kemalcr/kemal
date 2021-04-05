@@ -34,7 +34,7 @@ end
      Kemal::FilterHandler::INSTANCE.{{type.id}}({{method}}.upcase, path, &block)
     end
 
-    def {{type.id}}_{{method.id}}(paths : Array(String) = ["*"], &block : HTTP::Server::Context -> _)
+    def {{type.id}}_{{method.id}}(paths : Array(String), &block : HTTP::Server::Context -> _)
       paths.each do |path|
         Kemal::FilterHandler::INSTANCE.{{type.id}}({{method}}.upcase, path, &block)
       end
