@@ -100,7 +100,7 @@ describe "Macros" do
   describe "#send_file" do
     it "sends file with given path and default mime-type" do
       get "/" do |env|
-        send_file env, "./spec/asset/hello.ecr"
+        send_file env, "#{__DIR__}/asset/hello.ecr"
       end
 
       request = HTTP::Request.new("GET", "/")
@@ -112,7 +112,7 @@ describe "Macros" do
 
     it "sends file with given path and given mime-type" do
       get "/" do |env|
-        send_file env, "./spec/asset/hello.ecr", "image/jpeg"
+        send_file env, "#{__DIR__}/asset/hello.ecr", "image/jpeg"
       end
 
       request = HTTP::Request.new("GET", "/")
@@ -136,7 +136,7 @@ describe "Macros" do
 
     it "sends file with given path and given filename" do
       get "/" do |env|
-        send_file env, "./spec/asset/hello.ecr", filename: "image.jpg"
+        send_file env, "#{__DIR__}/asset/hello.ecr", filename: "image.jpg"
       end
 
       request = HTTP::Request.new("GET", "/")
