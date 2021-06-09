@@ -1,0 +1,41 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+  schedule:
+    - cron: "0 3 * * 1" # Every monday at 3 AM
+
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        crystal: [latest, nightly]
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Install Crystal
+        uses: oprypin/install-crystal@v1
+        with:
+          crystal: ${{ matrix.crystal }}
+
+      - name: Download source
+        uses: actions/checkout@v2
+
+      - name: Install dependencies
+        run: shards install
+        env:
+          SHARDS_OPTS: --ignore-crystal-version
+
+      - name: Run specs
+        run: |
+          crystal spec
+          crystal spec --release --no-debug
+
+      - name: Check formatting
+        run: crystal tool format --check
+
+      - name: Run ameba linter
+        run: bin/ameba

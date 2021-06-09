@@ -66,12 +66,12 @@ module Kemal
   end
 
   def self.display_startup_message(config, server)
-    addresses = server.addresses.map { |address| "#{config.scheme}://#{address}" }.join ", "
-    log "[#{config.env}] Kemal is ready to lead at #{addresses}"
+    addresses = server.addresses.join ", " { |address| "#{config.scheme}://#{address}" }
+    log "[#{config.env}] #{config.app_name} is ready to lead at #{addresses}"
   end
 
   def self.stop
-    raise "Kemal is already stopped." if !config.running
+    raise "#{Kemal.config.app_name} is already stopped." if !config.running
     if server = config.server
       server.close unless server.closed?
       config.running = false
@@ -90,7 +90,7 @@ module Kemal
 
   private def self.setup_trap_signal
     Signal::INT.trap do
-      log "Kemal is going to take a rest!" if Kemal.config.shutdown_message
+      log "#{Kemal.config.app_name} is going to take a rest!" if Kemal.config.shutdown_message
       Kemal.stop
       exit
     end
