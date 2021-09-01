@@ -22,6 +22,7 @@ def render_404
 end
 
 def render_500(context, exception, verbosity)
+  context.response.content_type = "text/html"
   context.response.status_code = 500
 
   template = if verbosity
