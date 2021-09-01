@@ -71,7 +71,7 @@ module Kemal
     end
 
     private def radix_path(verb : String?, path : String, type : Symbol)
-      "#{type}/#{verb}/#{path}"
+      "/#{type}/#{verb}/#{path}"
     end
 
     # :nodoc:

@@ -183,6 +183,30 @@ describe "Kemal::FilterHandler" do
     client_response = HTTP::Client::Response.from_io(io_with_context, decompress: false)
     client_response.body.should eq("true")
   end
+
+  it "executes code before and after request" do
+    before_filter = FilterTest.new
+    before_filter.modified = "false"
+
+    after_filter = FilterTest.new
+    after_filter.modified = "false"
+
+    filter_middleware = Kemal::FilterHandler.new
+    filter_middleware._add_route_filter("ALL", "*", :before) { before_filter.modified = "true" }
+    filter_middleware._add_route_filter("ALL", "*", :after) { after_filter.modified = "true" }
+
+    kemal = Kemal::RouteHandler::INSTANCE
+    kemal.add_route "GET", "/" { "#{before_filter.modified}-#{after_filter.modified}" }
+
+    before_filter.modified.should eq("false")
+    after_filter.modified.should eq("false")
+
+    request = HTTP::Request.new("GET", "/")
+    create_request_and_return_io_and_context(filter_middleware, request)
+    io_with_context = create_request_and_return_io_and_context(kemal, request)[0]
+    client_response = HTTP::Client::Response.from_io(io_with_context, decompress: false)
+    client_response.body.should eq("true-true")
+  end
 end
 
 class FilterTest
