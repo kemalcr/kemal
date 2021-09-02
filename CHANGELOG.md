@@ -1,4 +1,11 @@
-# 1.0.0 (??-03-2021)
+# 1.1.0 (02-09-2021)
+
+- You can now set your own application name for startup message [#606](https://github.com/kemalcr/kemal/pull/606). Thanks @aravindavk :pray:
+- Add array of paths support for before/after filters [#605](https://github.com/kemalcr/kemal/pull/605). Thanks @sdogruyol :pray:
+- Fixed executing filters when before and after is defined at the same time [#612](https://github.com/kemalcr/kemal/pull/612). Thanks @mamantoha :pray:
+-  Set content type to text/html for 500 exceptions [#616](https://github.com/kemalcr/kemal/pull/616). Thanks @sdogruyol :pray:
+
+# 1.0.0 (22-03-2021)
 
 - Crystal 1.0.0 support :tada:
 - Update Radix to use latest 0.4.0 [#596](https://github.com/kemalcr/kemal/pull/596). Thanks @luislavena :pray:
