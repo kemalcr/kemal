@@ -60,6 +60,7 @@ end
 # ```
 # render "src/views/index.ecr", "src/views/layout.ecr"
 # ```
+@[Deprecated("Use `ECR#render` instead")]
 macro render(filename, layout)
   __content_filename__ = {{filename}}
   content = render {{filename}}
@@ -67,6 +68,7 @@ macro render(filename, layout)
 end
 
 # Render view with the given filename.
+@[Deprecated("Use `ECR#render` instead")]
 macro render(filename)
   Kilt.render({{filename}})
 end
