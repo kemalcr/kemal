@@ -50,10 +50,6 @@ module Kemal
         @body = parse_part(@request.body)
         return
       end
-
-      if content_type.try(&.starts_with?(MULTIPART_FORM))
-        parse_files
-      end
     end
 
     private def parse_query
@@ -65,7 +61,7 @@ module Kemal
     end
 
     private def parse_files
-      return if @files_parsed
+      return if @files_parsed || !@request.headers["Content-Type"]?.try(&.starts_with?(MULTIPART_FORM))
 
       HTTP::FormData.parse(@request) do |upload|
         next unless upload
