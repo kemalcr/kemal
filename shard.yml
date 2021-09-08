@@ -8,9 +8,6 @@ dependencies:
   radix:
     github: luislavena/radix
     version: ~> 0.4.0
-  kilt:
-    github: jeromegn/kilt
-    version: ~> 0.6.0
   exception_page:
     github: crystal-loot/exception_page
     version: ~> 0.2.0
