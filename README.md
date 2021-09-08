@@ -56,7 +56,7 @@ See also [Getting Started](http://kemalcr.com/guide/).
 - Middleware support
 - Built-in JSON support
 - Built-in static file serving
-- Built-in view templating via [Kilt](https://github.com/jeromegn/kilt)
+- Built-in view templating via [ECR](https://crystal-lang.org/api/ECR.html)
 
 # Documentation
 
