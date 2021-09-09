@@ -150,4 +150,34 @@ describe Kemal::StaticFileHandler do
     response = handle HTTP::Request.new("GET", "/dir/index.html")
     response.headers["Access-Control-Allow-Origin"].should eq("*")
   end
+
+  it "should not follow symlinks outside of the configured directory" do
+    tempfile = File.tempfile("symlink", "txt")
+    symlink_path = "#{__DIR__}/static/dir/symlink.txt"
+    File.write tempfile.path, "my_super_secret"
+    begin
+      File.symlink(tempfile.path, symlink_path)
+
+      response = handle HTTP::Request.new("GET", "/dir/symlink.txt")
+      response.body.should_not contain("my_super_secret")
+      response.status_code.should eq(404)
+    ensure
+      File.delete symlink_path
+      tempfile.delete
+    end
+  end
+
+  it "should follow symlinks inside of the configured directory" do
+    symlink_path = "#{__DIR__}/static/dir/symlink.txt"
+    begin
+      File.symlink("#{__DIR__}/static/dir/test.txt", symlink_path)
+
+      response = handle HTTP::Request.new("GET", "/dir/symlink.txt")
+      response.status_code.should eq(200)
+      response.body.should eq(File.read("#{__DIR__}/static/dir/test.txt"))
+    ensure
+      File.delete symlink_path
+    end
+  end
+
 end

@@ -36,6 +36,13 @@ module Kemal
                     end
 
       file_path = File.join(@public_dir, expanded_path)
+
+      # prevent symlinks out of the public dir
+      if File.symlink?(file_path) && !File.real_path(file_path).starts_with?(@public_dir)
+        context.response.status_code = 404
+        return
+      end
+
       is_dir = Dir.exists? file_path
 
       if request_path != expanded_path
