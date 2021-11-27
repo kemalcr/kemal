@@ -7,6 +7,7 @@ module Kemal
 
     extend Kemal::Helpers
     extend Kemal::Helpers::Macros
+    extend Kemal::Helpers::Templates
 
     class_getter(init_handler) { InitHandler.new(self) }
     class_getter(route_handler) { RouteHandler.new(self) }
