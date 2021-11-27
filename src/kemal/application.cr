@@ -7,7 +7,6 @@ module Kemal
     getter(route_handler) { RouteHandler.new(self) }
     getter(websocket_handler) { WebSocketHandler.new(self) }
     getter(filter_handler) { FilterHandler.new(self) }
-    getter error_handler = {} of Int32 => HTTP::Server::Context, Exception -> String
 
     {% for method in HTTP_METHODS %}
       def {{method.id}}(path : String, &block : HTTP::Server::Context -> _)
@@ -22,7 +21,7 @@ module Kemal
     end
 
     def error(status_code : Int32, &block : HTTP::Server::Context, Exception -> _)
-      @error_handlers[status_code] = ->(context : HTTP::Server::Context, error : Exception) { block.call(context, error).to_s }
+      Kemal.config.add_error_handler(status_code, &block)
     end
 
     # All the helper methods available are:

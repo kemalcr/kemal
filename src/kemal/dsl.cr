@@ -20,7 +20,7 @@ def ws(path : String, &block : HTTP::WebSocket, HTTP::Server::Context -> Void)
 end
 
 def error(status_code : Int32, &block : HTTP::Server::Context, Exception -> _)
-  Kemal.config.add_error_handler status_code, &block
+  Kemal::GLOBAL_APPLICATION.error(status_code, &block)
 end
 
 # All the helper methods available are:
