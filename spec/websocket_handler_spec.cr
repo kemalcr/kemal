@@ -2,8 +2,8 @@ require "./spec_helper"
 
 describe "Kemal::WebSocketHandler" do
   it "doesn't match on wrong route" do
-    handler = Kemal::WebSocketHandler::INSTANCE
-    handler.next = Kemal::RouteHandler::INSTANCE
+    handler = Kemal::GLOBAL_APPLICATION.websocket_handler
+    handler.next = Kemal::GLOBAL_APPLICATION.route_handler
     ws "/" { }
     headers = HTTP::Headers{
       "Upgrade"           => "websocket",
@@ -21,7 +21,7 @@ describe "Kemal::WebSocketHandler" do
   end
 
   it "matches on given route" do
-    handler = Kemal::WebSocketHandler::INSTANCE
+    handler = Kemal::GLOBAL_APPLICATION.websocket_handler
     ws("/", &.send("Match"))
     ws("/no_match", &.send("No Match"))
     headers = HTTP::Headers{
@@ -37,7 +37,7 @@ describe "Kemal::WebSocketHandler" do
   end
 
   it "fetches named url parameters" do
-    handler = Kemal::WebSocketHandler::INSTANCE
+    handler = Kemal::GLOBAL_APPLICATION.websocket_handler
     ws "/:id" { |_, c| c.ws_params["id"] }
     headers = HTTP::Headers{
       "Upgrade"               => "websocket",
@@ -51,8 +51,8 @@ describe "Kemal::WebSocketHandler" do
   end
 
   it "matches correct verb" do
-    handler = Kemal::WebSocketHandler::INSTANCE
-    handler.next = Kemal::RouteHandler::INSTANCE
+    handler = Kemal::GLOBAL_APPLICATION.websocket_handler
+    handler.next = Kemal::GLOBAL_APPLICATION.route_handler
     ws "/" { }
     get "/" { "get" }
     request = HTTP::Request.new("GET", "/")

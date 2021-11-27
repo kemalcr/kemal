@@ -28,7 +28,7 @@ describe "Kemal::ExceptionHandler" do
     io = IO::Memory.new
     response = HTTP::Server::Response.new(io)
     context = HTTP::Server::Context.new(request, response)
-    Kemal::ExceptionHandler::INSTANCE.next = Kemal::RouteHandler::INSTANCE
+    Kemal::ExceptionHandler::INSTANCE.next = Kemal::GLOBAL_APPLICATION.route_handler
     Kemal::ExceptionHandler::INSTANCE.call(context)
     response.close
     io.rewind
@@ -49,7 +49,7 @@ describe "Kemal::ExceptionHandler" do
     io = IO::Memory.new
     response = HTTP::Server::Response.new(io)
     context = HTTP::Server::Context.new(request, response)
-    Kemal::ExceptionHandler::INSTANCE.next = Kemal::RouteHandler::INSTANCE
+    Kemal::ExceptionHandler::INSTANCE.next = Kemal::GLOBAL_APPLICATION.route_handler
     Kemal::ExceptionHandler::INSTANCE.call(context)
     response.close
     io.rewind
@@ -73,7 +73,7 @@ describe "Kemal::ExceptionHandler" do
     io = IO::Memory.new
     response = HTTP::Server::Response.new(io)
     context = HTTP::Server::Context.new(request, response)
-    Kemal::ExceptionHandler::INSTANCE.next = Kemal::RouteHandler::INSTANCE
+    Kemal::ExceptionHandler::INSTANCE.next = Kemal::GLOBAL_APPLICATION.route_handler
     Kemal::ExceptionHandler::INSTANCE.call(context)
     response.close
     io.rewind
@@ -95,7 +95,7 @@ describe "Kemal::ExceptionHandler" do
     io = IO::Memory.new
     response = HTTP::Server::Response.new(io)
     context = HTTP::Server::Context.new(request, response)
-    Kemal::ExceptionHandler::INSTANCE.next = Kemal::RouteHandler::INSTANCE
+    Kemal::ExceptionHandler::INSTANCE.next = Kemal::GLOBAL_APPLICATION.route_handler
     Kemal::ExceptionHandler::INSTANCE.call(context)
     response.close
     io.rewind
@@ -117,7 +117,7 @@ describe "Kemal::ExceptionHandler" do
     io = IO::Memory.new
     response = HTTP::Server::Response.new(io)
     context = HTTP::Server::Context.new(request, response)
-    Kemal::ExceptionHandler::INSTANCE.next = Kemal::RouteHandler::INSTANCE
+    Kemal::ExceptionHandler::INSTANCE.next = Kemal::GLOBAL_APPLICATION.route_handler
     Kemal::ExceptionHandler::INSTANCE.call(context)
     response.close
     io.rewind

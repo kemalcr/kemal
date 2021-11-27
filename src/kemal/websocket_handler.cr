@@ -2,8 +2,6 @@ module Kemal
   class WebSocketHandler
     include HTTP::Handler
 
-    INSTANCE = Kemal::GLOBAL_APPLICATION.websocket_handler
-
     property routes = Radix::Tree(WebSocket).new
 
     def initialize(app : Kemal::Application)

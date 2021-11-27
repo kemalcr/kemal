@@ -4,7 +4,6 @@ module Kemal
   class RouteHandler
     include HTTP::Handler
 
-    INSTANCE            = Kemal::GLOBAL_APPLICATION.route_handler
     CACHED_ROUTES_LIMIT = 1024
     property routes, cached_routes
 

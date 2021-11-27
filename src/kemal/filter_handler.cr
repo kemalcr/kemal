@@ -4,8 +4,6 @@ module Kemal
   # :nodoc:
   class FilterHandler
     include HTTP::Handler
-    INSTANCE = Kemal::GLOBAL_APPLICATION.filter_handler
-
     @route_handler : Kemal::RouteHandler
 
     # This middleware is lazily instantiated and added to the handlers as soon as a call to `after_X` or `before_X` is made.

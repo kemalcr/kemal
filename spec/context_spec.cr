@@ -54,8 +54,8 @@ describe "Context" do
       io = IO::Memory.new
       response = HTTP::Server::Response.new(io)
       context = HTTP::Server::Context.new(request, response)
-      Kemal::FilterHandler::INSTANCE.call(context)
-      Kemal::RouteHandler::INSTANCE.call(context)
+      Kemal::GLOBAL_APPLICATION.filter_handler.call(context)
+      Kemal::GLOBAL_APPLICATION.route_handler.call(context)
 
       context.get("before_get").should eq "Kemal"
       context.get("before_get_int").should eq 123
@@ -83,8 +83,8 @@ describe "Context" do
       io = IO::Memory.new
       response = HTTP::Server::Response.new(io)
       context = HTTP::Server::Context.new(request, response)
-      Kemal::FilterHandler::INSTANCE.call(context)
-      Kemal::RouteHandler::INSTANCE.call(context)
+      Kemal::GLOBAL_APPLICATION.filter_handler.call(context)
+      Kemal::GLOBAL_APPLICATION.route_handler.call(context)
 
       context.get("before_get_context_test").as(TestContextStorageType).id.should eq 32
       context.get("another_context_test").as(AnotherContextStorageType).name.should eq "kemal-context"
@@ -97,8 +97,8 @@ describe "Context" do
       io = IO::Memory.new
       response = HTTP::Server::Response.new(io)
       context = HTTP::Server::Context.new(request, response)
-      Kemal::FilterHandler::INSTANCE.call(context)
-      Kemal::RouteHandler::INSTANCE.call(context)
+      Kemal::GLOBAL_APPLICATION.filter_handler.call(context)
+      Kemal::GLOBAL_APPLICATION.route_handler.call(context)
 
       context.get?("non_existent_key").should be_nil
       context.get?("another_non_existent_key").should be_nil

@@ -92,8 +92,8 @@ module Kemal
         setup_filter_handlers
         @default_handlers_setup = true
         @router_included = true
-        @handlers.insert(@handlers.size, Kemal::WebSocketHandler::INSTANCE)
-        @handlers.insert(@handlers.size, Kemal::RouteHandler::INSTANCE)
+        @handlers.insert(@handlers.size, Kemal::GLOBAL_APPLICATION.websocket_handler)
+        @handlers.insert(@handlers.size, Kemal::GLOBAL_APPLICATION.route_handler)
       end
     end
 
