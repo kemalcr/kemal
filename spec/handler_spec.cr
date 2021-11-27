@@ -69,7 +69,7 @@ end
 
 describe "Handler" do
   it "adds custom handler before before_*" do
-    filter_middleware = Kemal::FilterHandler.new
+    filter_middleware = Kemal::FilterHandler.new(Kemal::Application)
     filter_middleware._add_route_filter("GET", "/", :before) do |env|
       env.response << " is"
     end
