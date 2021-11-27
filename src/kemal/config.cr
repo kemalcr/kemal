@@ -1,3 +1,5 @@
+require "./server_config"
+
 module Kemal
   VERSION = {{ `shards version #{__DIR__}`.chomp.stringify }}
 
@@ -8,47 +10,32 @@ module Kemal
   # Kemal.config
   # ```
   class Config
+    include ServerConfig
+
     @handlers = [] of HTTP::Handler
     @custom_handlers = [] of Tuple(Nil | Int32, HTTP::Handler)
     @filter_handlers = [] of HTTP::Handler
     @error_handlers = {} of Int32 => HTTP::Server::Context, Exception -> String
 
-    {% if flag?(:without_openssl) %}
-      @ssl : Bool?
-    {% else %}
-      @ssl : OpenSSL::SSL::Context::Server?
-    {% end %}
-
-    property host_binding, ssl, port, env, public_folder, logging, running
-    property always_rescue, server : HTTP::Server?, extra_options, shutdown_message
-    property serve_static : (Bool | Hash(String, Bool))
+    property public_folder = "./public"
+    property logging = true
+    property always_rescue = true
+    property serve_static : Hash(String, Bool) | Bool = {"dir_listing" => false, "gzip" => true}
     property static_headers : (HTTP::Server::Response, String, File::Info -> Void)?
-    property powered_by_header : Bool = true, app_name
+    property powered_by_header : Bool = true
+    property app_name = "Kemal"
 
-    def initialize
-      @app_name = "Kemal"
-      @host_binding = "0.0.0.0"
-      @port = 3000
-      @env = ENV["KEMAL_ENV"]? || "development"
-      @serve_static = {"dir_listing" => false, "gzip" => true}
-      @public_folder = "./public"
-      @logging = true
-      @logger = nil
-      @error_handler = nil
-      @always_rescue = true
-      @router_included = false
-      @default_handlers_setup = false
-      @running = false
-      @shutdown_message = true
-      @handler_position = 0
-    end
+    @logger : Kemal::BaseLogHandler?
+    @error_handler : HTTP::Handler?
+    @router_included = false
+    @default_handlers_setup = false
+    @handler_position = 0
 
     def logger
       @logger.not_nil!
     end
 
-    def logger=(logger : Kemal::BaseLogHandler)
-      @logger = logger
+    def logger=(@logger : Kemal::BaseLogHandler)
     end
 
     def scheme
@@ -93,9 +80,6 @@ module Kemal
 
     def add_error_handler(status_code : Int32, &handler : HTTP::Server::Context, Exception -> _)
       @error_handlers[status_code] = ->(context : HTTP::Server::Context, error : Exception) { handler.call(context, error).to_s }
-    end
-
-    def extra_options(&@extra_options : OptionParser ->)
     end
 
     def setup
