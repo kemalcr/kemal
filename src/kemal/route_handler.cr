@@ -7,7 +7,7 @@ module Kemal
     CACHED_ROUTES_LIMIT = 1024
     property routes, cached_routes
 
-    def initialize(app : Kemal::Application)
+    def initialize(app : Kemal::Application.class)
       @routes = Radix::Tree(Route).new
       @cached_routes = Hash(String, Radix::Result(Route)).new
     end

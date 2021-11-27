@@ -4,7 +4,7 @@ module Kemal
 
     property routes = Radix::Tree(WebSocket).new
 
-    def initialize(app : Kemal::Application)
+    def initialize(app : Kemal::Application.class)
     end
 
     def call(context : HTTP::Server::Context)

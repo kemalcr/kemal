@@ -7,7 +7,7 @@ module Kemal
     @route_handler : Kemal::RouteHandler
 
     # This middleware is lazily instantiated and added to the handlers as soon as a call to `after_X` or `before_X` is made.
-    def initialize(app : Kemal::Application = Kemal::GLOBAL_APPLICATION)
+    def initialize(app : Kemal::Application.class = Kemal::GLOBAL_APPLICATION)
       @route_handler = app.route_handler
       @tree = Radix::Tree(Array(FilterBlock)).new
       Kemal.config.add_filter_handler(self)

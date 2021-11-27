@@ -6,7 +6,7 @@ require "./kemal/ext/*"
 require "./kemal/helpers/*"
 
 module Kemal
-  GLOBAL_APPLICATION = Kemal::Application.new
+  GLOBAL_APPLICATION = Kemal::Application
   CONFIG             = GLOBAL_APPLICATION.config
 
   def self.config

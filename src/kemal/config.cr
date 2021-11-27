@@ -22,7 +22,7 @@ module Kemal
 
     @logger : Kemal::BaseLogHandler?
 
-    def initialize(@app : Kemal::Application)
+    def initialize(@app : Kemal::Application.class)
     end
 
     def logger : Kemal::BaseLogHandler
