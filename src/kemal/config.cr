@@ -8,11 +8,10 @@ module Kemal
   # Kemal.config
   # ```
   class Config
-    INSTANCE        = Config.new
-    HANDLERS        = [] of HTTP::Handler
-    CUSTOM_HANDLERS = [] of Tuple(Nil | Int32, HTTP::Handler)
-    FILTER_HANDLERS = [] of HTTP::Handler
-    ERROR_HANDLERS  = {} of Int32 => HTTP::Server::Context, Exception -> String
+    @handlers = [] of HTTP::Handler
+    @custom_handlers = [] of Tuple(Nil | Int32, HTTP::Handler)
+    @filter_handlers = [] of HTTP::Handler
+    @error_handlers = {} of Int32 => HTTP::Server::Context, Exception -> String
 
     {% if flag?(:without_openssl) %}
       @ssl : Bool?
@@ -61,39 +60,39 @@ module Kemal
       @router_included = false
       @handler_position = 0
       @default_handlers_setup = false
-      HANDLERS.clear
-      CUSTOM_HANDLERS.clear
-      FILTER_HANDLERS.clear
-      ERROR_HANDLERS.clear
+      @handlers.clear
+      @custom_handlers.clear
+      @filter_handlers.clear
+      @error_handlers.clear
     end
 
     def handlers
-      HANDLERS
+      @handlers
     end
 
     def handlers=(handlers : Array(HTTP::Handler))
       clear
-      HANDLERS.replace(handlers)
+      @handlers.replace(handlers)
     end
 
     def add_handler(handler : HTTP::Handler)
-      CUSTOM_HANDLERS << {nil, handler}
+      @custom_handlers << {nil, handler}
     end
 
     def add_handler(handler : HTTP::Handler, position : Int32)
-      CUSTOM_HANDLERS << {position, handler}
+      @custom_handlers << {position, handler}
     end
 
     def add_filter_handler(handler : HTTP::Handler)
-      FILTER_HANDLERS << handler
+      @filter_handlers << handler
     end
 
     def error_handlers
-      ERROR_HANDLERS
+      @error_handlers
     end
 
     def add_error_handler(status_code : Int32, &handler : HTTP::Server::Context, Exception -> _)
-      ERROR_HANDLERS[status_code] = ->(context : HTTP::Server::Context, error : Exception) { handler.call(context, error).to_s }
+      @error_handlers[status_code] = ->(context : HTTP::Server::Context, error : Exception) { handler.call(context, error).to_s }
     end
 
     def extra_options(&@extra_options : OptionParser ->)
@@ -109,13 +108,13 @@ module Kemal
         setup_filter_handlers
         @default_handlers_setup = true
         @router_included = true
-        HANDLERS.insert(HANDLERS.size, Kemal::WebSocketHandler::INSTANCE)
-        HANDLERS.insert(HANDLERS.size, Kemal::RouteHandler::INSTANCE)
+        @handlers.insert(@handlers.size, Kemal::WebSocketHandler::INSTANCE)
+        @handlers.insert(@handlers.size, Kemal::RouteHandler::INSTANCE)
       end
     end
 
     private def setup_init_handler
-      HANDLERS.insert(@handler_position, Kemal::InitHandler::INSTANCE)
+      @handlers.insert(@handler_position, Kemal::InitHandler::INSTANCE)
       @handler_position += 1
     end
 
@@ -125,45 +124,47 @@ module Kemal
                   else
                     Kemal::NullLogHandler.new
                   end
-      HANDLERS.insert(@handler_position, @logger.not_nil!)
+      @handlers.insert(@handler_position, @logger.not_nil!)
       @handler_position += 1
     end
 
     private def setup_error_handler
       if @always_rescue
         @error_handler ||= Kemal::ExceptionHandler.new
-        HANDLERS.insert(@handler_position, @error_handler.not_nil!)
+        @handlers.insert(@handler_position, @error_handler.not_nil!)
         @handler_position += 1
       end
     end
 
     private def setup_static_file_handler
       if @serve_static.is_a?(Hash)
-        HANDLERS.insert(@handler_position, Kemal::StaticFileHandler.new(@public_folder))
+        @handlers.insert(@handler_position, Kemal::StaticFileHandler.new(@public_folder))
         @handler_position += 1
       end
     end
 
     private def setup_custom_handlers
-      CUSTOM_HANDLERS.each do |ch0, ch1|
+      @custom_handlers.each do |ch0, ch1|
         position = ch0
-        HANDLERS.insert (position || @handler_position), ch1
+        @handlers.insert (position || @handler_position), ch1
         @handler_position += 1
       end
     end
 
     private def setup_filter_handlers
-      FILTER_HANDLERS.each do |h|
-        HANDLERS.insert(@handler_position, h)
+      @filter_handlers.each do |h|
+        @handlers.insert(@handler_position, h)
       end
     end
   end
 
+  CONFIG = Config.new
+
   def self.config
-    yield Config::INSTANCE
+    yield CONFIG
   end
 
   def self.config
-    Config::INSTANCE
+    CONFIG
   end
 end
