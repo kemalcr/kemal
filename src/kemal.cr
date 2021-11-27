@@ -7,6 +7,15 @@ require "./kemal/helpers/*"
 
 module Kemal
   GLOBAL_APPLICATION = Kemal::Application.new
+  CONFIG             = GLOBAL_APPLICATION.config
+
+  def self.config
+    yield CONFIG
+  end
+
+  def self.config : Kemal::Config
+    CONFIG
+  end
 
   # Overload of `self.run` with the default startup logging.
   def self.run(port : Int32?, args = ARGV)

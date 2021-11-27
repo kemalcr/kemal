@@ -31,6 +31,9 @@ module Kemal
     @default_handlers_setup = false
     @handler_position = 0
 
+    def initialize(@app : Kemal::Application)
+    end
+
     def logger
       @logger.not_nil!
     end
@@ -140,15 +143,5 @@ module Kemal
         @handlers.insert(@handler_position, h)
       end
     end
-  end
-
-  CONFIG = Config.new
-
-  def self.config
-    yield CONFIG
-  end
-
-  def self.config
-    CONFIG
   end
 end

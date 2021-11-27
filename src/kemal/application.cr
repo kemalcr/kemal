@@ -7,6 +7,7 @@ module Kemal
     getter(route_handler) { RouteHandler.new(self) }
     getter(websocket_handler) { WebSocketHandler.new(self) }
     getter(filter_handler) { FilterHandler.new(self) }
+    getter(config) { Config.new(self) }
 
     {% for method in HTTP_METHODS %}
       def {{method.id}}(path : String, &block : HTTP::Server::Context -> _)
