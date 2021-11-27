@@ -13,6 +13,10 @@ class HTTP::Server
       @store = {} of String => StoreTypes
     end
 
+    property ws_params : Hash(String, String) do
+      Hash(String, String).new
+    end
+
     def params
       @params ||= Kemal::ParamParser.new(@request, route_lookup.params)
     end
@@ -27,24 +31,12 @@ class HTTP::Server
       route_lookup.payload
     end
 
-    def websocket
-      ws_route_lookup.payload
-    end
-
     def route_lookup
       Kemal::RouteHandler::INSTANCE.lookup_route(@request.method.as(String), @request.path)
     end
 
     def route_found?
       route_lookup.found?
-    end
-
-    def ws_route_lookup
-      Kemal::WebSocketHandler::INSTANCE.lookup_ws_route(@request.path)
-    end
-
-    def ws_route_found?
-      ws_route_lookup.found?
     end
 
     def get(name : String)

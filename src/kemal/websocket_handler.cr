@@ -2,16 +2,18 @@ module Kemal
   class WebSocketHandler
     include HTTP::Handler
 
-    INSTANCE = new
-    property routes
+    INSTANCE = WebSocketHandler.new
 
-    def initialize
-      @routes = Radix::Tree(WebSocket).new
-    end
+    property routes = Radix::Tree(WebSocket).new
 
     def call(context : HTTP::Server::Context)
-      return call_next(context) unless context.ws_route_found? && websocket_upgrade_request?(context)
-      context.websocket.call(context)
+      lookup_result = lookup_ws_route(context.request.path)
+      if lookup_result.found? && websocket_upgrade_request?(context)
+        context.ws_params = lookup_result.params
+        lookup_result.payload.call(context)
+      else
+        call_next(context)
+      end
     end
 
     def lookup_ws_route(path : String)
