@@ -3,6 +3,7 @@ module Kemal
     HTTP_METHODS   = %w(get post put patch delete options)
     FILTER_METHODS = %w(get post put patch delete options all)
 
+    getter(init_handler) { InitHandler.new(self) }
     getter(route_handler) { RouteHandler.new(self) }
     getter(websocket_handler) { WebSocketHandler.new(self) }
     getter(filter_handler) { FilterHandler.new(self) }

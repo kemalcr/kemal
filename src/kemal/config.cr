@@ -98,7 +98,7 @@ module Kemal
     end
 
     private def setup_init_handler
-      @handlers.insert(@handler_position, Kemal::InitHandler::INSTANCE)
+      @handlers.insert(@handler_position, Kemal::GLOBAL_APPLICATION.init_handler)
       @handler_position += 1
     end
 

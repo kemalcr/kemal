@@ -4,7 +4,8 @@ module Kemal
   class InitHandler
     include HTTP::Handler
 
-    INSTANCE = new
+    def initialize(app : Kemal::Application)
+    end
 
     def call(context : HTTP::Server::Context)
       context.response.headers.add "X-Powered-By", "Kemal" if Kemal.config.powered_by_header
