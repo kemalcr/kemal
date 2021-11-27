@@ -252,53 +252,55 @@ module Kemal
     def static_headers(&headers : HTTP::Server::Response, String, File::Info -> Void)
       Kemal::GLOBAL_APPLICATION.config.static_headers = headers
     end
+
+    module Global
+      def add_handler(handler : HTTP::Handler)
+        Kemal::GLOBAL_APPLICATION.add_handler handler
+      end
+
+      def add_handler(handler : HTTP::Handler, position : Int32)
+        Kemal::GLOBAL_APPLICATION.add_handler handler, position
+      end
+
+      def public_folder(path : String)
+        Kemal::GLOBAL_APPLICATION.public_folder path
+      end
+
+      def log(message : String)
+        Kemal::GLOBAL_APPLICATION.log message
+      end
+
+      def logging(status : Bool)
+        Kemal::GLOBAL_APPLICATION.logging status
+      end
+
+      def logger(logger : Kemal::BaseLogHandler)
+        Kemal::GLOBAL_APPLICATION.logger logger
+      end
+
+      def serve_static(status : (Bool | Hash))
+        Kemal::GLOBAL_APPLICATION.serve_static status
+      end
+
+      def headers(env : HTTP::Server::Context, additional_headers : Hash(String, String))
+        Kemal::GLOBAL_APPLICATION.headers env, additional_headers
+      end
+
+      def send_file(env : HTTP::Server::Context, path : String, mime_type : String? = nil, *, filename : String? = nil, disposition : String? = nil)
+        Kemal::GLOBAL_APPLICATION.send_file env, path, mime_type, filename: filename, disposition: disposition
+      end
+
+      def send_file(env : HTTP::Server::Context, data : Slice(UInt8), mime_type : String? = nil, *, filename : String? = nil, disposition : String? = nil)
+        Kemal::GLOBAL_APPLICATION.send_file env, data, mime_type, filename: filename, disposition: disposition
+      end
+
+      def gzip(status : Bool = false)
+        Kemal::GLOBAL_APPLICATION.gzip status
+      end
+
+      def static_headers(&headers : HTTP::Server::Response, String, File::Info -> Void)
+        Kemal::GLOBAL_APPLICATION.static_headers &headers
+      end
+    end
   end
-end
-
-def add_handler(handler : HTTP::Handler)
-  Kemal::GLOBAL_APPLICATION.add_handler handler
-end
-
-def add_handler(handler : HTTP::Handler, position : Int32)
-  Kemal::GLOBAL_APPLICATION.add_handler handler, position
-end
-
-def public_folder(path : String)
-  Kemal::GLOBAL_APPLICATION.public_folder path
-end
-
-def log(message : String)
-  Kemal::GLOBAL_APPLICATION.log message
-end
-
-def logging(status : Bool)
-  Kemal::GLOBAL_APPLICATION.logging status
-end
-
-def logger(logger : Kemal::BaseLogHandler)
-  Kemal::GLOBAL_APPLICATION.logger logger
-end
-
-def serve_static(status : (Bool | Hash))
-  Kemal::GLOBAL_APPLICATION.serve_static status
-end
-
-def headers(env : HTTP::Server::Context, additional_headers : Hash(String, String))
-  Kemal::GLOBAL_APPLICATION.headers env, additional_headers
-end
-
-def send_file(env : HTTP::Server::Context, path : String, mime_type : String? = nil, *, filename : String? = nil, disposition : String? = nil)
-  Kemal::GLOBAL_APPLICATION.send_file env, path, mime_type, filename: filename, disposition: disposition
-end
-
-def send_file(env : HTTP::Server::Context, data : Slice(UInt8), mime_type : String? = nil, *, filename : String? = nil, disposition : String? = nil)
-  Kemal::GLOBAL_APPLICATION.send_file env, data, mime_type, filename: filename, disposition: disposition
-end
-
-def gzip(status : Bool = false)
-  Kemal::GLOBAL_APPLICATION.gzip status
-end
-
-def static_headers(&headers : HTTP::Server::Response, String, File::Info -> Void)
-  Kemal::GLOBAL_APPLICATION.static_headers &headers
 end

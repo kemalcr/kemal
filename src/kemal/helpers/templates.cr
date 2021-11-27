@@ -37,14 +37,16 @@ module Kemal
         context.response.print template
         context
       end
+
+      module Global
+        def render_404
+          Kemal::GLOBAL_APPLICATION.render_404
+        end
+
+        def render_500(context, exception, verbosity)
+          Kemal::GLOBAL_APPLICATION.render_500(context, exception, verbosity)
+        end
+      end
     end
   end
-end
-
-def render_404
-  Kemal::GLOBAL_APPLICATION.render_404
-end
-
-def render_500(context, exception, verbosity)
-  Kemal::GLOBAL_APPLICATION.render_500(context, exception, verbosity)
 end

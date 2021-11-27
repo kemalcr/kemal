@@ -107,3 +107,8 @@ module Kemal
     end
   end
 end
+
+include Kemal::Helpers::Global
+include Kemal::Helpers::DSL::Global
+include Kemal::Helpers::Macros
+include Kemal::Helpers::Templates::Global

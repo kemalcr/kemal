@@ -102,5 +102,3 @@ module Kemal
     end
   end
 end
-
-include Kemal::Helpers::Macros
