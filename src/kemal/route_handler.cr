@@ -7,7 +7,7 @@ module Kemal
     CACHED_ROUTES_LIMIT = 1024
     property routes, cached_routes
 
-    def initialize(app : Kemal::Application.class)
+    def initialize(@app : Kemal::Application.class)
       @routes = Radix::Tree(Route).new
       @cached_routes = Hash(String, Radix::Result(Route)).new
     end
@@ -52,7 +52,7 @@ module Kemal
       return if context.response.closed?
       content = lookup_result.payload.handler.call(context)
 
-      if !Kemal.config.error_handlers.empty? && Kemal.config.error_handlers.has_key?(context.response.status_code)
+      if !@app.error_handlers.empty? && @app.error_handlers.has_key?(context.response.status_code)
         raise Kemal::Exceptions::CustomException.new(context)
       end
 

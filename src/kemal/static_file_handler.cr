@@ -1,5 +1,9 @@
 module Kemal
   class StaticFileHandler < HTTP::StaticFileHandler
+    def initialize(@app : Kemal::Application.class, public_dir : String, fallthrough = true, directory_listing = true)
+      super(public_dir, fallthrough, directory_listing)
+    end
+
     # ameba:disable Metrics/CyclomaticComplexity
     def call(context : HTTP::Server::Context)
       return call_next(context) if context.request.path.not_nil! == "/"
@@ -16,7 +20,7 @@ module Kemal
         return
       end
 
-      config = Kemal.config.serve_static
+      config = @app.config.serve_static
       original_path = context.request.path.not_nil!
       request_path = URI.decode(original_path)
 

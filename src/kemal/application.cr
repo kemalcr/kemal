@@ -120,7 +120,7 @@ module Kemal
 
     private def self.setup_error_handler
       if config.always_rescue
-        @@error_handler ||= Kemal::ExceptionHandler.new
+        @@error_handler ||= Kemal::ExceptionHandler.new(self)
         @@handlers.insert(@@handler_position, @@error_handler.not_nil!)
         @@handler_position += 1
       end
@@ -128,7 +128,7 @@ module Kemal
 
     private def self.setup_static_file_handler
       if config.serve_static.is_a?(Hash)
-        @@handlers.insert(@@handler_position, Kemal::StaticFileHandler.new(config.public_folder))
+        @@handlers.insert(@@handler_position, Kemal::StaticFileHandler.new(self, config.public_folder))
         @@handler_position += 1
       end
     end

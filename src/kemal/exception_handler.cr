@@ -3,6 +3,9 @@ module Kemal
   class ExceptionHandler
     include HTTP::Handler
 
+    def initialize(@app : Kemal::Application.class)
+    end
+
     def call(context : HTTP::Server::Context)
       call_next(context)
     rescue ex : Kemal::Exceptions::RouteNotFound
@@ -11,17 +14,17 @@ module Kemal
       call_exception_with_status_code(context, ex, context.response.status_code)
     rescue ex : Exception
       log("Exception: #{ex.inspect_with_backtrace}")
-      return call_exception_with_status_code(context, ex, 500) if Kemal.config.error_handlers.has_key?(500)
-      verbosity = Kemal.config.env == "production" ? false : true
+      return call_exception_with_status_code(context, ex, 500) if @app.error_handlers.has_key?(500)
+      verbosity = @app.config.env == "production" ? false : true
       render_500(context, ex, verbosity)
     end
 
     private def call_exception_with_status_code(context : HTTP::Server::Context, exception : Exception, status_code : Int32)
       return if context.response.closed?
-      if !Kemal.config.error_handlers.empty? && Kemal.config.error_handlers.has_key?(status_code)
+      if !@app.error_handlers.empty? && @app.error_handlers.has_key?(status_code)
         context.response.content_type = "text/html" unless context.response.headers.has_key?("Content-Type")
         context.response.status_code = status_code
-        context.response.print Kemal.config.error_handlers[status_code].call(context, exception)
+        context.response.print @app.error_handlers[status_code].call(context, exception)
         context
       end
     end
