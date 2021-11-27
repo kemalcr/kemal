@@ -1,4 +1,4 @@
-require "./helpers/helpers"
+require "./helpers/*"
 
 module Kemal
   class Application
@@ -6,6 +6,7 @@ module Kemal
     FILTER_METHODS = %w(get post put patch delete options all)
 
     extend Kemal::Helpers
+    extend Kemal::Helpers::Macros
 
     class_getter(init_handler) { InitHandler.new(self) }
     class_getter(route_handler) { RouteHandler.new(self) }
