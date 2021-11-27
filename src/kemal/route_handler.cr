@@ -4,11 +4,11 @@ module Kemal
   class RouteHandler
     include HTTP::Handler
 
-    INSTANCE            = new
+    INSTANCE            = Kemal::GLOBAL_APPLICATION.route_handler
     CACHED_ROUTES_LIMIT = 1024
     property routes, cached_routes
 
-    def initialize
+    def initialize(app : Kemal::Application)
       @routes = Radix::Tree(Route).new
       @cached_routes = Hash(String, Radix::Result(Route)).new
     end

@@ -4,12 +4,13 @@ module Kemal
   # :nodoc:
   class FilterHandler
     include HTTP::Handler
-    INSTANCE = new
+    INSTANCE = Kemal::GLOBAL_APPLICATION.filter_handler
 
-    @route_handler : Kemal::RouteHandler = Kemal::RouteHandler::INSTANCE
+    @route_handler : Kemal::RouteHandler
 
     # This middleware is lazily instantiated and added to the handlers as soon as a call to `after_X` or `before_X` is made.
-    def initialize
+    def initialize(app : Kemal::Application = Kemal::GLOBAL_APPLICATION)
+      @route_handler = app.route_handler
       @tree = Radix::Tree(Array(FilterBlock)).new
       Kemal.config.add_filter_handler(self)
     end

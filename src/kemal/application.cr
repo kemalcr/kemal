@@ -3,10 +3,10 @@ module Kemal
     HTTP_METHODS   = %w(get post put patch delete options)
     FILTER_METHODS = %w(get post put patch delete options all)
 
-    @route_handler = RouteHandler.new
-    @websocket_handler = WebSocketHandler.new
-    @filter_handler = FilterHandler.new
-    @error_handlers = {} of Int32 => HTTP::Server::Context, Exception -> String
+    getter(route_handler) { RouteHandler.new(self) }
+    getter(websocket_handler) { WebSocketHandler.new(self) }
+    getter(filter_handler) { FilterHandler.new(self) }
+    getter error_handler = {} of Int32 => HTTP::Server::Context, Exception -> String
 
     {% for method in HTTP_METHODS %}
       def {{method.id}}(path : String, &block : HTTP::Server::Context -> _)

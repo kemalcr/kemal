@@ -6,6 +6,8 @@ require "./kemal/ext/*"
 require "./kemal/helpers/*"
 
 module Kemal
+  GLOBAL_APPLICATION = Kemal::Application.new
+
   # Overload of `self.run` with the default startup logging.
   def self.run(port : Int32?, args = ARGV)
     self.run(port, args) { }
