@@ -2,7 +2,6 @@ module Kemal
   # Handles all the exceptions, including 404, custom errors and 500.
   class ExceptionHandler
     include HTTP::Handler
-    INSTANCE = new
 
     def call(context : HTTP::Server::Context)
       call_next(context)
