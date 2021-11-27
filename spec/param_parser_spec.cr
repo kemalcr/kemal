@@ -2,7 +2,7 @@ require "./spec_helper"
 
 describe "ParamParser" do
   it "parses query params" do
-    Route.new "POST", "/" do |env|
+    Kemal::Route.new "POST", "/" do |env|
       hasan = env.params.query["hasan"]
       "Hello #{hasan}"
     end
@@ -12,7 +12,7 @@ describe "ParamParser" do
   end
 
   it "parses multiple values for query params" do
-    Route.new "POST", "/" do |env|
+    Kemal::Route.new "POST", "/" do |env|
       hasan = env.params.query["hasan"]
       "Hello #{hasan}"
     end
@@ -50,7 +50,7 @@ describe "ParamParser" do
   end
 
   it "parses request body" do
-    Route.new "POST", "/" do |env|
+    Kemal::Route.new "POST", "/" do |env|
       name = env.params.query["name"]
       age = env.params.query["age"]
       hasan = env.params.body["hasan"]
@@ -76,7 +76,7 @@ describe "ParamParser" do
   end
 
   it "parses multiple values in request body" do
-    Route.new "POST", "/" do |env|
+    Kemal::Route.new "POST", "/" do |env|
       hasan = env.params.body["hasan"]
       "Hello #{hasan}"
     end
@@ -94,7 +94,7 @@ describe "ParamParser" do
 
   context "when content type is application/json" do
     it "parses request body" do
-      Route.new "POST", "/" { }
+      Kemal::Route.new "POST", "/" { }
 
       request = HTTP::Request.new(
         "POST",
@@ -108,7 +108,7 @@ describe "ParamParser" do
     end
 
     it "parses request body when passed charset" do
-      Route.new "POST", "/" { }
+      Kemal::Route.new "POST", "/" { }
 
       request = HTTP::Request.new(
         "POST",
@@ -122,7 +122,7 @@ describe "ParamParser" do
     end
 
     it "parses request body for array" do
-      Route.new "POST", "/" { }
+      Kemal::Route.new "POST", "/" { }
 
       request = HTTP::Request.new(
         "POST",
@@ -136,7 +136,7 @@ describe "ParamParser" do
     end
 
     it "parses request body and query params" do
-      Route.new "POST", "/" { }
+      Kemal::Route.new "POST", "/" { }
 
       request = HTTP::Request.new(
         "POST",
@@ -155,7 +155,7 @@ describe "ParamParser" do
     end
 
     it "handles no request body" do
-      Route.new "GET", "/" { }
+      Kemal::Route.new "GET", "/" { }
 
       request = HTTP::Request.new(
         "GET",
@@ -179,7 +179,7 @@ describe "ParamParser" do
 
   context "when content type is incorrect" do
     it "does not parse request body" do
-      Route.new "POST", "/" do |env|
+      Kemal::Route.new "POST", "/" do |env|
         name = env.params.body["name"]
         age = env.params.body["age"]
         hasan = env.params.query["hasan"]

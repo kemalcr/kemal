@@ -1,8 +1,6 @@
 require "spec"
 require "../src/*"
 
-include Kemal
-
 class CustomLogHandler < Kemal::BaseLogHandler
   def call(env)
     call_next env
@@ -85,7 +83,7 @@ end
 
 Spec.after_each do
   Kemal.config.clear
-  Kemal::GLOBAL_APPLICATION.route_handler.routes = Radix::Tree(Route).new
-  Kemal::GLOBAL_APPLICATION.route_handler.cached_routes = Hash(String, Radix::Result(Route)).new
-  Kemal::GLOBAL_APPLICATION.websocket_handler.routes = Radix::Tree(WebSocket).new
+  Kemal::GLOBAL_APPLICATION.route_handler.routes = Radix::Tree(Kemal::Route).new
+  Kemal::GLOBAL_APPLICATION.route_handler.cached_routes = Hash(String, Radix::Result(Kemal::Route)).new
+  Kemal::GLOBAL_APPLICATION.websocket_handler.routes = Radix::Tree(Kemal::WebSocket).new
 end
