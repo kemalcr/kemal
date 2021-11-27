@@ -9,14 +9,12 @@
 
 {% for method in Kemal::Application::HTTP_METHODS %}
   def {{method.id}}(path : String, &block : HTTP::Server::Context -> _)
-    raise Kemal::Exceptions::InvalidPathStartException.new({{method}}, path) unless Kemal::Utils.path_starts_with_slash?(path)
-    Kemal::GLOBAL_APPLICATION.route_handler.add_route({{method}}.upcase, path, &block)
+    Kemal::GLOBAL_APPLICATION.{{method.id}}(path, &block)
   end
 {% end %}
 
 def ws(path : String, &block : HTTP::WebSocket, HTTP::Server::Context -> Void)
-  raise Kemal::Exceptions::InvalidPathStartException.new("ws", path) unless Kemal::Utils.path_starts_with_slash?(path)
-  Kemal::GLOBAL_APPLICATION.websocket_handler.add_route path, &block
+  Kemal::GLOBAL_APPLICATION.ws(path, &block)
 end
 
 def error(status_code : Int32, &block : HTTP::Server::Context, Exception -> _)
@@ -29,13 +27,11 @@ end
 {% for type in ["before", "after"] %}
   {% for method in Kemal::Application::FILTER_METHODS %}
     def {{type.id}}_{{method.id}}(path : String = "*", &block : HTTP::Server::Context -> _)
-     Kemal::GLOBAL_APPLICATION.filter_handler.{{type.id}}({{method}}.upcase, path, &block)
+     Kemal::GLOBAL_APPLICATION.{{type.id}}_{{method.id}}(path, &block)
     end
 
     def {{type.id}}_{{method.id}}(paths : Array(String), &block : HTTP::Server::Context -> _)
-      paths.each do |path|
-        Kemal::GLOBAL_APPLICATION.filter_handler.{{type.id}}({{method}}.upcase, path, &block)
-      end
+      Kemal::GLOBAL_APPLICATION.{{type.id}}_{{method.id}}(paths, &block)
     end
   {% end %}
 {% end %}
