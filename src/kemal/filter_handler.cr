@@ -1,8 +1,12 @@
+require "./route_handler"
+
 module Kemal
   # :nodoc:
   class FilterHandler
     include HTTP::Handler
     INSTANCE = new
+
+    @route_handler : Kemal::RouteHandler = Kemal::RouteHandler::INSTANCE
 
     # This middleware is lazily instantiated and added to the handlers as soon as a call to `after_X` or `before_X` is made.
     def initialize
@@ -12,7 +16,7 @@ module Kemal
 
     # The call order of the filters is `before_all -> before_x -> X -> after_x -> after_all`.
     def call(context : HTTP::Server::Context)
-      return call_next(context) unless context.route_found?
+      return call_next(context) unless route_defined?(context)
       call_block_for_path_type("ALL", context.request.path, :before, context)
       call_block_for_path_type(context.request.method, context.request.path, :before, context)
       if Kemal.config.error_handlers.has_key?(context.response.status_code)
@@ -22,6 +26,10 @@ module Kemal
       call_block_for_path_type(context.request.method, context.request.path, :after, context)
       call_block_for_path_type("ALL", context.request.path, :after, context)
       context
+    end
+
+    def route_defined?(context)
+      @route_handler.lookup_route(context).found?
     end
 
     # :nodoc: This shouldn't be called directly, it's not private because

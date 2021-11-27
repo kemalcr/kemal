@@ -17,26 +17,19 @@ class HTTP::Server
       Hash(String, String).new
     end
 
-    def params
-      @params ||= Kemal::ParamParser.new(@request, route_lookup.params)
+    @params : Kemal::ParamParser?
+
+    def params : Kemal::ParamParser
+      @params.not_nil!
+    end
+
+    def params=(@params : Kemal::ParamParser)
     end
 
     def redirect(url : String, status_code : Int32 = 302, *, body : String? = nil)
       @response.headers.add "Location", url
       @response.status_code = status_code
       @response.print(body) if body
-    end
-
-    def route
-      route_lookup.payload
-    end
-
-    def route_lookup
-      Kemal::RouteHandler::INSTANCE.lookup_route(@request.method.as(String), @request.path)
-    end
-
-    def route_found?
-      route_lookup.found?
     end
 
     def get(name : String)

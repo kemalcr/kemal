@@ -25,7 +25,10 @@ module Kemal
     end
 
     # Looks up the route from the Radix::Tree for the first time and caches to improve performance.
-    def lookup_route(verb : String, path : String)
+    def lookup_route(context : HTTP::Server::Context)
+      request = context.request
+      verb = request.method.as(String)
+      path = request.path
       lookup_path = radix_path(verb, path)
 
       if cached_route = @cached_routes[lookup_path]?
@@ -37,6 +40,7 @@ module Kemal
       if route.found?
         @cached_routes.clear if @cached_routes.size == CACHED_ROUTES_LIMIT
         @cached_routes[lookup_path] = route
+        context.params = Kemal::ParamParser.new(request, route.params)
       end
 
       route
@@ -44,9 +48,10 @@ module Kemal
 
     # Processes the route if it's a match. Otherwise renders 404.
     private def process_request(context)
-      raise Kemal::Exceptions::RouteNotFound.new(context) unless context.route_found?
+      lookup_result = lookup_route(context)
+      raise Kemal::Exceptions::RouteNotFound.new(context) unless lookup_result.found?
       return if context.response.closed?
-      content = context.route.handler.call(context)
+      content = lookup_result.payload.handler.call(context)
 
       if !Kemal.config.error_handlers.empty? && Kemal.config.error_handlers.has_key?(context.response.status_code)
         raise Kemal::Exceptions::CustomException.new(context)
