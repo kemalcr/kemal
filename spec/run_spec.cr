@@ -43,4 +43,17 @@ describe "Run" do
       end
       CR
   end
+
+  it "can run a different application" do
+    run(<<-CR).should eq "started\nstopped\n"
+      class TestApplication < Kemal::Application
+      end
+      TestApplication.config.env = "test"
+      TestApplication.run do
+        puts "started"
+        TestApplication.stop
+        puts "stopped"
+      end
+      CR
+  end
 end
