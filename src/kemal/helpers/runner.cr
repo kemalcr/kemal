@@ -1,6 +1,10 @@
 module Kemal
   module Helpers
     module Runner
+      macro included
+        extend ClassMethods
+      end
+
       # Overload of `run` with the default startup logging.
       def run(port : Int32?, args = ARGV)
         run(port, args) { }
@@ -89,6 +93,28 @@ module Kemal
           log "#{config.app_name} is going to take a rest!" if config.shutdown_message
           self.stop
           exit
+        end
+      end
+
+      module ClassMethods
+        def run(port : Int32?, args = ARGV)
+          new.run(port, args) { }
+        end
+
+        def run(args = ARGV)
+          new.run(nil, args) { }
+        end
+
+        def run(args = ARGV)
+          new.run(nil, args) do |config|
+            yield config
+          end
+        end
+
+        def run(port : Int32? = nil, args = ARGV)
+          new.run(port, args) do |config|
+            yield config
+          end
         end
       end
     end
