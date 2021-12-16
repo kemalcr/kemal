@@ -4,7 +4,7 @@ private def handle(request, fallthrough = true, decompress = true)
   io = IO::Memory.new
   response = HTTP::Server::Response.new(io)
   context = HTTP::Server::Context.new(request, response)
-  handler = Kemal::StaticFileHandler.new Kemal::Application, "#{__DIR__}/static", fallthrough
+  handler = Kemal::StaticFileHandler.new Kemal::GLOBAL_APPLICATION, "#{__DIR__}/static", fallthrough
   handler.call context
   response.close
   io.rewind

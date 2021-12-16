@@ -1,6 +1,6 @@
 module Kemal
   class StaticFileHandler < HTTP::StaticFileHandler
-    def initialize(@app : Kemal::Application.class, public_dir : String, fallthrough = true, directory_listing = true)
+    def initialize(@app : Kemal::Application, public_dir : String, fallthrough = true, directory_listing = true)
       super(public_dir, fallthrough, directory_listing)
     end
 

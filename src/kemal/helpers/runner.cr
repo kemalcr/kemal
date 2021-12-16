@@ -78,7 +78,7 @@ module Kemal
 
       private def setup_404
         unless error_handlers.has_key?(404)
-          error 404 do
+          self.error 404 do
             render_404
           end
         end
@@ -87,7 +87,7 @@ module Kemal
       private def setup_trap_signal
         Signal::INT.trap do
           log "#{config.app_name} is going to take a rest!" if config.shutdown_message
-          Kemal.stop
+          self.stop
           exit
         end
       end

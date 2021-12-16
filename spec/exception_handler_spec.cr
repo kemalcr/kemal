@@ -10,7 +10,7 @@ describe "Kemal::ExceptionHandler" do
     io = IO::Memory.new
     response = HTTP::Server::Response.new(io)
     context = HTTP::Server::Context.new(request, response)
-    Kemal::ExceptionHandler.new(Kemal::Application).call(context)
+    Kemal::ExceptionHandler.new(Kemal::GLOBAL_APPLICATION).call(context)
     response.close
     io.rewind
     response = HTTP::Client::Response.from_io(io, decompress: false)
@@ -28,7 +28,7 @@ describe "Kemal::ExceptionHandler" do
     io = IO::Memory.new
     response = HTTP::Server::Response.new(io)
     context = HTTP::Server::Context.new(request, response)
-    exception_handler = Kemal::ExceptionHandler.new(Kemal::Application)
+    exception_handler = Kemal::ExceptionHandler.new(Kemal::GLOBAL_APPLICATION)
     exception_handler.next = Kemal::GLOBAL_APPLICATION.route_handler
     exception_handler.call(context)
     response.close
@@ -50,7 +50,7 @@ describe "Kemal::ExceptionHandler" do
     io = IO::Memory.new
     response = HTTP::Server::Response.new(io)
     context = HTTP::Server::Context.new(request, response)
-    exception_handler = Kemal::ExceptionHandler.new(Kemal::Application)
+    exception_handler = Kemal::ExceptionHandler.new(Kemal::GLOBAL_APPLICATION)
     exception_handler.next = Kemal::GLOBAL_APPLICATION.route_handler
     exception_handler.call(context)
     response.close
@@ -75,7 +75,7 @@ describe "Kemal::ExceptionHandler" do
     io = IO::Memory.new
     response = HTTP::Server::Response.new(io)
     context = HTTP::Server::Context.new(request, response)
-    exception_handler = Kemal::ExceptionHandler.new(Kemal::Application)
+    exception_handler = Kemal::ExceptionHandler.new(Kemal::GLOBAL_APPLICATION)
     exception_handler.next = Kemal::GLOBAL_APPLICATION.route_handler
     exception_handler.call(context)
     response.close
@@ -98,7 +98,7 @@ describe "Kemal::ExceptionHandler" do
     io = IO::Memory.new
     response = HTTP::Server::Response.new(io)
     context = HTTP::Server::Context.new(request, response)
-    exception_handler = Kemal::ExceptionHandler.new(Kemal::Application)
+    exception_handler = Kemal::ExceptionHandler.new(Kemal::GLOBAL_APPLICATION)
     exception_handler.next = Kemal::GLOBAL_APPLICATION.route_handler
     exception_handler.call(context)
     response.close
@@ -121,7 +121,7 @@ describe "Kemal::ExceptionHandler" do
     io = IO::Memory.new
     response = HTTP::Server::Response.new(io)
     context = HTTP::Server::Context.new(request, response)
-    exception_handler = Kemal::ExceptionHandler.new(Kemal::Application)
+    exception_handler = Kemal::ExceptionHandler.new(Kemal::GLOBAL_APPLICATION)
     exception_handler.next = Kemal::GLOBAL_APPLICATION.route_handler
     exception_handler.call(context)
     response.close

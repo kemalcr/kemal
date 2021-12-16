@@ -4,7 +4,7 @@ module Kemal
   class InitHandler
     include HTTP::Handler
 
-    def initialize(@app : Kemal::Application.class)
+    def initialize(@app : Kemal::Application)
     end
 
     def call(context : HTTP::Server::Context)

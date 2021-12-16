@@ -48,10 +48,11 @@ describe "Run" do
     run(<<-CR).should eq "started\nstopped\n"
       class TestApplication < Kemal::Application
       end
-      TestApplication.config.env = "test"
-      TestApplication.run do
+      application = TestApplication.new
+      application.config.env = "test"
+      application.run do
         puts "started"
-        TestApplication.stop
+        application.stop
         puts "stopped"
       end
       CR

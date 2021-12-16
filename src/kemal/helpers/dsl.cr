@@ -17,7 +17,7 @@ module Kemal
       end
 
       def error(status_code : Int32, &block : HTTP::Server::Context, Exception -> _)
-        @@error_handlers[status_code] = ->(context : HTTP::Server::Context, error : Exception) { block.call(context, error).to_s }
+        @error_handlers[status_code] = ->(context : HTTP::Server::Context, error : Exception) { block.call(context, error).to_s }
       end
 
       # All the helper methods available are:
