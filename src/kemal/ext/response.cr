@@ -1,3 +1,7 @@
+# This override collides with the new stdlib of Crystal 1.3
+# See https://github.com/kemalcr/kemal/issues/627 for more details
+{{ skip_file if compare_versions(Crystal::VERSION, "1.3.0") >= 0 }}
+
 class HTTP::Server::Response
   class Output
     def close
