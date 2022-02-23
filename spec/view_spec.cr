@@ -22,7 +22,7 @@ describe "Views" do
     end
     request = HTTP::Request.new("GET", "/view/world")
     client_response = call_request_on_app(request)
-    client_response.body.should contain("Hello world")
+    client_response.body.strip.should eq("<html>Hello world\n</html>")
   end
 
   it "renders layout" do
@@ -58,5 +58,15 @@ describe "Views" do
     client_response = call_request_on_app(request)
     client_response.body.should contain("Hello world")
     client_response.body.should contain("<h1>Hello from otherside</h1>")
+  end
+
+  it "does not render content_for that was not yielded" do
+    get "/view/:name" do |env|
+      name = env.params.url["name"]
+      render "#{__DIR__}/asset/hello_with_content_for.ecr", "#{__DIR__}/asset/layout.ecr"
+    end
+    request = HTTP::Request.new("GET", "/view/world")
+    client_response = call_request_on_app(request)
+    client_response.body.should_not contain("<h1>Hello from otherside</h1>")
   end
 end

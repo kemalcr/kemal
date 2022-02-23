@@ -1,4 +1,4 @@
-CONTENT_FOR_BLOCKS = Hash(String, Tuple(String, Proc(String))).new
+CONTENT_FOR_BLOCKS = Hash(String, Tuple(String, Proc(Nil))).new
 
 # `content_for` is a set of helpers that allows you to capture
 # blocks inside views to be rendered later during the request. The most
@@ -34,13 +34,7 @@ CONTENT_FOR_BLOCKS = Hash(String, Tuple(String, Proc(String))).new
 # layout, inside the <head> tag, and each view can call `content_for`
 # setting the appropriate set of tags that should be added to the layout.
 macro content_for(key, file = __FILE__)
-  %proc = ->() {
-    __view_io__ = IO::Memory.new
-    {{ yield }}
-    __view_io__.to_s
-  }
-
-  CONTENT_FOR_BLOCKS[{{key}}] = Tuple.new {{file}}, %proc
+  CONTENT_FOR_BLOCKS[{{key}}] = Tuple.new {{file}}, ->() { {{ yield }} }
   nil
 end
 
@@ -60,10 +54,12 @@ end
 # ```
 macro render(filename, layout)
   __content_filename__ = {{filename}}
-  io = IO::Memory.new
-  content = ECR.embed {{filename}}, io
-  ECR.embed {{layout}}, io
-  io.to_s
+  content_io = IO::Memory.new
+  ECR.embed {{filename}}, content_io
+  content = content_io.to_s
+  layout_io = IO::Memory.new
+  ECR.embed {{layout}}, layout_io
+  layout_io.to_s
 end
 
 # Render view with the given filename.
