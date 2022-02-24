@@ -1,3 +1,7 @@
+# 1.1.2 (24-02-2022)
+
+- Fix content rendering [#631](https://github.com/kemalcr/kemal/pull/631). Thanks @matthewmcgarvey :pray:
+
 # 1.1.1 (22-02-2022)
 
 - Ignore HTTP::Server::Response patching for crystal >= 1.3.0 [#628](https://github.com/kemalcr/kemal/pull/628). Thanks @SamantazFox :pray:
