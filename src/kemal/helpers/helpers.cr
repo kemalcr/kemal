@@ -216,20 +216,7 @@ private def multipart(file, env : HTTP::Server::Context)
     env.response.headers["Accept-Ranges"] = "bytes"
     env.response.headers["Content-Range"] = "bytes #{startb}-#{endb}/#{fileb}" # MUST
 
-    if startb > 1024
-      skipped = 0_i64
-      # file.skip only accepts values less or equal to 1024 (buffer size, undocumented)
-      until (increase_skipped = skipped + 1024_i64) > startb
-        file.skip(1024)
-        skipped = increase_skipped
-      end
-      if (skipped_minus_startb = skipped - startb) > 0
-        file.skip skipped_minus_startb
-      end
-    else
-      file.skip(startb)
-    end
-
+    file.seek(startb)
     IO.copy(file, env.response, content_length)
   else
     env.response.content_length = fileb
