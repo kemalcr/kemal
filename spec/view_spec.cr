@@ -56,8 +56,8 @@ describe "Views" do
     end
     request = HTTP::Request.new("GET", "/view/world")
     client_response = call_request_on_app(request)
-    client_response.body.should contain("Hello world")
-    client_response.body.should contain("<h1>Hello from otherside</h1>")
+    client_response.body.scan("Hello world").size.should eq(1)
+    client_response.body.should contain("<title>Kemal Spec</title>")
   end
 
   it "does not render content_for that was not yielded" do
