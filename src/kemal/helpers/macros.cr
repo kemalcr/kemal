@@ -43,7 +43,14 @@ macro yield_content(key)
   if CONTENT_FOR_BLOCKS.has_key?({{key}})
     __caller_filename__ = CONTENT_FOR_BLOCKS[{{key}}][0]
     %proc = CONTENT_FOR_BLOCKS[{{key}}][1]
-    %proc.call if __content_filename__ == __caller_filename__
+
+    if __content_filename__ == __caller_filename__
+      %old_content_io, content_io = content_io, IO::Memory.new
+      %proc.call
+      %result = content_io.to_s
+      content_io = %old_content_io
+      %result
+    end
   end
 end
 
