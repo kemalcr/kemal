@@ -143,4 +143,40 @@ describe "Kemal::RouteHandler" do
     client_response.body.should eq("Redirecting to /login")
     client_response.headers.has_key?("Location").should eq(true)
   end
+
+  it "redirects and closes response in before filter" do
+    filter_handler = Kemal::FilterHandler.new
+    filter_handler._add_route_filter("GET", "/", :before) do |env|
+      env.redirect "/login"
+    end
+    Kemal.config.add_filter_handler(filter_handler)
+
+    get "/" do |env|
+      "home page"
+    end
+
+    request = HTTP::Request.new("GET", "/")
+    client_response = call_request_on_app(request)
+    client_response.status_code.should eq(302)
+    client_response.body.should eq("")
+    client_response.headers.has_key?("Location").should eq(true)
+  end
+
+  it "redirects in before filter without closing response" do
+    filter_handler = Kemal::FilterHandler.new
+    filter_handler._add_route_filter("GET", "/", :before) do |env|
+      env.redirect "/login", close: false
+    end
+    Kemal.config.add_filter_handler(filter_handler)
+
+    get "/" do |env|
+      "home page"
+    end
+
+    request = HTTP::Request.new("GET", "/")
+    client_response = call_request_on_app(request)
+    client_response.status_code.should eq(302)
+    client_response.body.should eq("home page")
+    client_response.headers.has_key?("Location").should eq(true)
+  end
 end
