@@ -151,7 +151,7 @@ describe "Kemal::RouteHandler" do
     end
     Kemal.config.add_filter_handler(filter_handler)
 
-    get "/" do |env|
+    get "/" do
       "home page"
     end
 
@@ -169,7 +169,7 @@ describe "Kemal::RouteHandler" do
     end
     Kemal.config.add_filter_handler(filter_handler)
 
-    get "/" do |env|
+    get "/" do
       "home page"
     end
 
