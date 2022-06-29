@@ -4,8 +4,8 @@ require "../src/*"
 include Kemal
 
 class CustomLogHandler < Kemal::BaseLogHandler
-  def call(env)
-    call_next env
+  def call(context)
+    call_next(context)
   end
 
   def write(message)

@@ -27,8 +27,8 @@ module Kemal
       end
     end
 
-    def call(env : HTTP::Server::Context)
-      call_next(env)
+    def call(context : HTTP::Server::Context)
+      call_next(context)
     end
 
     # Processes the path based on `only` paths which is a `Array(String)`.
