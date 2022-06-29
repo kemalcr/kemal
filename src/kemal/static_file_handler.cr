@@ -36,7 +36,7 @@ module Kemal
                     end
 
       file_path = File.join(@public_dir, expanded_path)
-      is_dir = Dir.exists? file_path
+      is_dir = Dir.exists?(file_path)
 
       if request_path != expanded_path
         redirect_to context, expanded_path
@@ -44,8 +44,19 @@ module Kemal
         redirect_to context, expanded_path + '/'
       end
 
-      if Dir.exists?(file_path)
-        if config.is_a?(Hash) && config["dir_listing"] == true
+      if is_dir
+        if config.is_a?(Hash) && config.fetch("dir_index", false) && File.exists?(File.join(file_path, "index.html"))
+          file_path = File.join(@public_dir, expanded_path, "index.html")
+
+          last_modified = modification_time(file_path)
+          add_cache_headers(context.response.headers, last_modified)
+
+          if cache_request?(context, last_modified)
+            context.response.status_code = 304
+            return
+          end
+          send_file(context, file_path)
+        elsif config.is_a?(Hash) && config.fetch("dir_listing", false)
           context.response.content_type = "text/html"
           directory_listing(context.response, request_path, file_path)
         else

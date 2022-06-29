@@ -31,7 +31,7 @@ module Kemal
       @host_binding = "0.0.0.0"
       @port = 3000
       @env = ENV["KEMAL_ENV"]? || "development"
-      @serve_static = {"dir_listing" => false, "gzip" => true}
+      @serve_static = {"dir_listing" => false, "gzip" => true, "dir_index" => false}
       @public_folder = "./public"
       @logging = true
       @logger = nil
