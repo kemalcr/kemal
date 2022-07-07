@@ -1,3 +1,17 @@
+# 1.2.0 (07-07-2022)
+
+- Crystal 1.5.0 support :tada:
+- Eliminated several seconds of delay when loading big mp4 file. Thanks @Athlon64 :pray:
+- Fix content_for failing to capture the correct block input [#639](https://github.com/kemalcr/kemal/pull/639). Thanks @sdogruyol :pray:
+- Closes response by default in HTTP::Server::Context#redirect [#641](https://github.com/kemalcr/kemal/pull/641). Thanks @cyangle :pray:
+- Enable option for index.html to be a directories default [#640](https://github.com/kemalcr/kemal/pull/640). Thanks @ukd1 :pray:
+
+You can enable it via 
+
+```crystal
+  serve_static({"dir_index" => true})
+```
+
 # 1.1.2 (24-02-2022)
 
 - Fix content rendering [#631](https://github.com/kemalcr/kemal/pull/631). Thanks @matthewmcgarvey :pray:
