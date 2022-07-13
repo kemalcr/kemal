@@ -40,6 +40,14 @@ describe "Config" do
     config.shutdown_message.should eq true
   end
 
+  it "toggles the disable trap signal" do
+    config = Kemal.config
+    config.disable_trap_signal = false
+    config.disable_trap_signal.should eq false
+    config.disable_trap_signal = true
+    config.disable_trap_signal.should eq true
+  end
+
   it "adds custom options" do
     config = Kemal.config
     ARGV.push("--test")

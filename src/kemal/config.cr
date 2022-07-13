@@ -21,7 +21,7 @@ module Kemal
     {% end %}
 
     property host_binding, ssl, port, env, public_folder, logging, running
-    property always_rescue, server : HTTP::Server?, extra_options, shutdown_message
+    property always_rescue, server : HTTP::Server?, extra_options, shutdown_message, disable_trap_signal
     property serve_static : (Bool | Hash(String, Bool))
     property static_headers : (HTTP::Server::Response, String, File::Info -> Void)?
     property powered_by_header : Bool = true, app_name
@@ -41,6 +41,7 @@ module Kemal
       @default_handlers_setup = false
       @running = false
       @shutdown_message = true
+      @disable_trap_signal = false
       @handler_position = 0
     end
 
@@ -61,6 +62,7 @@ module Kemal
       @router_included = false
       @handler_position = 0
       @default_handlers_setup = false
+      @disable_trap_signal = false
       HANDLERS.clear
       CUSTOM_HANDLERS.clear
       FILTER_HANDLERS.clear
