@@ -7,18 +7,18 @@ require "./kemal/helpers/*"
 
 module Kemal
   # Overload of `self.run` with the default startup logging.
-  def self.run(port : Int32?, args = ARGV)
-    self.run(port, args) { }
+  def self.run(port : Int32?, args = ARGV, trap_signal : Bool = true)
+    self.run(port, args, trap_signal) { }
   end
 
   # Overload of `self.run` without port.
-  def self.run(args = ARGV)
-    self.run(nil, args: args)
+  def self.run(args = ARGV, trap_signal : Bool = true)
+    self.run(nil, args: args, trap_signal: trap_signal)
   end
 
   # Overload of `self.run` to allow just a block.
   def self.run(args = ARGV, &block)
-    self.run(nil, args: args, &block)
+    self.run(nil, args: args, trap_signal: true, &block)
   end
 
   # The command to run a `Kemal` application.
@@ -27,7 +27,7 @@ module Kemal
   #
   # To use custom command line arguments, set args to nil
   #
-  def self.run(port : Int32? = nil, args = ARGV, &block)
+  def self.run(port : Int32? = nil, args = ARGV, trap_signal : Bool = true, &block)
     Kemal::CLI.new args
     config = Kemal.config
     config.setup
@@ -36,7 +36,7 @@ module Kemal
     # Test environment doesn't need to have signal trap and logging.
     if config.env != "test"
       setup_404
-      setup_trap_signal
+      setup_trap_signal if trap_signal
     end
 
     server = config.server ||= HTTP::Server.new(config.handlers)
