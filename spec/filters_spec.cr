@@ -2,9 +2,11 @@ require "./spec_helper"
 
 describe "Kemal::FilterHandler" do
   it "handles with upcased 'POST'" do
-    before_post do |env|
+    filter_handler = Kemal::FilterHandler.new
+    filter_handler._add_route_filter("POST", "*", :before) do |env|
       env.set "sensitive", "1"
     end
+    Kemal.config.add_filter_handler(filter_handler)
 
     post "/sensitive_post" do |env|
       env.get "sensitive"
@@ -17,9 +19,11 @@ describe "Kemal::FilterHandler" do
   end
 
   it "handles with downcased 'post'" do
-    before_post do |env|
+    filter_handler = Kemal::FilterHandler.new
+    filter_handler._add_route_filter("POST", "*", :before) do |env|
       env.set "sensitive", "1"
     end
+    Kemal.config.add_filter_handler(filter_handler)
 
     post "/sensitive_post" do |env|
       "sensitive"
