@@ -11,19 +11,17 @@ module Kemal
 
     macro only(paths, method = "GET")
       class_name = {{@type.name}}
-      method_downcase = {{method.downcase}}
-      class_name_method = "#{class_name}/#{method_downcase}"
+      class_name_method = "#{class_name}/#{{{method}}}"
       ({{paths}}).each do |path|
-        @@only_routes_tree.add class_name_method + path, '/' + method_downcase + path
+        @@only_routes_tree.add class_name_method + path, '/' + {{method}} + path
       end
     end
 
     macro exclude(paths, method = "GET")
       class_name = {{@type.name}}
-      method_downcase = {{method.downcase}}
-      class_name_method = "#{class_name}/#{method_downcase}"
+      class_name_method = "#{class_name}/#{{{method}}}"
       ({{paths}}).each do |path|
-        @@exclude_routes_tree.add class_name_method + path, '/' + method_downcase + path
+        @@exclude_routes_tree.add class_name_method + path, '/' + {{method}} + path
       end
     end
 
@@ -74,7 +72,7 @@ module Kemal
     end
 
     private def radix_path(method : String, path : String)
-      "#{self.class}/#{method.downcase}#{path}"
+      "#{self.class}/#{method}#{path}"
     end
   end
 end
