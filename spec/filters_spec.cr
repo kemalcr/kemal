@@ -25,7 +25,7 @@ describe "Kemal::FilterHandler" do
     end
     Kemal.config.add_filter_handler(filter_handler)
 
-    post "/sensitive_post" do |env|
+    post "/sensitive_post" do
       "sensitive"
     end
 
