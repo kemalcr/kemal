@@ -3,6 +3,7 @@ module Kemal
   class FilterHandler
     include HTTP::Handler
     INSTANCE = new
+    property tree
 
     # This middleware is lazily instantiated and added to the handlers as soon as a call to `after_X` or `before_X` is made.
     def initialize
