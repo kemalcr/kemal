@@ -1,3 +1,9 @@
+# 1.3.0 (09-10-2022)
+- Crystal 1.6.0 support :tada:
+- Disable signal trap for usage Kemal with other tools [#642](https://github.com/kemalcr/kemal/pull/642). Thanks @le0pard :pray:
+- Bump exception_page shard to v0.3.0 [#645](https://github.com/kemalcr/kemal/pull/645). Thanks @Sija :pray:
+- ***(Security)*** Omitting filters fix for lowercase methods requests [#647](https://github.com/kemalcr/kemal/pull/647). Thanks @sdogruyol @SlayerShadow :pray:
+
 # 1.2.0 (07-07-2022)
 
 - Crystal 1.5.0 support :tada:
