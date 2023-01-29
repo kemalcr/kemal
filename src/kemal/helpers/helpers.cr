@@ -48,13 +48,13 @@ end
 # This is used to replace the built-in `Kemal::LogHandler` with a custom logger.
 #
 # A custom logger must inherit from `Kemal::BaseLogHandler` and must implement
-# `call(env)`, `write(message)` methods.
+# `call(context)`, `write(message)` methods.
 #
 # ```
 # class MyCustomLogger < Kemal::BaseLogHandler
-#   def call(env)
+#   def call(context)
 #     puts "I'm logging some custom stuff here."
-#     call_next(env) # => This calls the next handler
+#     call_next(context) # => This calls the next handler
 #   end
 #
 #   # This is used from `log` method.
@@ -71,7 +71,6 @@ end
 # ```
 def logger(logger : Kemal::BaseLogHandler)
   Kemal.config.logger = logger
-  Kemal.config.add_handler logger
 end
 
 # Enables / Disables static file serving.
