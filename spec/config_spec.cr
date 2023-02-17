@@ -16,7 +16,7 @@ describe "Config" do
   end
 
   it "sets default powered_by_header to true" do
-    Kemal::Config.new.powered_by_header.should be_true
+    Kemal::Config.new.powered_by_header?.should be_true
   end
 
   it "sets host binding" do

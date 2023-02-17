@@ -27,7 +27,7 @@ module Kemal
   #
   # To use custom command line arguments, set args to nil
   #
-  def self.run(port : Int32? = nil, args = ARGV, trap_signal : Bool = true, &block)
+  def self.run(port : Int32? = nil, args = ARGV, trap_signal : Bool = true, &)
     Kemal::CLI.new args
     config = Kemal.config
     config.setup

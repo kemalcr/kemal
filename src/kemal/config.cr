@@ -20,11 +20,11 @@ module Kemal
       @ssl : OpenSSL::SSL::Context::Server?
     {% end %}
 
-    property host_binding, ssl, port, env, public_folder, logging, running
+    property app_name, host_binding, ssl, port, env, public_folder, logging, running
     property always_rescue, server : HTTP::Server?, extra_options, shutdown_message
     property serve_static : (Bool | Hash(String, Bool))
     property static_headers : (HTTP::Server::Response, String, File::Info -> Void)?
-    property powered_by_header : Bool = true, app_name
+    property? powered_by_header : Bool = true
 
     def initialize
       @app_name = "Kemal"
@@ -159,7 +159,7 @@ module Kemal
     end
   end
 
-  def self.config
+  def self.config(&)
     yield Config::INSTANCE
   end
 
