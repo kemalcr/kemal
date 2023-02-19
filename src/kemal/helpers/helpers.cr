@@ -5,11 +5,12 @@
 require "mime"
 
 # Adds given `Kemal::Handler` to handlers chain.
-# There are 5 handlers by default and all the custom handlers
-# goes between the first 4 and the last `Kemal::RouteHandler`.
+# There are 6 handlers by default and all the custom handlers
+# goes between the first 5 and the last `Kemal::RouteHandler`.
 #
 # - `Kemal::InitHandler`
 # - `Kemal::LogHandler`
+# - `Kemal::HeadRequestHandler`
 # - `Kemal::ExceptionHandler`
 # - `Kemal::StaticFileHandler`
 # - Here goes custom handlers
