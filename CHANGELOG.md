@@ -1,3 +1,10 @@
+# 1.4.0 (15-04-2023)
+
+- Crystal 1.8.0 support :tada:
+- Fix multiple logger handlers when custom logger is used [#653](https://github.com/kemalcr/kemal/pull/653). Thanks @aravindavk :pray:
+- Add Kemal::OverrideMethodHandler [#651](https://github.com/kemalcr/kemal/pull/651). Thanks @sdogruyol :pray:
+- HeadRequestHandler: run GET handler and don't return the body [#655](https://github.com/kemalcr/kemal/pull/655). Thanks @compumike :pray:
+
 # 1.3.0 (09-10-2022)
 - Crystal 1.6.0 support :tada:
 - Disable signal trap for usage Kemal with other tools [#642](https://github.com/kemalcr/kemal/pull/642). Thanks @le0pard :pray:
