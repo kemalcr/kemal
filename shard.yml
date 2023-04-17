@@ -12,10 +12,6 @@ dependencies:
     github: crystal-loot/exception_page
     version: ~> 0.4.1
 
-development_dependencies:
-  ameba:
-    github: crystal-ameba/ameba
-
 crystal: ">= 0.36.0"
 
 license: MIT
