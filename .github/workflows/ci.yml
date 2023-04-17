@@ -11,8 +11,11 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest]
-        crystal: [latest, nightly]
+        include:
+          - { os: ubuntu-latest, crystal: latest }
+          - { os: ubuntu-latest, crystal: nightly }
+          - { os: macos-latest }
+          - { os: windows-latest }
     runs-on: ${{ matrix.os }}
 
     steps:
