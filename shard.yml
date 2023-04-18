@@ -11,6 +11,7 @@ dependencies:
   exception_page:
     github: crystal-loot/exception_page
     version: ~> 0.3.0
+    branch: master
 
 crystal: ">= 0.36.0"
 
