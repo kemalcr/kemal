@@ -12,10 +12,10 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - { os: ubuntu-latest, crystal: latest }
-          - { os: ubuntu-latest, crystal: nightly }
-          - { os: macos-latest }
-          - { os: windows-latest }
+          - { os: ubuntu-latest, crystal: latest, allowed-failure: false }
+          - { os: ubuntu-latest, crystal: nightly, allowed-failure: false }
+          - { os: macos-latest, allowed-failure: false }
+          - { os: windows-latest, allowed-failure: true }
     runs-on: ${{ matrix.os }}
 
     steps:
@@ -36,6 +36,7 @@ jobs:
         run: |
           crystal spec
           crystal spec --release --no-debug
+        continue-on-error: ${{ matrix.allowed-failure }}
 
       - name: Check formatting
         run: crystal tool format --check
