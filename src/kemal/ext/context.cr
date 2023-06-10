@@ -17,8 +17,8 @@ class HTTP::Server
       @params ||= Kemal::ParamParser.new(@request, route_lookup.params)
     end
 
-    def redirect(url : String, status_code : Int32 = 302, *, body : String? = nil, close : Bool = true)
-      @response.headers.add "Location", url
+    def redirect(url : String | URI, status_code : Int32 = 302, *, body : String? = nil, close : Bool = true)
+      @response.headers.add "Location", url.to_s
       @response.status_code = status_code
       @response.print(body) if body
       @response.close if close
