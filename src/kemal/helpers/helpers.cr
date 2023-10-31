@@ -1,4 +1,4 @@
-{% if compare_versions(Crystal::VERSION, "0.35.0-0") >= 0 %}
+{% if compare_versions(Crystal::VERSION, "0.35.0-0") >= 0 && !flag?(:without_zlib) %}
   require "compress/deflate"
   require "compress/gzip"
 {% end %}
@@ -141,33 +141,38 @@ def send_file(env : HTTP::Server::Context, path : String, mime_type : String? = 
       next multipart(file, env)
     end
 
-    condition = config.is_a?(Hash) && config["gzip"]? == true && filesize > minsize && Kemal::Utils.zip_types(file_path)
-    if condition && request_headers.includes_word?("Accept-Encoding", "gzip")
-      env.response.headers["Content-Encoding"] = "gzip"
-      {% if compare_versions(Crystal::VERSION, "0.35.0-0") >= 0 %}
-        Compress::Gzip::Writer.open(env.response) do |deflate|
-          IO.copy(file, deflate)
-        end
-      {% else %}
-        Gzip::Writer.open(env.response) do |deflate|
-          IO.copy(file, deflate)
-        end
-      {% end %}
-    elsif condition && request_headers.includes_word?("Accept-Encoding", "deflate")
-      env.response.headers["Content-Encoding"] = "deflate"
-      {% if compare_versions(Crystal::VERSION, "0.35.0-0") >= 0 %}
-        Compress::Deflate::Writer.open(env.response) do |deflate|
-          IO.copy(file, deflate)
-        end
-      {% else %}
-        Flate::Writer.open(env.response) do |deflate|
-          IO.copy(file, deflate)
-        end
-      {% end %}
-    else
+    {% if flag?(:without_zlib) %}
       env.response.content_length = filesize
       IO.copy(file, env.response)
-    end
+    {% else %}
+      condition = config.is_a?(Hash) && config["gzip"]? == true && filesize > minsize && Kemal::Utils.zip_types(file_path)
+      if condition && request_headers.includes_word?("Accept-Encoding", "gzip")
+        env.response.headers["Content-Encoding"] = "gzip"
+        {% if compare_versions(Crystal::VERSION, "0.35.0-0") >= 0 %}
+          Compress::Gzip::Writer.open(env.response) do |deflate|
+            IO.copy(file, deflate)
+          end
+        {% else %}
+          Gzip::Writer.open(env.response) do |deflate|
+            IO.copy(file, deflate)
+          end
+        {% end %}
+      elsif condition && request_headers.includes_word?("Accept-Encoding", "deflate")
+        env.response.headers["Content-Encoding"] = "deflate"
+        {% if compare_versions(Crystal::VERSION, "0.35.0-0") >= 0 %}
+          Compress::Deflate::Writer.open(env.response) do |deflate|
+            IO.copy(file, deflate)
+          end
+        {% else %}
+          Flate::Writer.open(env.response) do |deflate|
+            IO.copy(file, deflate)
+          end
+        {% end %}
+      else
+        env.response.content_length = filesize
+        IO.copy(file, env.response)
+      end
+    {% end %}
   end
   return
 end
