@@ -38,7 +38,7 @@ describe "Kemal::WebSocketHandler" do
 
   it "fetches named url parameters" do
     handler = Kemal::WebSocketHandler::INSTANCE
-    ws "/:id" { |_, c| c.ws_route_lookup.params["id"] }
+    ws "/:id" { |_, context| context.ws_route_lookup.params["id"] }
     headers = HTTP::Headers{
       "Upgrade"               => "websocket",
       "Connection"            => "Upgrade",
