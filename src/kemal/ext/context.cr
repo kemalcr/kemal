@@ -9,7 +9,7 @@ class HTTP::Server
     STORE_MAPPINGS = [Nil, String, Int32, Int64, Float64, Bool]
 
     macro finished
-      alias StoreTypes = Union({{ *STORE_MAPPINGS }})
+      alias StoreTypes = Union({{ STORE_MAPPINGS.splat }})
       @store = {} of String => StoreTypes
     end
 
