@@ -159,8 +159,8 @@ module Kemal
     end
 
     private def setup_filter_handlers
-      FILTER_HANDLERS.each do |h|
-        HANDLERS.insert(@handler_position, h)
+      FILTER_HANDLERS.each do |handler|
+        HANDLERS.insert(@handler_position, handler)
       end
     end
   end
