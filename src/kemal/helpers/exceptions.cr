@@ -16,8 +16,6 @@ module Kemal::Exceptions
     def initialize(context : HTTP::Server::Context, message : String = "")
       @context = context
       @message = message
-
-      super "Rendered error with #{context.response.status_code}"
     end
   end
 end
