@@ -27,15 +27,10 @@ module Kemal
         return
       end
 
-      expanded_path = File.expand_path(request_path, "/")
-      is_dir_path = if original_path.ends_with?('/') && !expanded_path.ends_with? '/'
-                      expanded_path = expanded_path + '/'
-                      true
-                    else
-                      expanded_path.ends_with? '/'
-                    end
+      request_path = Path.posix(request_path)
+      expanded_path = request_path.expand("/")
 
-      file_path = File.join(@public_dir, expanded_path)
+      file_path = @public_dir.join(expanded_path.to_kind(Path::Kind.native))
       is_dir = Dir.exists?(file_path)
 
       if request_path != expanded_path
