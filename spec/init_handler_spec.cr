@@ -19,7 +19,7 @@ describe "Kemal::InitHandler" do
     Kemal::InitHandler::INSTANCE.next = ->(_context : HTTP::Server::Context) {}
     Kemal::InitHandler::INSTANCE.call(context)
     date = context.response.headers["Date"]?.should_not be_nil
-    Time.parse_rfc2822(date).should be_close(Time.utc, 1.second)
+    HTTP.parse_time(date).should be_close(Time.utc, 1.second)
   end
 
   it "initializes context with X-Powered-By: Kemal" do
