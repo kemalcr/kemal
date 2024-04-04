@@ -31,7 +31,9 @@ You can enable it via
 
 # 1.1.1 (22-02-2022)
 
+- Remove Kilt [#618](https://github.com/kemalcr/kemal/pull/618). Thanks @sdogruyol :pray:
 - Ignore HTTP::Server::Response patching for crystal >= 1.3.0 [#628](https://github.com/kemalcr/kemal/pull/628). Thanks @SamantazFox :pray:
+
 # 1.1.0 (02-09-2021)
 
 - You can now set your own application name for startup message [#606](https://github.com/kemalcr/kemal/pull/606). Thanks @aravindavk :pray:
