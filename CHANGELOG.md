@@ -23,7 +23,7 @@
 You can enable it via 
 
 ```crystal
-  serve_static({"dir_index" => true})
+serve_static({"dir_index" => true})
 ```
 
 # 1.1.2 (24-02-2022)
@@ -84,7 +84,7 @@ send_file env, "./asset/image.jpeg", filename: "image.jpg"
 
 # 0.25.1 (06-10-2018)
 
-- Fix `params.files` memoization https://github.com/kemalcr/kemal/pull/503. Thanks @mamantoha :pray:
+- Fix `params.files` memoization [#503](https://github.com/kemalcr/kemal/pull/503). Thanks @mamantoha :pray:
 
 # 0.25.0 (05-10-2018)
 
@@ -108,7 +108,7 @@ To test
 
 `curl -F "image1=@/Users/serdar/Downloads/kemal.png" http://localhost:3000/upload`
 
-- Cache HTTP routes to increase performance :rocket: https://github.com/kemalcr/kemal/pull/493
+- Cache HTTP routes to increase performance :rocket: [#493](https://github.com/kemalcr/kemal/pull/493)
 
 # 0.24.0 (14-08-2018)
 
@@ -183,10 +183,9 @@ end
 ```crystal
 static_headers do |response, filepath, filestat|
   if filepath =~ /\.html$/
-      response.headers.add("Access-Control-Allow-Origin", "*")
-    end
-    response.headers.add("Content-Size", filestat.size.to_s)
+    response.headers.add("Access-Control-Allow-Origin", "*")
   end
+  response.headers.add("Content-Size", filestat.size.to_s)
 end
 ```
 
@@ -223,7 +222,7 @@ add_handler MyCustomHandler.new, 1
 
 ```crystal
 class User
-   property name
+  property name
 end
 
 add_context_storage_type(User)
@@ -238,7 +237,7 @@ add_context_storage_type(User)
 
 # 0.18.2 (24-02-2017)
 
-- Fix [Gzip in Kemal Seems broken for static files](https://github.com/kemalcr/kemal/issues/316). This was caused by `Gzip::Writer` in `Crystal 0.21.0` and currently mitigated by monkey patching `Gzip::Header`.
+- Fix Gzip in Kemal Seems broken for static files [#316](https://github.com/kemalcr/kemal/issues/316). This was caused by `Gzip::Writer` in `Crystal 0.21.0` and currently mitigated by monkey patching `Gzip::Header`.
 
 # 0.18.1 (21-02-2017)
 
@@ -267,7 +266,7 @@ add_context_storage_type(User)
 
 Here's a fully working sample for reading a image file upload `image1` and saving it under `public/uploads`.
 
-  ```crystal
+```crystal
 post "/upload" do |env|
   file = env.params.files["image1"].tmpfile
   file_path = ::File.join [Kemal.config.public_folder, "uploads/", file.filename]
@@ -276,7 +275,7 @@ post "/upload" do |env|
   end
   "Upload ok"
 end
-  ```
+```
 
 To test
 
@@ -323,7 +322,7 @@ Request -> Middleware -> Filter -> Route
 ```
 
 - Rename `return_with` as `halt`.
-- Route declaration must start with `/`.  Fixes [#242](https://github.com/kemalcr/kemal/issues/242)
+- Route declaration must start with `/`. Fixes [#242](https://github.com/kemalcr/kemal/issues/242)
 - Set default exception `Content-Type` to `text/html`. Fixes [#202](https://github.com/kemalcr/kemal/issues/242)
 - Add `only` and `exclude` paths for `Kemal::Handler`. This change requires that all handlers must inherit from `Kemal::Handler`.
 
@@ -358,9 +357,9 @@ end
 - `error` handler now also yields error. For example you can get the error mesasage like
 
 ```crystal
-  error 500 do |env, err|
-    err.message
-  end
+error 500 do |env, err|
+  err.message
+end
 ```
 
 - Update `multipart.cr` to `v0.1.1`
