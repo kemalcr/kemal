@@ -1,3 +1,11 @@
+# 1.5.0 (10-04-2024)
+
+- Crystal 1.12.0 support :tada:
+- Allow HTTP::Server::Context#redirect to take an URL [#659](https://github.com/kemalcr/kemal/pull/659). Thanks @xendk :pray:
+- Bump `exception_page` dependency [#669](https://github.com/kemalcr/kemal/pull/669). Thanks @Sija :pray:
+- Add message support to `Kemal::Exceptions::CustomException` [#671](https://github.com/kemalcr/kemal/pull/671). Thanks @sdogruyol :pray:
+- Add `Date` header to HTTP responses [#676](https://github.com/kemalcr/kemal/pull/676). Thanks @Sija :pray:
+
 # 1.4.0 (15-04-2023)
 
 - Crystal 1.8.0 support :tada:
