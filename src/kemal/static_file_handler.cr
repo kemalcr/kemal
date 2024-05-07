@@ -57,7 +57,7 @@ module Kemal
           end
           send_file(context, file_path)
         elsif config.is_a?(Hash) && config.fetch("dir_listing", false)
-          context.response.content_type = "text/html;charset=UTF-8;"
+          context.response.content_type = "text/html; charset=utf-8"
           directory_listing(context.response, request_path, file_path)
         else
           call_next(context)
