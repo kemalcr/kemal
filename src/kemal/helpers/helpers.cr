@@ -134,7 +134,7 @@ def send_file(env : HTTP::Server::Context, path : String, mime_type : String? = 
   filestat = File.info(file_path)
   attachment(env, filename, disposition)
 
-  Kemal.config.static_headers.try(&.call(env.response, file_path, filestat))
+  Kemal.config.static_headers.try(&.call(env, file_path, filestat))
 
   File.open(file_path) do |file|
     if env.request.method == "GET" && env.request.headers.has_key?("Range")
@@ -250,13 +250,13 @@ end
 # Adds headers to `Kemal::StaticFileHandler`. This is especially useful for `CORS`.
 #
 # ```
-# static_headers do |response, filepath, filestat|
+# static_headers do |env, filepath, filestat|
 #   if filepath =~ /\.html$/
-#     response.headers.add("Access-Control-Allow-Origin", "*")
+#     env.response.headers.add("Access-Control-Allow-Origin", "*")
 #   end
-#   response.headers.add("Content-Size", filestat.size.to_s)
+#   env.response.headers.add("Content-Size", filestat.size.to_s)
 # end
 # ```
-def static_headers(&headers : HTTP::Server::Response, String, File::Info -> Void)
+def static_headers(&headers : HTTP::Server::Context, String, File::Info -> Void)
   Kemal.config.static_headers = headers
 end
