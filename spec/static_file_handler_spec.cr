@@ -141,11 +141,11 @@ describe Kemal::StaticFileHandler do
   end
 
   it "should handle setting custom headers" do
-    headers = Proc(HTTP::Server::Response, String, File::Info, Void).new do |response, path, stat|
+    headers = Proc(HTTP::Server::Context, String, File::Info, Void).new do |env, path, stat|
       if path =~ /\.html$/
-        response.headers.add("Access-Control-Allow-Origin", "*")
+        env.response.headers.add("Access-Control-Allow-Origin", "*")
       end
-      response.headers.add("Content-Size", stat.size.to_s)
+      env.response.headers.add("Content-Size", stat.size.to_s)
     end
 
     static_headers(&headers)
