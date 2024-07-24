@@ -14,7 +14,11 @@ class HTTP::Server
     end
 
     def params
-      @params ||= Kemal::ParamParser.new(@request, route_lookup.params)
+      if ws_route_found?
+        @params ||= Kemal::ParamParser.new(@request, ws_route_lookup.params)
+      else
+        @params ||= Kemal::ParamParser.new(@request, route_lookup.params)
+      end
     end
 
     def redirect(url : String | URI, status_code : Int32 = 302, *, body : String? = nil, close : Bool = true)
