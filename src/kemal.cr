@@ -89,7 +89,7 @@ module Kemal
   end
 
   private def self.setup_trap_signal
-    Process.on_interrupt do
+    Process.on_terminate do
       log "#{Kemal.config.app_name} is going to take a rest!" if Kemal.config.shutdown_message
       Kemal.stop
       exit
