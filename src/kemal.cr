@@ -66,8 +66,12 @@ module Kemal
   end
 
   def self.display_startup_message(config, server)
-    addresses = server.addresses.join ", " { |address| "#{config.scheme}://#{address}" }
-    log "[#{config.env}] #{config.app_name} is ready to lead at #{addresses}"
+    if config.env != "test"
+      addresses = server.addresses.join ", " { |address| "#{config.scheme}://#{address}" }
+      log "[#{config.env}] #{config.app_name} is ready to lead at #{addresses}"
+    else
+      log "[#{config.env}] #{config.app_name} is running in test mode. Server not listening"
+    end
   end
 
   def self.stop
