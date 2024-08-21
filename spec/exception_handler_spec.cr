@@ -59,6 +59,76 @@ describe "Kemal::ExceptionHandler" do
     response.body.should eq "Something happened"
   end
 
+  it "renders custom error for a crystal exception" do 
+    error RuntimeError do
+      "A RuntimeError has occured"
+    end
+
+    get "/" do |env|
+      raise RuntimeError.new()
+    end
+
+    request = HTTP::Request.new("GET", "/")
+    io = IO::Memory.new
+    response = HTTP::Server::Response.new(io)
+    context = HTTP::Server::Context.new(request, response)
+    Kemal::ExceptionHandler::INSTANCE.next = Kemal::RouteHandler::INSTANCE
+    Kemal::ExceptionHandler::INSTANCE.call(context)
+    response.close
+    io.rewind
+    response = HTTP::Client::Response.from_io(io, decompress: false)
+    response.status_code.should eq 500
+    response.headers["Content-Type"].should eq "text/html"
+    response.body.should eq "A RuntimeError has occured"
+  end
+
+  it "renders custom error for a custom exception" do 
+    error CustomExceptionType do
+      "A custom exception of CustomExceptionType has occurred"
+    end
+
+    get "/" do |env|
+      raise CustomExceptionType.new()
+    end
+
+    request = HTTP::Request.new("GET", "/")
+    io = IO::Memory.new
+    response = HTTP::Server::Response.new(io)
+    context = HTTP::Server::Context.new(request, response)
+    Kemal::ExceptionHandler::INSTANCE.next = Kemal::RouteHandler::INSTANCE
+    Kemal::ExceptionHandler::INSTANCE.call(context)
+    response.close
+    io.rewind
+    response = HTTP::Client::Response.from_io(io, decompress: false)
+    response.status_code.should eq 500
+    response.headers["Content-Type"].should eq "text/html"
+    response.body.should eq "A custom exception of CustomExceptionType has occurred"
+  end
+
+  it "renders custom error for a custom exception with a specific HTTP status code" do 
+    error CustomExceptionType do | env |
+      env.response.status_code = 503
+      "A custom exception of CustomExceptionType has occurred"
+    end
+
+    get "/" do |env|
+      raise CustomExceptionType.new()
+    end
+
+    request = HTTP::Request.new("GET", "/")
+    io = IO::Memory.new
+    response = HTTP::Server::Response.new(io)
+    context = HTTP::Server::Context.new(request, response)
+    Kemal::ExceptionHandler::INSTANCE.next = Kemal::RouteHandler::INSTANCE
+    Kemal::ExceptionHandler::INSTANCE.call(context)
+    response.close
+    io.rewind
+    response = HTTP::Client::Response.from_io(io, decompress: false)
+    response.status_code.should eq 503
+    response.headers["Content-Type"].should eq "text/html"
+    response.body.should eq "A custom exception of CustomExceptionType has occurred"
+  end
+
   it "overrides the content type for filters" do
     before_get do |env|
       env.response.content_type = "application/json"

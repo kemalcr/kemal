@@ -26,6 +26,9 @@ class AnotherContextStorageType
   @name = "kemal-context"
 end
 
+class CustomExceptionType < Exception
+end
+
 add_context_storage_type(TestContextStorageType)
 add_context_storage_type(AnotherContextStorageType)
 
