@@ -59,13 +59,13 @@ describe "Kemal::ExceptionHandler" do
     response.body.should eq "Something happened"
   end
 
-  it "renders custom error for a crystal exception" do 
+  it "renders custom error for a crystal exception" do
     error RuntimeError do
       "A RuntimeError has occured"
     end
 
-    get "/" do |env|
-      raise RuntimeError.new()
+    get "/" do
+      raise RuntimeError.new
     end
 
     request = HTTP::Request.new("GET", "/")
@@ -82,13 +82,13 @@ describe "Kemal::ExceptionHandler" do
     response.body.should eq "A RuntimeError has occured"
   end
 
-  it "renders custom error for a custom exception" do 
+  it "renders custom error for a custom exception" do
     error CustomExceptionType do
       "A custom exception of CustomExceptionType has occurred"
     end
 
-    get "/" do |env|
-      raise CustomExceptionType.new()
+    get "/" do
+      raise CustomExceptionType.new
     end
 
     request = HTTP::Request.new("GET", "/")
@@ -105,14 +105,14 @@ describe "Kemal::ExceptionHandler" do
     response.body.should eq "A custom exception of CustomExceptionType has occurred"
   end
 
-  it "renders custom error for a custom exception with a specific HTTP status code" do 
-    error CustomExceptionType do | env |
+  it "renders custom error for a custom exception with a specific HTTP status code" do
+    error CustomExceptionType do |env|
       env.response.status_code = 503
       "A custom exception of CustomExceptionType has occurred"
     end
 
-    get "/" do |env|
-      raise CustomExceptionType.new()
+    get "/" do
+      raise CustomExceptionType.new
     end
 
     request = HTTP::Request.new("GET", "/")

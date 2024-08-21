@@ -12,7 +12,7 @@ module Kemal
     HANDLERS        = [] of HTTP::Handler
     CUSTOM_HANDLERS = [] of Tuple(Nil | Int32, HTTP::Handler)
     FILTER_HANDLERS = [] of HTTP::Handler
-    ERROR_HANDLERS = {} of (Int32 | Exception.class) => HTTP::Server::Context, Exception -> String
+    ERROR_HANDLERS  = {} of (Int32 | Exception.class) => HTTP::Server::Context, Exception -> String
 
     {% if flag?(:without_openssl) %}
       @ssl : Bool?
