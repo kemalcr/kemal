@@ -129,6 +129,29 @@ describe "Kemal::ExceptionHandler" do
     response.body.should eq "A custom exception of CustomExceptionType has occurred"
   end
 
+  it "renders custom error for a child of a custom exception" do
+    error CustomExceptionType do |env, error|
+      "A custom exception of #{error.class} has occurred"
+    end
+
+    get "/" do
+      raise ChildCustomExceptionType.new
+    end
+
+    request = HTTP::Request.new("GET", "/")
+    io = IO::Memory.new
+    response = HTTP::Server::Response.new(io)
+    context = HTTP::Server::Context.new(request, response)
+    Kemal::ExceptionHandler::INSTANCE.next = Kemal::RouteHandler::INSTANCE
+    Kemal::ExceptionHandler::INSTANCE.call(context)
+    response.close
+    io.rewind
+    response = HTTP::Client::Response.from_io(io, decompress: false)
+    response.status_code.should eq 500
+    response.headers["Content-Type"].should eq "text/html"
+    response.body.should eq "A custom exception of ChildCustomExceptionType has occurred"
+  end
+
   it "overrides the content type for filters" do
     before_get do |env|
       env.response.content_type = "application/json"
