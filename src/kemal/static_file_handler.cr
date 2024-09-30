@@ -27,7 +27,7 @@ module Kemal
         return
       end
 
-      expanded_path = File.expand_path(request_path, "/")
+      expanded_path = request_path
       is_dir_path = if original_path.ends_with?('/') && !expanded_path.ends_with? '/'
                       expanded_path = expanded_path + '/'
                       true

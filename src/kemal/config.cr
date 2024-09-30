@@ -1,5 +1,5 @@
 module Kemal
-  VERSION = {{ `shards version #{__DIR__}`.chomp.stringify }}
+  VERSION = {{ `shards version "#{__DIR__}"`.chomp.stringify }}
 
   # Stores all the configuration options for a Kemal application.
   # It's a singleton and you can access it like.
