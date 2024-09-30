@@ -22,11 +22,7 @@ describe "Views" do
     end
     request = HTTP::Request.new("GET", "/view/world")
     client_response = call_request_on_app(request)
-    {% if flag?(:windows) %}
-      client_response.body.strip.should eq("<html>Hello world\r\n</html>")
-    {% else %}
-      client_response.body.strip.should eq("<html>Hello world\n</html>")
-    {% end %}
+    client_response.body.strip.should eq("<html>Hello world\n</html>")
   end
 
   it "renders layout" do
