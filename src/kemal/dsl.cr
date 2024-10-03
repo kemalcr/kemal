@@ -25,6 +25,11 @@ def error(status_code : Int32, &block : HTTP::Server::Context, Exception -> _)
   Kemal.config.add_error_handler status_code, &block
 end
 
+# Defines an error handler to be called when the given exception is raised
+def error(exception : Exception.class, &block : HTTP::Server::Context, Exception -> _)
+  Kemal.config.add_error_handler exception, &block
+end
+
 # All the helper methods available are:
 #  - before_all, before_get, before_post, before_put, before_patch, before_delete, before_options
 #  - after_all, after_get, after_post, after_put, after_patch, after_delete, after_options
