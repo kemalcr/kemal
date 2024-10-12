@@ -1,3 +1,10 @@
+# 1.6.0 (12-10-2024)
+
+- Crystal 1.14.0 support :tada:
+- Windows support [#690](https://github.com/kemalcr/kemal/pull/690). Thanks @sdogruyol :pray:
+- Directory Listing: Add UTF-8 Charset to the response Content type [#679](https://github.com/kemalcr/kemal/pull/679). Thanks @alexkutsan @Sija :pray:
+- Use context instead of response in static_headers helper [#681](https://github.com/kemalcr/kemal/pull/681). Thanks @sdogruyol :pray:
+
 # 1.5.0 (10-04-2024)
 
 - Crystal 1.12.0 support :tada:
