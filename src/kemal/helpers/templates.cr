@@ -26,7 +26,7 @@ def render_500(context, exception, verbosity)
   context.response.status_code = 500
 
   template = if verbosity
-               Kemal::ExceptionPage.for_runtime_exception(context, exception).to_s
+               Kemal::ExceptionPage.new(context, exception).to_s
              else
                Kemal::ExceptionPage.for_production_exception
              end
