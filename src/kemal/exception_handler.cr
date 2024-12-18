@@ -11,9 +11,6 @@ module Kemal
     rescue ex : Kemal::Exceptions::CustomException
       call_exception_with_status_code(context, ex, context.response.status_code)
     rescue ex : Exception
-      # Use error handler defined for the current exception if it exists
-      return call_exception_with_exception(context, ex, 500) if Kemal.config.error_handlers.has_key?(ex.class)
-
       # Use error handler for an ancestor of the current exception if it exists
       Kemal.config.error_handlers.each_key do |key|
         if key.is_a? Exception.class && ex.class <= key
