@@ -11,10 +11,13 @@ module Kemal
     rescue ex : Kemal::Exceptions::CustomException
       call_exception_with_status_code(context, ex, context.response.status_code)
     rescue ex : Exception
-      # Use error handler for an ancestor of the current exception if it exists
-      Kemal.config.error_handlers.each_key do |key|
-        if key.is_a? Exception.class && ex.class <= key
-          return call_exception_with_exception(context, ex, 500, override_handler_used: key)
+      # Matches an error handler for the given exception
+      #
+      # Matches based on order of declaration rather than inheritance relationship
+      # for child exceptions
+      Kemal.config.error_handlers.each do | expected_exception, handler |
+        if expected_exception.is_a? Exception.class && ex.class <= expected_exception
+          return call_exception_with_exception(context, ex, handler, 500)
         end
       end
 
@@ -25,25 +28,22 @@ module Kemal
       render_500(context, ex, verbosity)
     end
 
-    # Calls the defined error handler for the given exception if it exists
+    # Calls the given error handler with the current exception
     #
-    # By default it tries to use the handler that is defined for the given exception. However, another
-    # handler can be used via the `override_handler_used` parameter.
-    private def call_exception_with_exception(context : HTTP::Server::Context, exception : Exception, status_code : Int32 = 500, override_handler_used : (Exception.class)? = nil)
+    # The logic for validating that the current exception should be handled
+    # by the given error handler should be done by the caller of this method.
+    private def call_exception_with_exception(
+      context : HTTP::Server::Context,
+      exception : Exception,
+      handler : Proc(HTTP::Server::Context, Exception, String),
+      status_code : Int32 = 500,
+    )
       return if context.response.closed?
 
-      if !override_handler_used
-        handler_to_use = exception.class
-      else
-        handler_to_use = override_handler_used
-      end
-
-      if !Kemal.config.error_handlers.empty? && Kemal.config.error_handlers.has_key?(handler_to_use)
-        context.response.content_type = "text/html" unless context.response.headers.has_key?("Content-Type")
-        context.response.status_code = status_code
-        context.response.print Kemal.config.error_handlers[handler_to_use].call(context, exception)
-        context
-      end
+      context.response.content_type = "text/html" unless context.response.headers.has_key?("Content-Type")
+      context.response.status_code = status_code
+      context.response.print handler.call(context, exception)
+      context
     end
 
     private def call_exception_with_status_code(context : HTTP::Server::Context, exception : Exception, status_code : Int32)
