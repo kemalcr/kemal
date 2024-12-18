@@ -99,12 +99,12 @@ module Kemal
       ERROR_HANDLERS[status_code] = ->(context : HTTP::Server::Context, error : Exception) { handler.call(context, error).to_s }
     end
 
-    # Returns defined error handlers for exceptions
+    # Returns tje defined error handlers for exceptions
     def exception_handlers
       EXCEPTION_HANDLERS
     end
 
-    # Returns the defined error handlers for HTTP status codes
+    # Adds an error handler for the given exception
     def add_exception_handler(exception : Exception.class, &handler : HTTP::Server::Context, Exception -> _)
       EXCEPTION_HANDLERS[exception] = ->(context : HTTP::Server::Context, error : Exception) { handler.call(context, error).to_s }
     end
