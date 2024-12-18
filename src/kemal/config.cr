@@ -12,7 +12,8 @@ module Kemal
     HANDLERS        = [] of HTTP::Handler
     CUSTOM_HANDLERS = [] of Tuple(Nil | Int32, HTTP::Handler)
     FILTER_HANDLERS = [] of HTTP::Handler
-    ERROR_HANDLERS  = {} of (Int32 | Exception.class) => HTTP::Server::Context, Exception -> String
+    ERROR_HANDLERS  = {} of Int32 => HTTP::Server::Context, Exception -> String
+    EXCEPTION_HANDLERS  = {} of Exception.class => HTTP::Server::Context, Exception -> String
 
     {% if flag?(:without_openssl) %}
       @ssl : Bool?
@@ -88,16 +89,24 @@ module Kemal
       FILTER_HANDLERS << handler
     end
 
+    # Returns the defined error handlers for HTTP status codes
     def error_handlers
       ERROR_HANDLERS
     end
-
+  
+    # Adds an error handler for the given HTTP status code
     def add_error_handler(status_code : Int32, &handler : HTTP::Server::Context, Exception -> _)
       ERROR_HANDLERS[status_code] = ->(context : HTTP::Server::Context, error : Exception) { handler.call(context, error).to_s }
     end
+    
+    # Returns defined error handlers for exceptions
+    def exception_handlers
+      EXCEPTION_HANDLERS
+    end
 
-    def add_error_handler(exception : Exception.class, &handler : HTTP::Server::Context, Exception -> _)
-      ERROR_HANDLERS[exception] = ->(context : HTTP::Server::Context, error : Exception) { handler.call(context, error).to_s }
+    # Returns the defined error handlers for HTTP status codes
+    def add_exception_handler(exception : Exception.class, &handler : HTTP::Server::Context, Exception -> _)
+      EXCEPTION_HANDLERS[exception] = ->(context : HTTP::Server::Context, error : Exception) { handler.call(context, error).to_s }
     end
 
     def extra_options(&@extra_options : OptionParser ->)

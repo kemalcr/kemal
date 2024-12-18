@@ -15,8 +15,8 @@ module Kemal
       #
       # Matches based on order of declaration rather than inheritance relationship
       # for child exceptions
-      Kemal.config.error_handlers.each do | expected_exception, handler |
-        if expected_exception.is_a? Exception.class && ex.class <= expected_exception
+      Kemal.config.exception_handlers.each do | expected_exception, handler |
+        if ex.class <= expected_exception
           return call_exception_with_exception(context, ex, handler, 500)
         end
       end
