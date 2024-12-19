@@ -21,8 +21,14 @@ def ws(path : String, &block : HTTP::WebSocket, HTTP::Server::Context -> Void)
   Kemal::WebSocketHandler::INSTANCE.add_route path, &block
 end
 
+# Defines an error handler to be called when route returns the given HTTP status code
 def error(status_code : Int32, &block : HTTP::Server::Context, Exception -> _)
   Kemal.config.add_error_handler status_code, &block
+end
+
+# Defines an error handler to be called when the given exception is raised
+def error(exception : Exception.class, &block : HTTP::Server::Context, Exception -> _)
+  Kemal.config.add_exception_handler exception, &block
 end
 
 # All the helper methods available are:
