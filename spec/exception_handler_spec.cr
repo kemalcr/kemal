@@ -130,7 +130,7 @@ describe "Kemal::ExceptionHandler" do
   end
 
   it "renders custom error for a child of a custom exception" do
-    error CustomExceptionType do |env, error|
+    error CustomExceptionType do |_, error|
       "A custom exception of #{error.class} has occurred"
     end
 
