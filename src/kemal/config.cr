@@ -99,7 +99,7 @@ module Kemal
       ERROR_HANDLERS[status_code] = ->(context : HTTP::Server::Context, error : Exception) { handler.call(context, error).to_s }
     end
 
-    # Returns tje defined error handlers for exceptions
+    # Returns the defined error handlers for exceptions
     def exception_handlers
       EXCEPTION_HANDLERS
     end
