@@ -9,13 +9,14 @@ module Kemal
     PARTS            = %w(url query body json files)
     # :nodoc:
     alias AllParamTypes = Nil | String | Int64 | Float64 | Bool | Hash(String, JSON::Any) | Array(JSON::Any)
-    getter files
+    getter files, all_files
 
     def initialize(@request : HTTP::Request, @url : Hash(String, String) = {} of String => String)
       @query = HTTP::Params.new({} of String => Array(String))
       @body = HTTP::Params.new({} of String => Array(String))
       @json = {} of String => AllParamTypes
       @files = {} of String => FileUpload
+      @all_files = {} of String => Array(FileUpload)
       @url_parsed = false
       @query_parsed = false
       @body_parsed = false
@@ -71,11 +72,17 @@ module Kemal
         next unless upload
 
         filename = upload.filename
+        name = upload.name
 
         if !filename.nil?
-          @files[upload.name] = FileUpload.new(upload)
+          if name.ends_with?("[]")
+            @all_files[name] ||= [] of FileUpload
+            @all_files[name] << FileUpload.new(upload)
+          else
+            @files[name] = FileUpload.new(upload)
+          end
         else
-          @body.add(upload.name, upload.body.gets_to_end)
+          @body.add(name, upload.body.gets_to_end)
         end
       end
 
