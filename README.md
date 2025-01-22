@@ -2,10 +2,9 @@
 
 # Kemal
 
-Kemal is the Fast, Effective, Simple Web Framework for the Crystal. It's perfect for building Web Applications and APIs with minimal code.
+Kemal is the Fast, Effective, Simple Web Framework for Crystal. It's perfect for building Web Applications and APIs with minimal code.
 
 [![CI](https://github.com/kemalcr/kemal/actions/workflows/ci.yml/badge.svg)](https://github.com/kemalcr/kemal/actions/workflows/ci.yml)
-[![Join the chat at https://gitter.im/sdogruyol/kemal](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/sdogruyol/kemal?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 ## Why Kemal?
 
