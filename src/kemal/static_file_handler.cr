@@ -40,8 +40,10 @@ module Kemal
 
       if request_path != expanded_path
         redirect_to context, expanded_path
+        return
       elsif is_dir && !is_dir_path
         redirect_to context, expanded_path + '/'
+        return
       end
 
       if is_dir
