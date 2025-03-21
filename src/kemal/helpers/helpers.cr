@@ -32,8 +32,14 @@ end
 
 # Logs the output via `logger`.
 # This is the built-in `Kemal::LogHandler` by default which uses STDOUT.
+@[Deprecated("Use standard library Log")]
 def log(message : String)
-  Kemal.config.logger.write "#{message}\n"
+  logger = Kemal.config.logger?
+  if logger
+    logger.write "#{message}\n"
+  else
+    Log.info { message }
+  end
 end
 
 # Enables / Disables logging.

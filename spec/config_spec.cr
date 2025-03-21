@@ -29,7 +29,7 @@ describe "Config" do
     config = Kemal.config
     config.add_handler CustomTestHandler.new
     Kemal.config.setup
-    config.handlers.size.should eq(8)
+    config.handlers.size.should eq(7)
   end
 
   it "toggles the shutdown message" do

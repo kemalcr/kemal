@@ -1,21 +1,20 @@
 module Kemal
   # Uses `STDOUT` by default and handles the logging of request/response process time.
-  class LogHandler < Kemal::BaseLogHandler
-    def initialize(@io : IO = STDOUT)
+  class LogHandler
+    include HTTP::Handler
+
+    def initialize
+    end
+
+    @[Deprecated("Setup Log instead.")]
+    def initialize(io : IO)
     end
 
     def call(context : HTTP::Server::Context)
       elapsed_time = Time.measure { call_next(context) }
       elapsed_text = elapsed_text(elapsed_time)
-      @io << Time.utc << ' ' << context.response.status_code << ' ' << context.request.method << ' ' << context.request.resource << ' ' << elapsed_text << '\n'
-      @io.flush
+      Log.info { "#{Time.utc} #{context.response.status_code} #{context.request.method} #{context.request.resource} #{elapsed_text}" }
       context
-    end
-
-    def write(message : String)
-      @io << message
-      @io.flush
-      @io
     end
 
     private def elapsed_text(elapsed)
