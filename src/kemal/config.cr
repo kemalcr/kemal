@@ -47,7 +47,7 @@ module Kemal
 
     @[Deprecated("Use standard library Log")]
     def logger
-      @logger.not_nil!
+      @logger || NullLogHandler.new
     end
 
     # :nodoc:
