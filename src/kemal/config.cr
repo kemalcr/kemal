@@ -143,7 +143,7 @@ module Kemal
     private def setup_log_handler
       return unless @logging
 
-      log_handler = @logger || Kemal::LogHandler.new
+      log_handler = @logger || Kemal::RequestLogHandler.new
 
       HANDLERS.insert(@handler_position, log_handler)
       @handler_position += 1

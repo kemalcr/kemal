@@ -76,6 +76,7 @@ end
 # ```
 # logger MyCustomLogger.new
 # ```
+@[Deprecated("Use standard library Log")]
 def logger(logger : Kemal::BaseLogHandler)
   Kemal.config.logger = logger
 end
