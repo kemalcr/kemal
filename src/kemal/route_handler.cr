@@ -56,7 +56,10 @@ module Kemal
       end
 
       context.response.print(content)
+
       context
+    ensure
+      context.params.cleanup_temporary_files
     end
 
     private def radix_path(method, path)

@@ -20,5 +20,10 @@ module Kemal
       @read_time = upload.read_time
       @size = upload.size
     end
+
+    def cleanup
+      @tempfile.close
+      ::File.delete(@tempfile.path) if ::File.exists?(@tempfile.path)
+    end
   end
 end
