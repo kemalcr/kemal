@@ -207,6 +207,22 @@ describe "Kemal::FilterHandler" do
     client_response = HTTP::Client::Response.from_io(io_with_context, decompress: false)
     client_response.body.should eq("true-true")
   end
+
+  it "executes before_all filter on 404" do
+    before_filter = FilterTest.new
+    before_filter.modified = "false"
+
+    filter_middleware = Kemal::FilterHandler.new
+    filter_middleware._add_route_filter("ALL", "*", :before) { before_filter.modified = "true" }
+
+    error 404 do
+      before_filter.modified
+    end
+
+    request = HTTP::Request.new("GET", "/not_found")
+    client_response = call_request_on_app(request)
+    client_response.body.should eq("true")
+  end
 end
 
 class FilterTest
