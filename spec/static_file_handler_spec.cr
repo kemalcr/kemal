@@ -113,29 +113,27 @@ describe Kemal::StaticFileHandler do
 
   it "should send part of files when requested (RFC7233)" do
     %w(POST PUT DELETE HEAD).each do |method|
-      headers = HTTP::Headers{"Range" => "0-100"}
+      headers = HTTP::Headers{"Range" => "bytes=0-4"}
       response = handle HTTP::Request.new(method, "/dir/test.txt", headers)
       response.status_code.should_not eq(206)
       response.headers.has_key?("Content-Range").should eq(false)
     end
 
     %w(GET).each do |method|
-      headers = HTTP::Headers{"Range" => "0-100"}
+      headers = HTTP::Headers{"Range" => "bytes=0-4"}
       response = handle HTTP::Request.new(method, "/dir/test.txt", headers)
-      response.status_code.should eq(206 || 200)
-      if response.status_code == 206
-        response.headers.has_key?("Content-Range").should eq true
-        match = response.headers["Content-Range"].match(/bytes (\d+)-(\d+)\/(\d+)/)
-        match.should_not be_nil
-        if match
-          start_range = match[1].to_i { 0 }
-          end_range = match[2].to_i { 0 }
-          range_size = match[3].to_i { 0 }
+      response.status_code.should eq(206)
+      response.headers.has_key?("Content-Range").should eq true
+      match = response.headers["Content-Range"].match(/bytes (\d+)-(\d+)\/(\d+)/)
+      match.should_not be_nil
+      if match
+        start_range = match[1].to_i { 0 }
+        end_range = match[2].to_i { 0 }
+        range_size = match[3].to_i { 0 }
 
-          range_size.should eq file_size
-          (end_range < file_size).should eq true
-          (start_range < end_range).should eq true
-        end
+        range_size.should eq file_size
+        (end_range < file_size).should eq true
+        (start_range < end_range).should eq true
       end
     end
   end
