@@ -21,7 +21,7 @@ module Kemal
         end
       end
 
-      log("Exception: #{ex.inspect_with_backtrace}")
+      Log.error(exception: ex) { ex.message }
       # Else use generic 500 handler if defined
       return call_exception_with_status_code(context, ex, 500) if Kemal.config.error_handlers.has_key?(500)
       verbosity = Kemal.config.env == "production" ? false : true

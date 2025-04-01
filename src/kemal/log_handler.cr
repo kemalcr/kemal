@@ -1,5 +1,6 @@
 module Kemal
   # Uses `STDOUT` by default and handles the logging of request/response process time.
+  @[Deprecated("Setup Log instead.")]
   class LogHandler < Kemal::BaseLogHandler
     def initialize(@io : IO = STDOUT)
     end

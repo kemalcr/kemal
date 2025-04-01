@@ -1,11 +1,14 @@
 require "http"
 require "json"
+require "log"
 require "uri"
 require "./kemal/*"
 require "./kemal/ext/*"
 require "./kemal/helpers/*"
 
 module Kemal
+  Log = ::Log.for(self)
+
   # Overload of `self.run` with the default startup logging.
   def self.run(port : Int32?, args = ARGV, trap_signal : Bool = true)
     self.run(port, args, trap_signal) { }
@@ -68,9 +71,9 @@ module Kemal
   def self.display_startup_message(config, server)
     if config.env != "test"
       addresses = server.addresses.join ", " { |address| "#{config.scheme}://#{address}" }
-      log "[#{config.env}] #{config.app_name} is ready to lead at #{addresses}"
+      Log.info { "[#{config.env}] #{config.app_name} is ready to lead at #{addresses}" }
     else
-      log "[#{config.env}] #{config.app_name} is running in test mode. Server not listening"
+      Log.info { "[#{config.env}] #{config.app_name} is running in test mode. Server not listening" }
     end
   end
 
@@ -94,7 +97,7 @@ module Kemal
 
   private def self.setup_trap_signal
     Process.on_terminate do
-      log "#{Kemal.config.app_name} is going to take a rest!" if Kemal.config.shutdown_message
+      Log.info { "#{Kemal.config.app_name} is going to take a rest!" } if Kemal.config.shutdown_message
       Kemal.stop
       exit
     end

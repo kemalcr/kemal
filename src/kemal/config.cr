@@ -45,10 +45,17 @@ module Kemal
       @handler_position = 0
     end
 
+    @[Deprecated("Use standard library Log")]
     def logger
-      @logger.not_nil!
+      @logger || NullLogHandler.new
     end
 
+    # :nodoc:
+    def logger?
+      @logger
+    end
+
+    @[Deprecated("Use standard library Log")]
     def logger=(logger : Kemal::BaseLogHandler)
       @logger = logger
     end
@@ -134,12 +141,11 @@ module Kemal
     end
 
     private def setup_log_handler
-      @logger ||= if @logging
-                    Kemal::LogHandler.new
-                  else
-                    Kemal::NullLogHandler.new
-                  end
-      HANDLERS.insert(@handler_position, @logger.not_nil!)
+      return unless @logging
+
+      log_handler = @logger || Kemal::RequestLogHandler.new
+
+      HANDLERS.insert(@handler_position, log_handler)
       @handler_position += 1
     end
 
