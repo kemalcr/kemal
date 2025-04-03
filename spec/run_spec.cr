@@ -15,12 +15,20 @@ end
 
 describe "Run" do
   it "runs a code block after starting" do
-    run(<<-CR).should eq "started\nstopped\n"
+    run(<<-CR).should contain("started")
       Kemal.config.env = "test"
       Kemal.run do
-        puts "started"
+        log "started"
+      end
+      CR
+  end
+
+  it "runs a code block after stopping" do
+    run(<<-CR).should contain("stopped")
+      Kemal.config.env = "test"
+      Kemal.run do
         Kemal.stop
-        puts "stopped"
+        log "stopped"
       end
       CR
   end
@@ -29,7 +37,7 @@ describe "Run" do
     run(<<-CR).should contain "[test] Kemal is running in test mode."
       Kemal.config.env = "test"
       Kemal.run
-      puts Kemal.config.running
+      Kemal.config.running
       CR
   end
 
