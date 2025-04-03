@@ -18,7 +18,7 @@ describe "Run" do
     run(<<-CR).should contain("started")
       Kemal.config.env = "test"
       Kemal.run do
-        log "started"
+        Log.info {"started"}
       end
       CR
   end
@@ -28,21 +28,21 @@ describe "Run" do
       Kemal.config.env = "test"
       Kemal.run do
         Kemal.stop
-        log "stopped"
+        Log.info {"stopped"}
       end
       CR
   end
 
   it "runs without a block being specified" do
-    run(<<-CR).should contain "[test] Kemal is running in test mode."
+    run(<<-CR).should contain "running in test mode."
       Kemal.config.env = "test"
       Kemal.run
-      Kemal.config.running
+      Log.info {"running in test mode"}
       CR
   end
 
   it "allows custom HTTP::Server bind" do
-    run(<<-CR).should contain "[test] Kemal is running in test mode."
+    run(<<-CR).should contain "custom bind"
       Kemal.config.env = "test"
       Kemal.run do |config|
         server = config.server.not_nil!
@@ -53,6 +53,8 @@ describe "Run" do
           server.bind_tcp "127.0.0.1", 3000, reuse_port: true
           server.bind_tcp "0.0.0.0", 3001, reuse_port: true
         {% end %}
+
+        Log.info {"custom bind"}
       end
       CR
   end
