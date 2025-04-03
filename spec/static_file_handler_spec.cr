@@ -13,6 +13,7 @@ end
 
 describe Kemal::StaticFileHandler do
   file = File.open "#{__DIR__}/static/dir/test.txt"
+  File.open "#{__DIR__}/static/dir/nested/path/test.txt"
   file_size = file.size
 
   it "should serve a file with content type and etag" do
@@ -156,5 +157,31 @@ describe Kemal::StaticFileHandler do
 
     response = handle HTTP::Request.new("GET", "/dir/index.html")
     response.headers["Access-Control-Allow-Origin"].should eq("*")
+  end
+
+  # Path Traversal Security Tests
+  it "should prevent path traversal attacks with .." do
+    response = handle HTTP::Request.new("GET", "/../../../etc/passwd")
+    response.status_code.should eq(400)
+  end
+
+  it "should prevent path traversal attacks with URL encoded .." do
+    response = handle HTTP::Request.new("GET", "/..%2f..%2f..%2fetc%2fpasswd")
+    response.status_code.should eq(400)
+  end
+
+  it "should prevent path traversal attacks with mixed .. and URL encoded .." do
+    response = handle HTTP::Request.new("GET", "/..%2f../..%2fetc%2fpasswd")
+    response.status_code.should eq(400)
+  end
+
+  it "should allow legitimate nested paths" do
+    response = handle HTTP::Request.new("GET", "/dir/nested/path/test.txt")
+    response.status_code.should eq(200)
+  end
+
+  it "should handle requests with trailing slashes in nested paths" do
+    response = handle HTTP::Request.new("GET", "/dir/nested/path/")
+    response.status_code.should eq(200)
   end
 end

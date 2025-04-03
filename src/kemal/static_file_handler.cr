@@ -27,6 +27,12 @@ module Kemal
         return
       end
 
+      # Check for directory traversal attacks
+      if request_path.includes? ".."
+        context.response.status_code = 400
+        return
+      end
+
       expanded_path = request_path
       is_dir_path = if original_path.ends_with?('/') && !expanded_path.ends_with? '/'
                       expanded_path = expanded_path + '/'
@@ -80,6 +86,25 @@ module Kemal
 
     private def modification_time(file_path)
       File.info(file_path).modification_time
+    end
+
+    # Sanitizes the path to prevent directory traversal attacks
+    private def sanitize_path(path : String) : String?
+      # Remove any leading or trailing slashes
+      path = path.strip('/')
+
+      # Split the path into components
+      components = path.split('/')
+
+      # Filter out empty components and normalize the path
+      normalized_components = components.reject(&.empty?)
+
+      # Check for any directory traversal attempts
+      # Only reject paths that explicitly try to traverse up directories
+      return nil if normalized_components.any? { |component| component == ".." }
+
+      # Reconstruct the path
+      normalized_components.join('/')
     end
   end
 end
