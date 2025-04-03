@@ -24,6 +24,15 @@ module Kemal
       @files_parsed = false
     end
 
+    def cleanup_temporary_files
+      return if @files.empty? && @all_files.empty?
+
+      @files.each_value &.cleanup
+      @all_files.each_value do |file_uploads|
+        file_uploads.each &.cleanup
+      end
+    end
+
     private def unescape_url_param(value : String)
       value.empty? ? value : URI.decode(value)
     rescue
