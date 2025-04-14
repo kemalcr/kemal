@@ -1,3 +1,7 @@
+# 1.7.1 (14-04-2025)
+
+- Improve `StaticFileHandler` to align with latest Crystal implementation [#711](https://github.com/kemalcr/kemal/pull/711). Thanks @sdogruyol :pray
+
 # 1.7.0 (14-04-2025)
 
 - ***(SECURITY)*** Fix a Path Traversal Security issue in `StaticFileHandler`. [See](https://packetstorm.news/files/id/190294/) for more details. Thanks a lot @ahmetumitbayram :pray:
