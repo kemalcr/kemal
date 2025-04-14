@@ -1,3 +1,36 @@
+# 1.7.0 (14-04-2025)
+
+- ***(SECURITY)*** Fix a Path Traversal Security issue in `StaticFileHandler`. [See](https://packetstorm.news/files/id/190294/) for more details. Thanks a lot @ahmetumitbayram :pray:
+- Crystal 1.16.0 support :tada:
+- Add ability to add handlers for raised exceptions [#688](https://github.com/kemalcr/kemal/pull/688). Thanks @syeopite :pray:
+
+```crystal
+require "kemal"
+
+class NewException < Exception
+end
+
+get "/" do | env |
+  raise NewException.new()
+end
+
+error NewException do | env |
+  "An error occured!"
+end
+
+Kemal.run
+```
+
+- Add `all_files` method to `params` to support multiple file uploads in names ending with `[]` [#701](https://github.com/kemalcr/kemal/pull/701). Thanks @sdogruyol :pray:
+
+```crystal
+images = env.params.all_files["images[]"]?
+```
+
+- Embrace Crystal standard Log for logging [#705](https://github.com/kemalcr/kemal/pull/705). Thanks @hugopl :pray:
+- Cleanup temporary files for file uploads [#707](Add cleanup methods for file uploads and temporary files). Thanks @sdogruyol :pray:
+- Implement multiple partial ranges [#708](https://github.com/kemalcr/kemal/pull/708). Thanks @sdogruyol :pray:
+
 # 1.6.0 (12-10-2024)
 
 - Crystal 1.14.0 support :tada:
