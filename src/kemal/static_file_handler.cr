@@ -16,43 +16,40 @@ module Kemal
         return
       end
 
-      config = Kemal.config.serve_static
       original_path = context.request.path.not_nil!
+      is_dir_path = original_path.ends_with?("/")
       request_path = URI.decode(original_path)
 
       # File path cannot contains '\0' (NUL) because all filesystem I know
       # don't accept '\0' character as file name.
       if request_path.includes? '\0'
-        context.response.status_code = 400
+        context.response.respond_with_status(:bad_request)
         return
       end
 
-      # Check for directory traversal attacks
-      if request_path.includes? ".."
-        context.response.status_code = 400
+      request_path = Path.posix(request_path)
+      expanded_path = request_path.expand("/")
+
+      file_path = @public_dir.join(expanded_path.to_kind(Path::Kind.native))
+      file_info = File.info? file_path
+      is_dir = @directory_listing && file_info && file_info.directory?
+      is_file = file_info && file_info.file?
+
+      if request_path != expanded_path || is_dir && !is_dir_path
+        redirect_path = expanded_path
+        if is_dir && !is_dir_path
+          # Append / to path if missing
+          redirect_path = expanded_path.join("")
+        end
+        redirect_to context, redirect_path
         return
       end
 
-      expanded_path = request_path
-      is_dir_path = if original_path.ends_with?('/') && !expanded_path.ends_with? '/'
-                      expanded_path = expanded_path + '/'
-                      true
-                    else
-                      expanded_path.ends_with? '/'
-                    end
-
-      file_path = File.join(@public_dir, expanded_path)
-      is_dir = Dir.exists?(file_path)
-
-      if request_path != expanded_path
-        redirect_to context, expanded_path
-        return
-      elsif is_dir && !is_dir_path
-        redirect_to context, expanded_path + '/'
-        return
-      end
+      return call_next(context) unless file_info
 
       if is_dir
+        config = Kemal.config.serve_static
+
         if config.is_a?(Hash) && config.fetch("dir_index", false) && File.exists?(File.join(file_path, "index.html"))
           file_path = File.join(@public_dir, expanded_path, "index.html")
 
@@ -70,7 +67,7 @@ module Kemal
         else
           call_next(context)
         end
-      elsif File.exists?(file_path)
+      elsif is_file
         last_modified = modification_time(file_path)
         add_cache_headers(context.response.headers, last_modified)
 
@@ -78,33 +75,14 @@ module Kemal
           context.response.status_code = 304
           return
         end
-        send_file(context, file_path)
-      else
+        send_file(context, file_path.to_s)
+      else # Not a normal file (FIFO/device/socket)
         call_next(context)
       end
     end
 
     private def modification_time(file_path)
       File.info(file_path).modification_time
-    end
-
-    # Sanitizes the path to prevent directory traversal attacks
-    private def sanitize_path(path : String) : String?
-      # Remove any leading or trailing slashes
-      path = path.strip('/')
-
-      # Split the path into components
-      components = path.split('/')
-
-      # Filter out empty components and normalize the path
-      normalized_components = components.reject(&.empty?)
-
-      # Check for any directory traversal attempts
-      # Only reject paths that explicitly try to traverse up directories
-      return nil if normalized_components.any? { |component| component == ".." }
-
-      # Reconstruct the path
-      normalized_components.join('/')
     end
   end
 end

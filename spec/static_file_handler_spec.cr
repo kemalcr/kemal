@@ -162,17 +162,17 @@ describe Kemal::StaticFileHandler do
   # Path Traversal Security Tests
   it "should prevent path traversal attacks with .." do
     response = handle HTTP::Request.new("GET", "/../../../etc/passwd")
-    response.status_code.should eq(400)
+    response.status_code.should eq(302)
   end
 
   it "should prevent path traversal attacks with URL encoded .." do
     response = handle HTTP::Request.new("GET", "/..%2f..%2f..%2fetc%2fpasswd")
-    response.status_code.should eq(400)
+    response.status_code.should eq(302)
   end
 
   it "should prevent path traversal attacks with mixed .. and URL encoded .." do
     response = handle HTTP::Request.new("GET", "/..%2f../..%2fetc%2fpasswd")
-    response.status_code.should eq(400)
+    response.status_code.should eq(302)
   end
 
   it "should allow legitimate nested paths" do
