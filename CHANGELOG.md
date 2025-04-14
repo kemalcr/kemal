@@ -28,7 +28,7 @@ images = env.params.all_files["images[]"]?
 ```
 
 - Embrace Crystal standard Log for logging [#705](https://github.com/kemalcr/kemal/pull/705). Thanks @hugopl :pray:
-- Cleanup temporary files for file uploads [#707](Add cleanup methods for file uploads and temporary files). Thanks @sdogruyol :pray:
+- Cleanup temporary files for file uploads [#707](https://github.com/kemalcr/kemal/pull/707). Thanks @sdogruyol :pray:
 - Implement multiple partial ranges [#708](https://github.com/kemalcr/kemal/pull/708). Thanks @sdogruyol :pray:
 
 # 1.6.0 (12-10-2024)
