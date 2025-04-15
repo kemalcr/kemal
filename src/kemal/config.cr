@@ -60,6 +60,19 @@ module Kemal
       @logger = logger
     end
 
+    # The request logger is used to log custom messages for each request.
+    #
+    # It's a proc that receives the request context and the elapsed time (as
+    # String, e.g. "2.5ms") for the request and returns the string to be
+    # logged.
+    def request_logger=(request_logger : RequestLogger)
+      if @logger
+        raise "Request logger can't be set on custom loggers or after Kemal started."
+      end
+
+      @logger = Kemal::RequestLogHandler.new(request_logger)
+    end
+
     def scheme
       ssl ? "https" : "http"
     end

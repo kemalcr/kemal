@@ -35,7 +35,7 @@ end
 @[Deprecated("Use standard library Log")]
 def log(message : String)
   logger = Kemal.config.logger?
-  if logger
+  if logger.is_a?(Kemal::BaseLogHandler)
     logger.write "#{message}\n"
   else
     Log.info { message }
