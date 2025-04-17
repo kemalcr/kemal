@@ -1,6 +1,6 @@
 # 1.7.1 (14-04-2025)
 
-- Improve `StaticFileHandler` to align with latest Crystal implementation [#711](https://github.com/kemalcr/kemal/pull/711). Thanks @sdogruyol :pray
+- Improve `StaticFileHandler` to align with latest Crystal implementation [#711](https://github.com/kemalcr/kemal/pull/711). Thanks @sdogruyol :pray:
 
 # 1.7.0 (14-04-2025)
 
