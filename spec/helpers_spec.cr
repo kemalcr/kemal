@@ -265,7 +265,7 @@ describe "Macros" do
       Kemal.config.serve_static.should eq false
     end
 
-    it "should disble enable gzip and dir_listing" do
+    it "should enable gzip and dir_listing" do
       serve_static({"gzip" => true, "dir_listing" => true})
       conf = Kemal.config.serve_static
       conf.is_a?(Hash).should eq true
