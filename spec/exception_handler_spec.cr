@@ -61,7 +61,7 @@ describe "Kemal::ExceptionHandler" do
 
   it "renders custom error for a crystal exception" do
     error RuntimeError do
-      "A RuntimeError has occured"
+      "A RuntimeError has occurred"
     end
 
     get "/" do
@@ -79,7 +79,7 @@ describe "Kemal::ExceptionHandler" do
     response = HTTP::Client::Response.from_io(io, decompress: false)
     response.status_code.should eq 500
     response.headers["Content-Type"].should eq "text/html"
-    response.body.should eq "A RuntimeError has occured"
+    response.body.should eq "A RuntimeError has occurred"
   end
 
   it "renders custom error for a custom exception" do
