@@ -32,7 +32,6 @@ module Kemal
         send_file(context, file_path.to_s)
       end
     {% else %}
-      # ameba:disable Metrics/CyclomaticComplexity
       def call(context : HTTP::Server::Context)
         return call_next(context) if context.request.path.not_nil! == "/"
 
