@@ -1,13 +1,20 @@
 module Kemal
-  # `Kemal::Handler` is a subclass of `HTTP::Handler`.
+  # Kemal::HandlerInterface provides helpful methods for use in middleware creation
   #
-  # It adds `only`, `only_match?`, `exclude`, `exclude_match?`.
-  # These methods are useful for the conditional execution of custom handlers .
-  class Handler
+  # More specifically, `only`, `only_match?`, `exclude`, `exclude_match?`
+  # allows one to define the conditional execution of custom handlers.
+  #
+  # To use, simply `include` it within your type.
+  #
+  # It is an implementation of `HTTP::Handler` and can be used anywhere that
+  # requests an `HTTP::Handler` type.
+  module HandlerInterface
     include HTTP::Handler
 
-    @@only_routes_tree = Radix::Tree(String).new
-    @@exclude_routes_tree = Radix::Tree(String).new
+    macro included
+      @@only_routes_tree = Radix::Tree(String).new
+      @@exclude_routes_tree = Radix::Tree(String).new
+    end
 
     macro only(paths, method = "GET")
       class_name = {{@type.name}}
@@ -74,5 +81,14 @@ module Kemal
     private def radix_path(method : String, path : String)
       "#{self.class}/#{method}#{path}"
     end
+  end
+
+  # `Kemal::Handler` is an implementation of `HTTP::Handler`.
+  #
+  # It includes `HandlerInterface` to add the methods
+  # `only`, `only_match?`, `exclude`, `exclude_match?`.
+  # These methods are useful for the conditional execution of custom handlers .
+  class Handler
+    include HandlerInterface
   end
 end
