@@ -51,7 +51,7 @@ module Kemal
     # Abort if block called `Kemal.stop`
     return unless config.running
 
-    unless server.each_address { |_| break true }
+    unless config.env == "test" && server.each_address { |_| break true }
       {% if flag?(:without_openssl) %}
         server.bind_tcp(config.host_binding, config.port)
       {% else %}
