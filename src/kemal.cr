@@ -52,15 +52,17 @@ module Kemal
     return unless config.running
 
     unless server.each_address { |_| break true }
-      {% if flag?(:without_openssl) %}
-        server.bind_tcp(config.host_binding, config.port)
-      {% else %}
-        if ssl = config.ssl
-          server.bind_tls(config.host_binding, config.port, ssl)
-        else
+      unless config.env == "test"
+        {% if flag?(:without_openssl) %}
           server.bind_tcp(config.host_binding, config.port)
-        end
-      {% end %}
+        {% else %}
+          if ssl = config.ssl
+            server.bind_tls(config.host_binding, config.port, ssl)
+          else
+            server.bind_tcp(config.host_binding, config.port)
+          end
+        {% end %}
+      end
     end
 
     display_startup_message(config, server)
