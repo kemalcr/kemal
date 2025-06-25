@@ -66,6 +66,7 @@ crystal run src/your_app.cr
 - 📝 **Template Support**: Built-in ECR template engine
 - 🔒 **Middleware System**: Add functionality with middleware
 - 🎯 **Request/Response Context**: Easy parameter and request handling
+- 🍪 **Session Management**: Easy session handling with [kemal-session](https://github.com/kemalcr/kemal-session)
 
 ## Learning Resources
 
