@@ -1,3 +1,8 @@
+# 1.7.2 (04-08-2025)
+
+- Move Kemal::Handler logic into separate module [#717](https://github.com/kemalcr/kemal/pull/717). Thanks @syeopite :pray:
+- Refactor server binding logic to avoid binding in test environment [#719](https://github.com/kemalcr/kemal/pull/719). Thanks @sdogruyol :pray:
+
 # 1.7.1 (14-04-2025)
 
 - Improve `StaticFileHandler` to align with latest Crystal implementation [#711](https://github.com/kemalcr/kemal/pull/711). Thanks @sdogruyol :pray:
