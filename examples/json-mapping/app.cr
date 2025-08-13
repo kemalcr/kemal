@@ -19,7 +19,9 @@ post "/" do |env|
   # env.request.body contains the raw JSON data
   # not_nil! ensures the body exists
   # User.from_json converts the JSON string to a User object
+  # ameba:disable Lint/NotNil
   user = User.from_json env.request.body.not_nil!
+  # ameba:enable Lint/NotNil
 
   # Convert the user object back to JSON and return it
   # This creates a JSON object with username and password fields

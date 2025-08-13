@@ -8,7 +8,7 @@ require "kemal-basic-auth"
 basic_auth "username", "password"
 
 # Define a route for the root path "/"
-get "/" do |env|
+get "/" do |_|
   # This route will only execute if authentication is successful
   # Otherwise, the browser will show a login prompt
   "This is shown if basic auth successful."

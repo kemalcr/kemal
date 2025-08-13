@@ -20,10 +20,7 @@ class User
 end
 
 # List all users
-get "/users" do |env|
-  # Initialize empty array to store User objects
-  users = [] of User
-
+get "/users" do |_|
   # Serialize ResultSet
   users = User.from_rs(DBC.query("SELECT * FROM users"))
 

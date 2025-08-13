@@ -8,7 +8,9 @@ end
 # Start Kemal with custom server configuration
 Kemal.run do |config|
   # Get the server instance from the config
+  # ameba:disable Lint/NotNil
   server = config.server.not_nil!
+  # ameba:enable Lint/NotNil
 
   # Bind the server to port 3000 with reuse_port enabled
   # reuse_port: true allows multiple processes to listen on the same port
