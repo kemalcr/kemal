@@ -1,3 +1,8 @@
+# 1.7.3 (02-10-2025)
+
+- Refactor [#719](https://github.com/kemalcr/kemal/pull/719). Thanks @sdogruyol :pray:
+- Improv Kemal test suite. Thanks @sdogruyol :pray:
+
 # 1.7.2 (04-08-2025)
 
 - Move Kemal::Handler logic into separate module [#717](https://github.com/kemalcr/kemal/pull/717). Thanks @syeopite :pray:
