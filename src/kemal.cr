@@ -49,23 +49,25 @@ module Kemal
     yield config
 
     # Abort if block called `Kemal.stop`
-    return unless config.running
+    return if !config.running
 
-    unless config.env == "test" && server.each_address { |_| break true }
-      {% if flag?(:without_openssl) %}
-        server.bind_tcp(config.host_binding, config.port)
-      {% else %}
-        if ssl = config.ssl
-          server.bind_tls(config.host_binding, config.port, ssl)
-        else
+    if config.env != "test"
+      if !server.each_address { |_| break true }
+        {% if flag?(:without_openssl) %}
           server.bind_tcp(config.host_binding, config.port)
-        end
-      {% end %}
+        {% else %}
+          if ssl = config.ssl
+            server.bind_tls(config.host_binding, config.port, ssl)
+          else
+            server.bind_tcp(config.host_binding, config.port)
+          end
+        {% end %}
+      end
     end
 
     display_startup_message(config, server)
 
-    server.listen unless config.env == "test"
+    server.listen if config.env != "test"
   end
 
   def self.display_startup_message(config, server)
