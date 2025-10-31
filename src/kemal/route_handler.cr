@@ -78,11 +78,7 @@ module Kemal
         @tail = prev
       end
 
-      # insert at head
-      node.prev = nil
-      node.next = @head
-      @head.try(&.prev=(node))
-      @head = node
+      insert_front(node)
     end
 
     private def evict_if_at_capacity
