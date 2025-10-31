@@ -48,10 +48,12 @@ module Kemal
         return
       end
 
+      # Evict before adding to avoid unnecessary hash resize
+      evict_if_at_capacity
+
       node = Node(K, V).new(key, value)
       @map[key] = node
       insert_front(node)
-      evict_if_needed
     end
 
     private def insert_front(node : Node(K, V))
@@ -83,8 +85,8 @@ module Kemal
       @head = node
     end
 
-    private def evict_if_needed
-      return if @map.size <= @capacity
+    private def evict_if_at_capacity
+      return if @map.size < @capacity
 
       if lru = @tail
         # unlink tail
