@@ -26,6 +26,7 @@ module Kemal
     property serve_static : (Bool | Hash(String, Bool))
     property static_headers : (HTTP::Server::Context, String, File::Info -> Void)?
     property? powered_by_header : Bool = true
+    property max_route_cache_size : Int32
 
     def initialize
       @app_name = "Kemal"
@@ -43,6 +44,7 @@ module Kemal
       @running = false
       @shutdown_message = true
       @handler_position = 0
+      @max_route_cache_size = 1024
     end
 
     @[Deprecated("Use standard library Log")]
@@ -69,6 +71,7 @@ module Kemal
       @router_included = false
       @handler_position = 0
       @default_handlers_setup = false
+      @max_route_cache_size = 1024
       HANDLERS.clear
       CUSTOM_HANDLERS.clear
       FILTER_HANDLERS.clear

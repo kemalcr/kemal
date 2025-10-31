@@ -1,16 +1,114 @@
 require "radix"
 
 module Kemal
+  # Small, private LRU cache used by the router to avoid full cache clears
+  # when many distinct paths are accessed. Keeps get/put at O(1).
+  # This is intentionally minimal and file-local to avoid API surface.
+  class LRUCache(K, V)
+    # Doubly-linked list node
+    class Node(K, V)
+      property key : K
+      property value : V
+      property prev : Node(K, V)?
+      property next : Node(K, V)?
+
+      def initialize(@key : K, @value : V)
+        @prev = nil
+        @next = nil
+      end
+    end
+
+    @capacity : Int32
+    @map : Hash(K, Node(K, V))
+    @head : Node(K, V)? # most-recent
+    @tail : Node(K, V)? # least-recent
+
+    def initialize(@capacity : Int32)
+      @map = Hash(K, Node(K, V)).new
+      @head = nil
+      @tail = nil
+    end
+
+    def size : Int32
+      @map.size
+    end
+
+    def get(key : K) : V?
+      if node = @map[key]?
+        move_to_front(node)
+        return node.value
+      end
+      nil
+    end
+
+    def put(key : K, value : V) : Nil
+      if node = @map[key]?
+        node.value = value
+        move_to_front(node)
+        return
+      end
+
+      # Evict before adding to avoid unnecessary hash resize
+      evict_if_at_capacity
+
+      node = Node(K, V).new(key, value)
+      @map[key] = node
+      insert_front(node)
+    end
+
+    private def insert_front(node : Node(K, V))
+      node.prev = nil
+      node.next = @head
+      @head.try(&.prev=(node))
+      @head = node
+      @tail = node if @tail.nil?
+    end
+
+    private def move_to_front(node : Node(K, V))
+      return if node == @head
+
+      # unlink
+      prev = node.prev
+      nxt = node.next
+      prev.try(&.next=(nxt))
+      nxt.try(&.prev=(prev))
+
+      # fix tail if needed
+      if node == @tail
+        @tail = prev
+      end
+
+      insert_front(node)
+    end
+
+    private def evict_if_at_capacity
+      return if @map.size < @capacity
+
+      if lru = @tail
+        # unlink tail
+        prev = lru.prev
+        if prev
+          prev.next = nil
+          @tail = prev
+        else
+          # only one element
+          @head = nil
+          @tail = nil
+        end
+        @map.delete(lru.key)
+      end
+    end
+  end
+
   class RouteHandler
     include HTTP::Handler
 
-    INSTANCE            = new
-    CACHED_ROUTES_LIMIT = 1024
+    INSTANCE = new
     property routes, cached_routes
 
     def initialize
       @routes = Radix::Tree(Route).new
-      @cached_routes = Hash(String, Radix::Result(Route)).new
+      @cached_routes = LRUCache(String, Radix::Result(Route)).new(Kemal.config.max_route_cache_size)
     end
 
     def call(context : HTTP::Server::Context)
@@ -26,7 +124,7 @@ module Kemal
     def lookup_route(verb : String, path : String)
       lookup_path = radix_path(verb, path)
 
-      if cached_route = @cached_routes[lookup_path]?
+      if cached_route = @cached_routes.get(lookup_path)
         return cached_route
       end
 
@@ -38,8 +136,7 @@ module Kemal
       end
 
       if route.found?
-        @cached_routes.clear if @cached_routes.size == CACHED_ROUTES_LIMIT
-        @cached_routes[lookup_path] = route
+        @cached_routes.put(lookup_path, route)
       end
 
       route
