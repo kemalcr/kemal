@@ -57,7 +57,7 @@ module Kemal
     private def insert_front(node : Node(K, V))
       node.prev = nil
       node.next = @head
-      @head.try { |h| h.prev = node }
+      @head.try(&.prev=(node))
       @head = node
       @tail = node if @tail.nil?
     end
@@ -68,8 +68,8 @@ module Kemal
       # unlink
       prev = node.prev
       nxt = node.next
-      prev.try { |p| p.next = nxt }
-      nxt.try { |n| n.prev = prev }
+      prev.try(&.next=(nxt))
+      nxt.try(&.prev=(prev))
 
       # fix tail if needed
       if node == @tail
@@ -79,7 +79,7 @@ module Kemal
       # insert at head
       node.prev = nil
       node.next = @head
-      @head.try { |h| h.prev = node }
+      @head.try(&.prev=(node))
       @head = node
     end
 
@@ -105,13 +105,12 @@ module Kemal
   class RouteHandler
     include HTTP::Handler
 
-    INSTANCE            = new
-    CACHED_ROUTES_LIMIT = 1024
+    INSTANCE = new
     property routes, cached_routes
 
     def initialize
       @routes = Radix::Tree(Route).new
-      @cached_routes = LRUCache(String, Radix::Result(Route)).new(CACHED_ROUTES_LIMIT)
+      @cached_routes = LRUCache(String, Radix::Result(Route)).new(Kemal.config.max_route_cache_size)
     end
 
     def call(context : HTTP::Server::Context)
