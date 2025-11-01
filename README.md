@@ -71,7 +71,7 @@ crystal run src/your_app.cr
 ## Learning Resources
 
 - 📚 [Official Documentation](http://kemalcr.com)
-- 💻 [Sample Applications](https://github.com/kemalcr/kemal/tree/master/samples)
+- 💻 [Example Applications](https://github.com/kemalcr/kemal/tree/master/examples)
 - 🚀 [Getting Started Guide](http://kemalcr.com/guide/)
 - 💬 [Community Chat](https://discord.gg/prSVAZJEpz)
 
