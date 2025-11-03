@@ -11,11 +11,16 @@ class HTTP::Server
     macro finished
       alias StoreTypes = Union({{ STORE_MAPPINGS.splat }})
       @store = {} of String => StoreTypes
+      @cached_route_lookup : Radix::Result(Kemal::Route)?
+      @cached_ws_route_lookup : Radix::Result(Kemal::WebSocket)?
     end
 
+    # Optimized: Use cached lookup results to avoid redundant route lookups
+    # when params is accessed after route_found? or route has already been called
     def params
-      if ws_route_found?
-        @params ||= Kemal::ParamParser.new(@request, ws_route_lookup.params)
+      ws_lookup = ws_route_lookup
+      if ws_lookup.found?
+        @params ||= Kemal::ParamParser.new(@request, ws_lookup.params)
       else
         @params ||= Kemal::ParamParser.new(@request, route_lookup.params)
       end
@@ -36,16 +41,19 @@ class HTTP::Server
       ws_route_lookup.payload
     end
 
+    # Optimized: Cache route lookup result to avoid redundant lookups
+    # when called multiple times (e.g., route_found?, route, params)
     def route_lookup
-      Kemal::RouteHandler::INSTANCE.lookup_route(@request.method.as(String), @request.path)
+      @cached_route_lookup ||= Kemal::RouteHandler::INSTANCE.lookup_route(@request.method.as(String), @request.path)
     end
 
     def route_found?
       route_lookup.found?
     end
 
+    # Optimized: Cache websocket route lookup result to avoid redundant lookups
     def ws_route_lookup
-      Kemal::WebSocketHandler::INSTANCE.lookup_ws_route(@request.path)
+      @cached_ws_route_lookup ||= Kemal::WebSocketHandler::INSTANCE.lookup_ws_route(@request.path)
     end
 
     def ws_route_found?
