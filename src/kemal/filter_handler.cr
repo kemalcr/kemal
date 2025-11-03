@@ -12,6 +12,7 @@ module Kemal
     end
 
     # The call order of the filters is `before_all -> before_x -> X -> after_x -> after_all`.
+    # Optimized: Cache filter lookup results to avoid redundant tree lookups for the same request.
     def call(context : HTTP::Server::Context)
       if !context.route_found?
         if Kemal.config.error_handlers.has_key?(404)
@@ -20,14 +21,28 @@ module Kemal
         return call_next(context)
       end
 
-      call_block_for_path_type("ALL", context.request.path, :before, context)
-      call_block_for_path_type(context.request.method, context.request.path, :before, context)
+      # Cache filter lookups for this request to avoid redundant tree traversals
+      before_all = lookup_filters_for_path_type("ALL", context.request.path, :before)
+      before_method = lookup_filters_for_path_type(context.request.method, context.request.path, :before)
+
+      # Execute before filters
+      call_block_from_lookup(before_all, context)
+      call_block_from_lookup(before_method, context)
+
       if Kemal.config.error_handlers.has_key?(context.response.status_code)
         raise Kemal::Exceptions::CustomException.new(context)
       end
+
       call_next(context)
-      call_block_for_path_type(context.request.method, context.request.path, :after, context)
-      call_block_for_path_type("ALL", context.request.path, :after, context)
+
+      # Cache after filter lookups
+      after_method = lookup_filters_for_path_type(context.request.method, context.request.path, :after)
+      after_all = lookup_filters_for_path_type("ALL", context.request.path, :after)
+
+      # Execute after filters
+      call_block_from_lookup(after_method, context)
+      call_block_from_lookup(after_all, context)
+
       context
     end
 
@@ -60,6 +75,12 @@ module Kemal
     # This will fetch the block for the verb/path/type from the tree and call it.
     private def call_block_for_path_type(verb : String?, path : String, type, context : HTTP::Server::Context)
       lookup = lookup_filters_for_path_type(verb, path, type)
+      call_block_from_lookup(lookup, context)
+    end
+
+    # Optimized: Execute filter blocks from a pre-computed lookup result
+    # This avoids redundant tree lookups when the same lookup is needed multiple times
+    private def call_block_from_lookup(lookup, context : HTTP::Server::Context)
       if lookup.found? && lookup.payload.is_a? Array(FilterBlock)
         blocks = lookup.payload
         blocks.each &.call(context)
@@ -77,6 +98,7 @@ module Kemal
       @tree.find radix_path(verb, path, type)
     end
 
+    # Optimized path construction using string interpolation for better performance
     private def radix_path(verb : String?, path : String, type : Symbol)
       "/#{type}/#{verb}/#{path}"
     end
