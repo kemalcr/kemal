@@ -80,12 +80,12 @@ module Kemal
   end
 
   def self.stop
-    raise "#{Kemal.config.app_name} is already stopped." if !config.running
+    raise "#{Kemal.config.app_name} is already stopped. Cannot stop an already stopped server." if !config.running
     if server = config.server
       server.close unless server.closed?
       config.running = false
     else
-      raise "Kemal.config.server is not set. Please use Kemal.run to set the server."
+      raise "Cannot stop #{Kemal.config.app_name}: server instance is not set. Please ensure Kemal.run has been called before calling Kemal.stop."
     end
   end
 
