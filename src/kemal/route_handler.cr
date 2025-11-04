@@ -132,10 +132,14 @@ module Kemal
 
       if verb == "HEAD" && !route.found?
         # On HEAD requests, implicitly fallback to running the GET handler.
-        route = @routes.find(radix_path("GET", path))
-      end
-
-      if route.found?
+        get_lookup_path = radix_path("GET", path)
+        get_route = @routes.find(get_lookup_path)
+        # Cache the HEAD->GET fallback result using the original HEAD lookup_path
+        if get_route.found?
+          @cached_routes.put(lookup_path, get_route)
+        end
+        route = get_route
+      elsif route.found?
         @cached_routes.put(lookup_path, route)
       end
 
@@ -160,7 +164,7 @@ module Kemal
     end
 
     private def radix_path(method, path)
-      '/' + method + path
+      "/#{method}#{path}"
     end
 
     private def add_to_radix_tree(method, path, route)
