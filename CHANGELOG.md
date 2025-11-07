@@ -1,3 +1,10 @@
+# 1.8.0 (07-11-2025)
+
+- Enhance HEAD request handling by caching GET route lookups and optimize path construction using string interpolation for improved performance [#728](https://github.com/kemalcr/kemal/pull/728). Thanks @sdogruyol :pray:
+- Improve error messages [#726](https://github.com/kemalcr/kemal/pull/726). Thanks @sdogruyol :pray:
+- Optimize route and websocket lookups by caching results to reduce redundant processing in the HTTP server context [#725](https://github.com/kemalcr/kemal/pull/725). Thanks @sdogruyol :pray:
+- Replace full-flush Route cache with LRU and add a configurable max cache size [#724](https://github.com/kemalcr/kemal/pull/724). Thanks @sdogruyol :pray:
+
 # 1.7.3 (02-10-2025)
 
 - Refactor [#719](https://github.com/kemalcr/kemal/pull/719). Thanks @sdogruyol :pray:
