@@ -117,14 +117,14 @@ describe Kemal::StaticFileHandler do
       headers = HTTP::Headers{"Range" => "bytes=0-4"}
       response = handle HTTP::Request.new(method, "/dir/test.txt", headers)
       response.status_code.should_not eq(206)
-      response.headers.has_key?("Content-Range").should eq(false)
+      response.headers.has_key?("Content-Range").should be_false
     end
 
     %w(GET).each do |method|
       headers = HTTP::Headers{"Range" => "bytes=0-4"}
       response = handle HTTP::Request.new(method, "/dir/test.txt", headers)
       response.status_code.should eq(206)
-      response.headers.has_key?("Content-Range").should eq true
+      response.headers.has_key?("Content-Range").should be_true
       match = response.headers["Content-Range"].match(/bytes (\d+)-(\d+)\/(\d+)/)
       match.should_not be_nil
       if match
@@ -133,8 +133,8 @@ describe Kemal::StaticFileHandler do
         range_size = match[3].to_i { 0 }
 
         range_size.should eq file_size
-        (end_range < file_size).should eq true
-        (start_range < end_range).should eq true
+        (end_range < file_size).should be_true
+        (start_range < end_range).should be_true
       end
     end
   end

@@ -20,7 +20,7 @@ describe "Macros" do
   describe "#logging" do
     it "sets logging status" do
       logging false
-      Kemal.config.logging.should eq false
+      Kemal.config.logging.should be_false
     end
   end
 
@@ -262,16 +262,16 @@ describe "Macros" do
   describe "#serve_static" do
     it "should disable static file hosting" do
       serve_static false
-      Kemal.config.serve_static.should eq false
+      Kemal.config.serve_static.should be_false
     end
 
     it "should enable gzip and dir_listing" do
       serve_static({"gzip" => true, "dir_listing" => true})
       conf = Kemal.config.serve_static
-      conf.is_a?(Hash).should eq true
+      conf.is_a?(Hash).should be_true
       if conf.is_a?(Hash)
-        conf["gzip"].should eq true
-        conf["dir_listing"].should eq true
+        conf["gzip"].should be_true
+        conf["dir_listing"].should be_true
       end
     end
   end

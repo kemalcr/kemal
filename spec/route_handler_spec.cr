@@ -130,7 +130,7 @@ describe "Kemal::RouteHandler" do
     client_response = call_request_on_app(request)
     client_response.status_code.should eq(302)
     client_response.body.should eq("")
-    client_response.headers.has_key?("Location").should eq(true)
+    client_response.headers.has_key?("Location").should be_true
   end
 
   it "redirects with body" do
@@ -141,7 +141,7 @@ describe "Kemal::RouteHandler" do
     client_response = call_request_on_app(request)
     client_response.status_code.should eq(302)
     client_response.body.should eq("Redirecting to /login")
-    client_response.headers.has_key?("Location").should eq(true)
+    client_response.headers.has_key?("Location").should be_true
   end
 
   it "redirects and closes response in before filter" do
@@ -159,7 +159,7 @@ describe "Kemal::RouteHandler" do
     client_response = call_request_on_app(request)
     client_response.status_code.should eq(302)
     client_response.body.should eq("")
-    client_response.headers.has_key?("Location").should eq(true)
+    client_response.headers.has_key?("Location").should be_true
   end
 
   it "redirects in before filter without closing response" do
@@ -177,7 +177,7 @@ describe "Kemal::RouteHandler" do
     client_response = call_request_on_app(request)
     client_response.status_code.should eq(302)
     client_response.body.should eq("home page")
-    client_response.headers.has_key?("Location").should eq(true)
+    client_response.headers.has_key?("Location").should be_true
   end
 
   context "LRU cache" do
