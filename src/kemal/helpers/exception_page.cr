@@ -32,7 +32,7 @@ module Kemal
           <p>Something wrong with the server :(</p>
         </body>
         </html>
-      HTML
+        HTML
     end
   end
 end
