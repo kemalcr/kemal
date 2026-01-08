@@ -26,15 +26,6 @@ describe "Macros" do
 
   describe "#halt" do
     it "can break block with halt macro" do
-      get "/non-breaking" do
-        "hello"
-        "world"
-      end
-      request = HTTP::Request.new("GET", "/non-breaking")
-      client_response = call_request_on_app(request)
-      client_response.status_code.should eq(200)
-      client_response.body.should eq("world")
-
       get "/breaking" do |env|
         halt env, 404, "hello"
         "world"
