@@ -1,3 +1,0 @@
-Lint/UselessAssign:
-  Excluded:
-    - spec/view_spec.cr

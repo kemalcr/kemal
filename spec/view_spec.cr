@@ -38,8 +38,8 @@ describe "Views" do
   it "renders layout with variables" do
     get "/view/:name" do |env|
       name = env.params.url["name"]
-      var1 = "serdar"
-      var2 = "kemal"
+      var1 = "serdar" # ameba:disable Lint/UselessAssign
+      var2 = "kemal"  # ameba:disable Lint/UselessAssign
       render "#{__DIR__}/asset/hello_with_content_for.ecr", "#{__DIR__}/asset/layout_with_yield_and_vars.ecr"
     end
     request = HTTP::Request.new("GET", "/view/world")
