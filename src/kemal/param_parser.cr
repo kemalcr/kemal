@@ -8,7 +8,7 @@ module Kemal
     MULTIPART_FORM   = "multipart/form-data"
     PARTS            = %w[url query body json files]
     # :nodoc:
-    alias AllParamTypes = Nil | String | Int64 | Float64 | Bool | Hash(String, JSON::Any) | Array(JSON::Any)
+    alias AllParamTypes = String | Int64 | Float64 | Bool | Hash(String, JSON::Any) | Array(JSON::Any)?
     getter files, all_files
 
     def initialize(@request : HTTP::Request, @url : Hash(String, String) = {} of String => String)

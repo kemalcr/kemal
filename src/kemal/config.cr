@@ -10,7 +10,7 @@ module Kemal
   class Config
     INSTANCE           = Config.new
     HANDLERS           = [] of HTTP::Handler
-    CUSTOM_HANDLERS    = [] of Tuple(Nil | Int32, HTTP::Handler)
+    CUSTOM_HANDLERS    = [] of Tuple(Int32?, HTTP::Handler)
     FILTER_HANDLERS    = [] of HTTP::Handler
     ERROR_HANDLERS     = {} of Int32 => HTTP::Server::Context, Exception -> String
     EXCEPTION_HANDLERS = {} of Exception.class => HTTP::Server::Context, Exception -> String
