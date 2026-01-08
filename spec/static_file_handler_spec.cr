@@ -98,12 +98,12 @@ describe Kemal::StaticFileHandler do
   end
 
   it "should handle only GET and HEAD method" do
-    %w(GET HEAD).each do |method|
+    %w[GET HEAD].each do |method|
       response = handle HTTP::Request.new(method, "/dir/test.txt")
       response.status_code.should eq(200)
     end
 
-    %w(POST PUT DELETE).each do |method|
+    %w[POST PUT DELETE].each do |method|
       response = handle HTTP::Request.new(method, "/dir/test.txt")
       response.status_code.should eq(404)
       response = handle HTTP::Request.new(method, "/dir/test.txt"), false
@@ -113,14 +113,14 @@ describe Kemal::StaticFileHandler do
   end
 
   it "should send part of files when requested (RFC7233)" do
-    %w(POST PUT DELETE HEAD).each do |method|
+    %w[POST PUT DELETE HEAD].each do |method|
       headers = HTTP::Headers{"Range" => "bytes=0-4"}
       response = handle HTTP::Request.new(method, "/dir/test.txt", headers)
       response.status_code.should_not eq(206)
       response.headers.has_key?("Content-Range").should be_false
     end
 
-    %w(GET).each do |method|
+    %w[GET].each do |method|
       headers = HTTP::Headers{"Range" => "bytes=0-4"}
       response = handle HTTP::Request.new(method, "/dir/test.txt", headers)
       response.status_code.should eq(206)

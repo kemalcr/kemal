@@ -6,8 +6,8 @@
 # - WebSocket(ws)
 # - before_*
 # - error
-HTTP_METHODS   = %w(get post put patch delete options)
-FILTER_METHODS = %w(get post put patch delete options all)
+HTTP_METHODS   = %w[get post put patch delete options]
+FILTER_METHODS = %w[get post put patch delete options all]
 
 {% for method in HTTP_METHODS %}
   def {{ method.id }}(path : String, &block : HTTP::Server::Context -> _)
