@@ -159,8 +159,8 @@ module Kemal
 
     private def setup_error_handler
       if @always_rescue
-        @error_handler ||= Kemal::ExceptionHandler.new
-        HANDLERS.insert(@handler_position, @error_handler.not_nil!)
+        handler = @error_handler ||= Kemal::ExceptionHandler.new
+        HANDLERS.insert(@handler_position, handler)
         @handler_position += 1
       end
     end

@@ -103,9 +103,10 @@ module Kemal
     # - If request body is a JSON `Hash` then all the params are parsed and added into `params`.
     # - If request body is a JSON `Array` it's added into `params` as `_json` and can be accessed like `params["_json"]`.
     private def parse_json
-      return unless @request.body && @request.headers["Content-Type"]?.try(&.starts_with?(APPLICATION_JSON))
+      return unless body = @request.body
+      return unless @request.headers["Content-Type"]?.try(&.starts_with?(APPLICATION_JSON))
 
-      case json = JSON.parse(@request.body.not_nil!).raw
+      case json = JSON.parse(body).raw
       when Hash
         json.each do |key, value|
           @json[key] = value.raw
