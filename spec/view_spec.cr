@@ -1,7 +1,7 @@
 require "./spec_helper"
 
 macro render_with_base_and_layout(filename)
-  render "#{__DIR__}/asset/#{{{filename}}}", "#{__DIR__}/asset/layout.ecr"
+  render "#{__DIR__}/asset/#{{{ filename }}}", "#{__DIR__}/asset/layout.ecr"
 end
 
 describe "Views" do

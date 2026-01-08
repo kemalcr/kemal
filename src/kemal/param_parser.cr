@@ -40,14 +40,14 @@ module Kemal
     end
 
     {% for method in PARTS %}
-      def {{method.id}}
+      def {{ method.id }}
         # check memoization
-        return @{{method.id}} if @{{method.id}}_parsed
+        return @{{ method.id }} if @{{ method.id }}_parsed
 
-        parse_{{method.id}}
+        parse_{{ method.id }}
         # memoize
-        @{{method.id}}_parsed = true
-        @{{method.id}}
+        @{{ method.id }}_parsed = true
+        @{{ method.id }}
       end
     {% end %}
 

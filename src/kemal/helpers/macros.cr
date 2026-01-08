@@ -34,15 +34,15 @@ CONTENT_FOR_BLOCKS = Hash(String, Tuple(String, Proc(Nil))).new
 # layout, inside the <head> tag, and each view can call `content_for`
 # setting the appropriate set of tags that should be added to the layout.
 macro content_for(key, file = __FILE__)
-  CONTENT_FOR_BLOCKS[{{key}}] = Tuple.new {{file}}, ->() { {{ yield }} }
+  CONTENT_FOR_BLOCKS[{{ key }}] = Tuple.new {{ file }}, ->() { {{ yield }} }
   nil
 end
 
 # Yields content for the given key if a `content_for` block exists for that key.
 macro yield_content(key)
-  if CONTENT_FOR_BLOCKS.has_key?({{key}})
-    __caller_filename__ = CONTENT_FOR_BLOCKS[{{key}}][0]
-    %proc = CONTENT_FOR_BLOCKS[{{key}}][1]
+  if CONTENT_FOR_BLOCKS.has_key?({{ key }})
+    __caller_filename__ = CONTENT_FOR_BLOCKS[{{ key }}][0]
+    %proc = CONTENT_FOR_BLOCKS[{{ key }}][1]
 
     if __content_filename__ == __caller_filename__
       %old_content_io, content_io = content_io, IO::Memory.new
@@ -60,18 +60,18 @@ end
 # render "src/views/index.ecr", "src/views/layout.ecr"
 # ```
 macro render(filename, layout)
-  __content_filename__ = {{filename}}
+  __content_filename__ = {{ filename }}
   content_io = IO::Memory.new
-  ECR.embed {{filename}}, content_io
+  ECR.embed {{ filename }}, content_io
   content = content_io.to_s
   layout_io = IO::Memory.new
-  ECR.embed {{layout}}, layout_io
+  ECR.embed {{ layout }}, layout_io
   layout_io.to_s
 end
 
 # Render view with the given filename.
 macro render(filename)
-  ECR.render({{filename}})
+  ECR.render({{ filename }})
 end
 
 # Halt execution with the current context.
@@ -81,9 +81,9 @@ end
 # halt env, status_code: 403, response: "Forbidden"
 # ```
 macro halt(env, status_code = 200, response = "")
-  {{env}}.response.status_code = {{status_code}}
-  {{env}}.response.print {{response}}
-  {{env}}.response.close
+  {{ env }}.response.status_code = {{ status_code }}
+  {{ env }}.response.print {{ response }}
+  {{ env }}.response.close
   next
 end
 
