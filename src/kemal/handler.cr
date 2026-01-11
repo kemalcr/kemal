@@ -17,18 +17,18 @@ module Kemal
     end
 
     macro only(paths, method = "GET")
-      class_name = {{@type.name}}
-      class_name_method = "#{class_name}/#{{{method}}}"
-      ({{paths}}).each do |path|
-        @@only_routes_tree.add class_name_method + path, '/' + {{method}} + path
+      class_name = {{ @type.name }}
+      class_name_method = "#{class_name}/#{{{ method }}}"
+      ({{ paths }}).each do |path|
+        @@only_routes_tree.add class_name_method + path, '/' + {{ method }} + path
       end
     end
 
     macro exclude(paths, method = "GET")
-      class_name = {{@type.name}}
-      class_name_method = "#{class_name}/#{{{method}}}"
-      ({{paths}}).each do |path|
-        @@exclude_routes_tree.add class_name_method + path, '/' + {{method}} + path
+      class_name = {{ @type.name }}
+      class_name_method = "#{class_name}/#{{{ method }}}"
+      ({{ paths }}).each do |path|
+        @@exclude_routes_tree.add class_name_method + path, '/' + {{ method }} + path
       end
     end
 

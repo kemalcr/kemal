@@ -301,6 +301,6 @@ end
 #   env.response.headers.add("Content-Size", filestat.size.to_s)
 # end
 # ```
-def static_headers(&headers : HTTP::Server::Context, String, File::Info -> Void)
+def static_headers(&headers : HTTP::Server::Context, String, File::Info ->)
   Kemal.config.static_headers = headers
 end

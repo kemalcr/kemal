@@ -10,7 +10,7 @@ module Kemal
   class Config
     INSTANCE           = Config.new
     HANDLERS           = [] of HTTP::Handler
-    CUSTOM_HANDLERS    = [] of Tuple(Nil | Int32, HTTP::Handler)
+    CUSTOM_HANDLERS    = [] of Tuple(Int32?, HTTP::Handler)
     FILTER_HANDLERS    = [] of HTTP::Handler
     ERROR_HANDLERS     = {} of Int32 => HTTP::Server::Context, Exception -> String
     EXCEPTION_HANDLERS = {} of Exception.class => HTTP::Server::Context, Exception -> String
@@ -24,7 +24,7 @@ module Kemal
     property app_name, host_binding, ssl, port, env, public_folder, logging, running
     property always_rescue, server : HTTP::Server?, extra_options, shutdown_message
     property serve_static : (Bool | Hash(String, Bool))
-    property static_headers : (HTTP::Server::Context, String, File::Info -> Void)?
+    property static_headers : (HTTP::Server::Context, String, File::Info ->)?
     property? powered_by_header : Bool = true
     property max_route_cache_size : Int32
 
@@ -159,8 +159,8 @@ module Kemal
 
     private def setup_error_handler
       if @always_rescue
-        @error_handler ||= Kemal::ExceptionHandler.new
-        HANDLERS.insert(@handler_position, @error_handler.not_nil!)
+        handler = @error_handler ||= Kemal::ExceptionHandler.new
+        HANDLERS.insert(@handler_position, handler)
         @handler_position += 1
       end
     end

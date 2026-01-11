@@ -11,17 +11,17 @@ module Kemal
 
   # Overload of `self.run` with the default startup logging.
   def self.run(port : Int32?, args = ARGV, trap_signal : Bool = true)
-    self.run(port, args, trap_signal) { }
+    run(port, args, trap_signal) { }
   end
 
   # Overload of `self.run` without port.
   def self.run(args = ARGV, trap_signal : Bool = true)
-    self.run(nil, args: args, trap_signal: trap_signal)
+    run(nil, args: args, trap_signal: trap_signal)
   end
 
   # Overload of `self.run` to allow just a block.
   def self.run(args = ARGV, &block)
-    self.run(nil, args: args, trap_signal: true, &block)
+    run(nil, args: args, trap_signal: true, &block)
   end
 
   # The command to run a `Kemal` application.

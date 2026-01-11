@@ -6,17 +6,17 @@
 # - WebSocket(ws)
 # - before_*
 # - error
-HTTP_METHODS   = %w(get post put patch delete options)
-FILTER_METHODS = %w(get post put patch delete options all)
+HTTP_METHODS   = %w[get post put patch delete options]
+FILTER_METHODS = %w[get post put patch delete options all]
 
 {% for method in HTTP_METHODS %}
-  def {{method.id}}(path : String, &block : HTTP::Server::Context -> _)
-    raise Kemal::Exceptions::InvalidPathStartException.new({{method}}, path) unless Kemal::Utils.path_starts_with_slash?(path)
-    Kemal::RouteHandler::INSTANCE.add_route({{method}}.upcase, path, &block)
+  def {{ method.id }}(path : String, &block : HTTP::Server::Context -> _)
+    raise Kemal::Exceptions::InvalidPathStartException.new({{ method }}, path) unless Kemal::Utils.path_starts_with_slash?(path)
+    Kemal::RouteHandler::INSTANCE.add_route({{ method }}.upcase, path, &block)
   end
 {% end %}
 
-def ws(path : String, &block : HTTP::WebSocket, HTTP::Server::Context -> Void)
+def ws(path : String, &block : HTTP::WebSocket, HTTP::Server::Context ->)
   raise Kemal::Exceptions::InvalidPathStartException.new("ws", path) unless Kemal::Utils.path_starts_with_slash?(path)
   Kemal::WebSocketHandler::INSTANCE.add_route path, &block
 end
@@ -36,13 +36,13 @@ end
 #  - after_all, after_get, after_post, after_put, after_patch, after_delete, after_options
 {% for type in ["before", "after"] %}
   {% for method in FILTER_METHODS %}
-    def {{type.id}}_{{method.id}}(path : String = "*", &block : HTTP::Server::Context -> _)
-     Kemal::FilterHandler::INSTANCE.{{type.id}}({{method}}.upcase, path, &block)
+    def {{ type.id }}_{{ method.id }}(path : String = "*", &block : HTTP::Server::Context -> _)
+     Kemal::FilterHandler::INSTANCE.{{ type.id }}({{ method }}.upcase, path, &block)
     end
 
-    def {{type.id}}_{{method.id}}(paths : Array(String), &block : HTTP::Server::Context -> _)
+    def {{ type.id }}_{{ method.id }}(paths : Array(String), &block : HTTP::Server::Context -> _)
       paths.each do |path|
-        Kemal::FilterHandler::INSTANCE.{{type.id}}({{method}}.upcase, path, &block)
+        Kemal::FilterHandler::INSTANCE.{{ type.id }}({{ method }}.upcase, path, &block)
       end
     end
   {% end %}

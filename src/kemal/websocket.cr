@@ -4,7 +4,7 @@ module Kemal
   class WebSocket < HTTP::WebSocketHandler
     getter proc
 
-    def initialize(@path : String, &@proc : HTTP::WebSocket, HTTP::Server::Context -> Void)
+    def initialize(@path : String, &@proc : HTTP::WebSocket, HTTP::Server::Context ->)
     end
 
     def call(context : HTTP::Server::Context)

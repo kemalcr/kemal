@@ -98,12 +98,12 @@ describe Kemal::StaticFileHandler do
   end
 
   it "should handle only GET and HEAD method" do
-    %w(GET HEAD).each do |method|
+    %w[GET HEAD].each do |method|
       response = handle HTTP::Request.new(method, "/dir/test.txt")
       response.status_code.should eq(200)
     end
 
-    %w(POST PUT DELETE).each do |method|
+    %w[POST PUT DELETE].each do |method|
       response = handle HTTP::Request.new(method, "/dir/test.txt")
       response.status_code.should eq(404)
       response = handle HTTP::Request.new(method, "/dir/test.txt"), false
@@ -113,18 +113,18 @@ describe Kemal::StaticFileHandler do
   end
 
   it "should send part of files when requested (RFC7233)" do
-    %w(POST PUT DELETE HEAD).each do |method|
+    %w[POST PUT DELETE HEAD].each do |method|
       headers = HTTP::Headers{"Range" => "bytes=0-4"}
       response = handle HTTP::Request.new(method, "/dir/test.txt", headers)
       response.status_code.should_not eq(206)
-      response.headers.has_key?("Content-Range").should eq(false)
+      response.headers.has_key?("Content-Range").should be_false
     end
 
-    %w(GET).each do |method|
+    %w[GET].each do |method|
       headers = HTTP::Headers{"Range" => "bytes=0-4"}
       response = handle HTTP::Request.new(method, "/dir/test.txt", headers)
       response.status_code.should eq(206)
-      response.headers.has_key?("Content-Range").should eq true
+      response.headers.has_key?("Content-Range").should be_true
       match = response.headers["Content-Range"].match(/bytes (\d+)-(\d+)\/(\d+)/)
       match.should_not be_nil
       if match
@@ -133,14 +133,14 @@ describe Kemal::StaticFileHandler do
         range_size = match[3].to_i { 0 }
 
         range_size.should eq file_size
-        (end_range < file_size).should eq true
-        (start_range < end_range).should eq true
+        (end_range < file_size).should be_true
+        (start_range < end_range).should be_true
       end
     end
   end
 
   it "should handle setting custom headers" do
-    headers = Proc(HTTP::Server::Context, String, File::Info, Void).new do |env, path, stat|
+    headers = Proc(HTTP::Server::Context, String, File::Info, Nil).new do |env, path, stat|
       if path =~ /\.html$/
         env.response.headers.add("Access-Control-Allow-Origin", "*")
       end

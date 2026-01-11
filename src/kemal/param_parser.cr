@@ -6,9 +6,9 @@ module Kemal
     URL_ENCODED_FORM = "application/x-www-form-urlencoded"
     APPLICATION_JSON = "application/json"
     MULTIPART_FORM   = "multipart/form-data"
-    PARTS            = %w(url query body json files)
+    PARTS            = %w[url query body json files]
     # :nodoc:
-    alias AllParamTypes = Nil | String | Int64 | Float64 | Bool | Hash(String, JSON::Any) | Array(JSON::Any)
+    alias AllParamTypes = String | Int64 | Float64 | Bool | Hash(String, JSON::Any) | Array(JSON::Any)?
     getter files, all_files
 
     def initialize(@request : HTTP::Request, @url : Hash(String, String) = {} of String => String)
@@ -40,14 +40,14 @@ module Kemal
     end
 
     {% for method in PARTS %}
-      def {{method.id}}
+      def {{ method.id }}
         # check memoization
-        return @{{method.id}} if @{{method.id}}_parsed
+        return @{{ method.id }} if @{{ method.id }}_parsed
 
-        parse_{{method.id}}
+        parse_{{ method.id }}
         # memoize
-        @{{method.id}}_parsed = true
-        @{{method.id}}
+        @{{ method.id }}_parsed = true
+        @{{ method.id }}
       end
     {% end %}
 
@@ -103,9 +103,10 @@ module Kemal
     # - If request body is a JSON `Hash` then all the params are parsed and added into `params`.
     # - If request body is a JSON `Array` it's added into `params` as `_json` and can be accessed like `params["_json"]`.
     private def parse_json
-      return unless @request.body && @request.headers["Content-Type"]?.try(&.starts_with?(APPLICATION_JSON))
+      return unless body = @request.body
+      return unless @request.headers["Content-Type"]?.try(&.starts_with?(APPLICATION_JSON))
 
-      case json = JSON.parse(@request.body.not_nil!).raw
+      case json = JSON.parse(body).raw
       when Hash
         json.each do |key, value|
           @json[key] = value.raw

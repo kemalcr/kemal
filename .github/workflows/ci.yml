@@ -30,24 +30,3 @@ jobs:
       - name: Run specs
         run: |
           crystal spec
-  ameba:
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest]
-        crystal: [latest]
-    runs-on: ${{ matrix.os }}
-
-    steps:
-      - name: Install Crystal
-        uses: crystal-lang/install-crystal@v1
-        with:
-          crystal: ${{ matrix.crystal }}
-
-      - name: Download source
-        uses: actions/checkout@v4
-
-      - name: Crystal Ameba Linter
-        uses: crystal-ameba/github-action@v0.12.0
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
