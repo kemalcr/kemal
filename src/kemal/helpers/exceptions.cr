@@ -18,4 +18,10 @@ module Kemal::Exceptions
       super message
     end
   end
+
+  class PayloadTooLarge < Exception
+    def initialize
+      super "Payload Too Large"
+    end
+  end
 end

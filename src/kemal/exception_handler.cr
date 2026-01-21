@@ -10,6 +10,8 @@ module Kemal
       call_exception_with_status_code(context, ex, 404)
     rescue ex : Kemal::Exceptions::CustomException
       call_exception_with_status_code(context, ex, context.response.status_code)
+    rescue ex : Kemal::Exceptions::PayloadTooLarge
+      call_exception_with_status_code(context, ex, 413)
     rescue ex : Exception
       # Matches an error handler for the given exception
       #

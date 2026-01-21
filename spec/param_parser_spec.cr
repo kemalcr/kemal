@@ -201,4 +201,64 @@ describe "ParamParser" do
       body_params.to_s.should eq("")
     end
   end
+
+  context "Payload too large" do
+    it "raises PayloadTooLarge when body exceeds limit" do
+      Kemal.config.max_request_body_size = 10
+      request = HTTP::Request.new(
+        "POST",
+        "/",
+        body: "12345678901",
+        headers: HTTP::Headers{"Content-Type" => "application/x-www-form-urlencoded"},
+      )
+
+      expect_raises(Kemal::Exceptions::PayloadTooLarge) do
+        Kemal::ParamParser.new(request).body
+      end
+    end
+
+    it "raises PayloadTooLarge when Content-Length exceeds limit" do
+      Kemal.config.max_request_body_size = 10
+      request = HTTP::Request.new(
+        "POST",
+        "/",
+        body: "1",
+        headers: HTTP::Headers{
+          "Content-Type" => "application/x-www-form-urlencoded",
+        },
+      )
+      request.headers["Content-Length"] = "11"
+
+      expect_raises(Kemal::Exceptions::PayloadTooLarge) do
+        Kemal::ParamParser.new(request).body
+      end
+    end
+
+    it "parses body when size is within limit" do
+      Kemal.config.max_request_body_size = 20
+      request = HTTP::Request.new(
+        "POST",
+        "/",
+        body: "name=serdar",
+        headers: HTTP::Headers{"Content-Type" => "application/x-www-form-urlencoded"},
+      )
+
+      body_params = Kemal::ParamParser.new(request).body
+      body_params["name"].should eq("serdar")
+    end
+
+    it "raises PayloadTooLarge for JSON body exceeding limit" do
+      Kemal.config.max_request_body_size = 10
+      request = HTTP::Request.new(
+        "POST",
+        "/",
+        body: "{\"foo\":\"bar\"}",
+        headers: HTTP::Headers{"Content-Type" => "application/json"},
+      )
+
+      expect_raises(Kemal::Exceptions::PayloadTooLarge) do
+        Kemal::ParamParser.new(request).json
+      end
+    end
+  end
 end

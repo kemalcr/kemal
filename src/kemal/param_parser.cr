@@ -56,6 +56,8 @@ module Kemal
 
       return unless content_type
 
+      validate_content_length!
+
       if content_type.try(&.starts_with?(URL_ENCODED_FORM))
         @body = parse_part(@request.body)
         return
@@ -76,6 +78,8 @@ module Kemal
 
     private def parse_files
       return if @files_parsed
+
+      validate_content_length!
 
       HTTP::FormData.parse(@request) do |upload|
         next unless upload
@@ -106,7 +110,12 @@ module Kemal
       return unless body = @request.body
       return unless @request.headers["Content-Type"]?.try(&.starts_with?(APPLICATION_JSON))
 
-      case json = JSON.parse(body).raw
+      validate_content_length!
+
+      body_str = read_body_with_limit(body)
+      return if body_str.empty?
+
+      case json = JSON.parse(body_str).raw
       when Hash
         json.each do |key, value|
           @json[key] = value.raw
@@ -119,11 +128,31 @@ module Kemal
     end
 
     private def parse_part(part : IO?)
-      HTTP::Params.parse(part ? part.gets_to_end : "")
+      return HTTP::Params.new({} of String => Array(String)) unless part
+      body_str = read_body_with_limit(part)
+      HTTP::Params.parse(body_str)
     end
 
     private def parse_part(part : String?)
       HTTP::Params.parse part.to_s
+    end
+
+    private def validate_content_length!
+      return unless length_str = @request.headers["Content-Length"]?
+      return unless length = length_str.to_i?
+      return if length <= Kemal.config.max_request_body_size
+
+      raise Exceptions::PayloadTooLarge.new
+    end
+
+    private def read_body_with_limit(io : IO) : String
+      limit = Kemal.config.max_request_body_size
+      String.build do |str|
+        bytes_read = IO.copy(io, str, limit + 1)
+        if bytes_read > limit
+          raise Exceptions::PayloadTooLarge.new
+        end
+      end
     end
   end
 end
