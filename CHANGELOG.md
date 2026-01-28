@@ -1,3 +1,9 @@
+# 1.9.0 (28-01-2026)
+
+- Crystal 1.19.0 support :tada:
+- ***(SECURITY)*** Limit maximum request body size to avoid DoS attacks [#730](https://github.com/kemalcr/kemal/pull/730). Thanks @sdogruyol :pray:
+- Optimize JSON parameter parsing by directly using the request body IO. Thanks @sdogruyol :pray:
+
 # 1.8.0 (07-11-2025)
 
 - Enhance HEAD request handling by caching GET route lookups and optimize path construction using string interpolation for improved performance [#728](https://github.com/kemalcr/kemal/pull/728). Thanks @sdogruyol :pray:
@@ -8,7 +14,7 @@
 # 1.7.3 (02-10-2025)
 
 - Refactor [#719](https://github.com/kemalcr/kemal/pull/719). Thanks @sdogruyol :pray:
-- Improv Kemal test suite. Thanks @sdogruyol :pray:
+- Improve Kemal test suite. Thanks @sdogruyol :pray:
 
 # 1.7.2 (04-08-2025)
 
