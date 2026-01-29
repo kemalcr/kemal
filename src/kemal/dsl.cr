@@ -93,3 +93,34 @@ def use(path : String, handlers : Enumerable(HTTP::Handler))
     use(path, handler)
   end
 end
+
+# Mounts a router without additional prefix.
+#
+# ```
+# api = Kemal::Router.new
+# api.get "/users" do |env|
+#   "users"
+# end
+#
+# mount api
+# # Result: GET /users
+# ```
+def mount(router : Kemal::Router)
+  router.register_routes("")
+end
+
+# Mounts a router at the given path prefix.
+# All routes defined in the router will be prefixed with the given path.
+#
+# ```
+# api = Kemal::Router.new
+# api.get "/users" do |env|
+#   "users"
+# end
+#
+# mount "/api/v1", api
+# # Result: GET /api/v1/users
+# ```
+def mount(path : String, router : Kemal::Router)
+  router.register_routes(path)
+end
