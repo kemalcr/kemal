@@ -149,13 +149,6 @@ module Kemal
       @sub_routers << SubRouter.new(path: path, router: sub_router)
     end
 
-    # Alias for `namespace`. Creates a nested namespace/group with the given path prefix.
-    def group(path : String, &)
-      sub_router = Router.new
-      with sub_router yield
-      @sub_routers << SubRouter.new(path: path, router: sub_router)
-    end
-
     # Mounts another router at the given path prefix.
     #
     # ```

@@ -253,22 +253,6 @@ describe "Kemal::Router" do
       posts_response.body.should eq("posts")
     end
 
-    it "supports group alias" do
-      router = Kemal::Router.new
-
-      router.group "/admin" do
-        get "/dashboard" do
-          "admin dashboard"
-        end
-      end
-
-      mount router
-
-      request = HTTP::Request.new("GET", "/admin/dashboard")
-      client_response = call_request_on_app(request)
-      client_response.body.should eq("admin dashboard")
-    end
-
     it "supports deeply nested routers" do
       router = Kemal::Router.new
 
