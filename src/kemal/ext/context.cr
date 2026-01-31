@@ -71,5 +71,104 @@ class HTTP::Server
     def get?(name : String)
       @store[name]?
     end
+
+    # Sets the response status code and returns self for chaining.
+    #
+    # ```
+    # get "/users/:id" do |env|
+    #   if user = User.find?(env.params.url["id"])
+    #     env.json(user)
+    #   else
+    #     env.status(404).json({error: "User not found"})
+    #   end
+    # end
+    # ```
+    def status(code : Int32) : self
+      @response.status_code = code
+      self
+    end
+
+    # Sends a JSON response with the proper content-type header.
+    # Automatically serializes the data to JSON.
+    #
+    # ```
+    # get "/users" do |env|
+    #   env.json({users: ["alice", "bob"]})
+    # end
+    #
+    # # With status code
+    # post "/users" do |env|
+    #   env.status(201).json({created: true})
+    # end
+    # ```
+    def json(data, *, status_code : Int32? = nil) : String
+      @response.status_code = status_code if status_code
+      @response.content_type = "application/json"
+      data.to_json
+    end
+
+    # Sends an HTML response with the proper content-type header.
+    #
+    # ```
+    # get "/" do |env|
+    #   env.html("<h1>Welcome</h1>")
+    # end
+    # ```
+    def html(content : String, *, status_code : Int32? = nil) : String
+      @response.status_code = status_code if status_code
+      @response.content_type = "text/html; charset=utf-8"
+      content
+    end
+
+    # Sends a plain text response with the proper content-type header.
+    #
+    # ```
+    # get "/health" do |env|
+    #   env.text("OK")
+    # end
+    # ```
+    def text(content : String, *, status_code : Int32? = nil) : String
+      @response.status_code = status_code if status_code
+      @response.content_type = "text/plain; charset=utf-8"
+      content
+    end
+
+    # Sends an XML response with the proper content-type header.
+    #
+    # ```
+    # get "/feed.xml" do |env|
+    #   env.xml("<?xml version=\"1.0\"?><rss>...</rss>")
+    # end
+    # ```
+    def xml(content : String, *, status_code : Int32? = nil) : String
+      @response.status_code = status_code if status_code
+      @response.content_type = "application/xml; charset=utf-8"
+      content
+    end
+
+    # Sends a response with auto-detected content-type based on the data type.
+    # - String -> text/plain
+    # - Hash, Array, NamedTuple, or other -> application/json
+    #
+    # ```
+    # get "/auto" do |env|
+    #   env.send({name: "test"}) # -> application/json
+    # end
+    #
+    # get "/auto-text" do |env|
+    #   env.send("Hello World") # -> text/plain
+    # end
+    # ```
+    def send(data : String, *, status_code : Int32? = nil) : String
+      @response.status_code = status_code if status_code
+      @response.content_type = "text/plain; charset=utf-8"
+      data
+    end
+
+    def send(data, *, status_code : Int32? = nil) : String
+      @response.status_code = status_code if status_code
+      @response.content_type = "application/json"
+      data.to_json
+    end
   end
 end
