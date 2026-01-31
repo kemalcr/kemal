@@ -96,13 +96,12 @@ class HTTP::Server
     #   env.json({users: ["alice", "bob"]})
     # end
     #
-    # # With status code
+    # # With status code (use status chain)
     # post "/users" do |env|
     #   env.status(201).json({created: true})
     # end
     # ```
-    def json(data, *, status_code : Int32? = nil) : String
-      @response.status_code = status_code if status_code
+    def json(data) : String
       @response.content_type = "application/json"
       data.to_json
     end
@@ -114,8 +113,7 @@ class HTTP::Server
     #   env.html("<h1>Welcome</h1>")
     # end
     # ```
-    def html(content : String, *, status_code : Int32? = nil) : String
-      @response.status_code = status_code if status_code
+    def html(content : String) : String
       @response.content_type = "text/html; charset=utf-8"
       content
     end
@@ -127,8 +125,7 @@ class HTTP::Server
     #   env.text("OK")
     # end
     # ```
-    def text(content : String, *, status_code : Int32? = nil) : String
-      @response.status_code = status_code if status_code
+    def text(content : String) : String
       @response.content_type = "text/plain; charset=utf-8"
       content
     end
@@ -140,8 +137,7 @@ class HTTP::Server
     #   env.xml("<?xml version=\"1.0\"?><rss>...</rss>")
     # end
     # ```
-    def xml(content : String, *, status_code : Int32? = nil) : String
-      @response.status_code = status_code if status_code
+    def xml(content : String) : String
       @response.content_type = "application/xml; charset=utf-8"
       content
     end

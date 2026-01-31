@@ -31,17 +31,6 @@ describe "Response Helpers" do
       client_response = call_request_on_app(request)
       client_response.body.should eq("[1,2,3]")
     end
-
-    it "accepts status_code parameter" do
-      get "/json-status" do |env|
-        env.json({created: true}, status_code: 201)
-      end
-
-      request = HTTP::Request.new("GET", "/json-status")
-      client_response = call_request_on_app(request)
-      client_response.status_code.should eq(201)
-      client_response.headers["Content-Type"].should eq("application/json")
-    end
   end
 
   describe "#html" do
@@ -63,16 +52,6 @@ describe "Response Helpers" do
       request = HTTP::Request.new("GET", "/html-content")
       client_response = call_request_on_app(request)
       client_response.body.should eq("<div>Content</div>")
-    end
-
-    it "accepts status_code parameter" do
-      get "/html-status" do |env|
-        env.html("<h1>Not Found</h1>", status_code: 404)
-      end
-
-      request = HTTP::Request.new("GET", "/html-status")
-      client_response = call_request_on_app(request)
-      client_response.status_code.should eq(404)
     end
   end
 
@@ -96,16 +75,6 @@ describe "Response Helpers" do
       client_response = call_request_on_app(request)
       client_response.body.should eq("Plain text here")
     end
-
-    it "accepts status_code parameter" do
-      get "/text-status" do |env|
-        env.text("Service Unavailable", status_code: 503)
-      end
-
-      request = HTTP::Request.new("GET", "/text-status")
-      client_response = call_request_on_app(request)
-      client_response.status_code.should eq(503)
-    end
   end
 
   describe "#xml" do
@@ -127,16 +96,6 @@ describe "Response Helpers" do
       request = HTTP::Request.new("GET", "/xml-content")
       client_response = call_request_on_app(request)
       client_response.body.should eq(%(<?xml version="1.0"?><rss><channel></channel></rss>))
-    end
-
-    it "accepts status_code parameter" do
-      get "/xml-status" do |env|
-        env.xml("<error>Bad Request</error>", status_code: 400)
-      end
-
-      request = HTTP::Request.new("GET", "/xml-status")
-      client_response = call_request_on_app(request)
-      client_response.status_code.should eq(400)
     end
   end
 
