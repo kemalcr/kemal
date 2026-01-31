@@ -145,30 +145,5 @@ class HTTP::Server
       @response.content_type = "application/xml; charset=utf-8"
       content
     end
-
-    # Sends a response with auto-detected content-type based on the data type.
-    # - String -> text/plain
-    # - Hash, Array, NamedTuple, or other -> application/json
-    #
-    # ```
-    # get "/auto" do |env|
-    #   env.send({name: "test"}) # -> application/json
-    # end
-    #
-    # get "/auto-text" do |env|
-    #   env.send("Hello World") # -> text/plain
-    # end
-    # ```
-    def send(data : String, *, status_code : Int32? = nil) : String
-      @response.status_code = status_code if status_code
-      @response.content_type = "text/plain; charset=utf-8"
-      data
-    end
-
-    def send(data, *, status_code : Int32? = nil) : String
-      @response.status_code = status_code if status_code
-      @response.content_type = "application/json"
-      data.to_json
-    end
   end
 end
