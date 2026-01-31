@@ -15,10 +15,12 @@ require "mime"
 # - `Kemal::StaticFileHandler`
 # - Here goes custom handlers
 # - `Kemal::RouteHandler`
+@[Deprecated("Use `use` instead")]
 def add_handler(handler : HTTP::Handler)
   Kemal.config.add_handler handler
 end
 
+@[Deprecated("Use `use` with position parameter instead")]
 def add_handler(handler : HTTP::Handler, position : Int32)
   Kemal.config.add_handler handler, position
 end
@@ -288,7 +290,7 @@ end
 #
 # Disabled by default.
 def gzip(status : Bool = false)
-  add_handler HTTP::CompressHandler.new if status
+  use HTTP::CompressHandler.new if status
 end
 
 # Adds headers to `Kemal::StaticFileHandler`. This is especially useful for `CORS`.

@@ -77,7 +77,7 @@ describe "Handler" do
     filter_middleware._add_route_filter("GET", "/", :before) do |env|
       env.response << " so"
     end
-    add_handler CustomTestHandler.new
+    use CustomTestHandler.new
 
     get "/" do
       " Great"
@@ -92,7 +92,7 @@ describe "Handler" do
     get "/only" do
       "Get"
     end
-    add_handler OnlyHandler.new
+    use OnlyHandler.new
     request = HTTP::Request.new("GET", "/only")
     client_response = call_request_on_app(request)
     client_response.body.should eq "OnlyGet"
@@ -105,7 +105,7 @@ describe "Handler" do
     get "/exclude" do
       "Exclude"
     end
-    add_handler ExcludeHandler.new
+    use ExcludeHandler.new
     request = HTTP::Request.new("GET", "/")
     client_response = call_request_on_app(request)
     client_response.body.should eq "ExcludeGet"
@@ -118,7 +118,7 @@ describe "Handler" do
     get "/only" do
       "Get"
     end
-    add_handler PostOnlyHandler.new
+    use PostOnlyHandler.new
     request = HTTP::Request.new("POST", "/only")
     client_response = call_request_on_app(request)
     client_response.body.should eq "OnlyPost"
@@ -131,8 +131,8 @@ describe "Handler" do
     post "/only" do
       "Post"
     end
-    add_handler PostOnlyHandler.new
-    add_handler PostExcludeHandler.new
+    use PostOnlyHandler.new
+    use PostExcludeHandler.new
     request = HTTP::Request.new("POST", "/only")
     client_response = call_request_on_app(request)
     client_response.body.should eq "OnlyExcludePost"
@@ -140,7 +140,7 @@ describe "Handler" do
 
   it "adds a handler at given position" do
     post_handler = PostOnlyHandler.new
-    add_handler post_handler, 1
+    use post_handler, 1
     Kemal.config.setup
     Kemal.config.handlers[1].should eq post_handler
   end

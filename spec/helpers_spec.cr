@@ -9,9 +9,9 @@ describe "Macros" do
     end
   end
 
-  describe "#add_handler" do
+  describe "#use" do
     it "adds a custom handler" do
-      add_handler CustomTestHandler.new
+      use CustomTestHandler.new
       Kemal.config.setup
       Kemal.config.handlers.size.should eq 7
     end
