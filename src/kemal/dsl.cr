@@ -1,14 +1,28 @@
 # Kemal DSL is defined here and it's baked into global scope.
+# These methods are available globally in your application.
 #
-# The DSL currently consists of:
+# ## Available DSL Methods
 #
-# - get post put patch delete options
-# - WebSocket(ws)
-# - before_*
-# - error
+# - **HTTP Routes**: `get`, `post`, `put`, `patch`, `delete`, `options`
+# - **WebSocket**: `ws`
+# - **Filters**: `before_all`, `before_get`, `after_all`, `after_get`, etc.
+# - **Error Handling**: `error`
+# - **Modular Routing**: `mount`
 HTTP_METHODS   = %w[get post put patch delete options]
 FILTER_METHODS = %w[get post put patch delete options all]
 
+# Defines a route for the given HTTP method.
+# The path must start with a `/`.
+#
+# ```
+# get "/hello" do |env|
+#   "Hello World!"
+# end
+#
+# post "/users" do |env|
+#   "User created"
+# end
+# ```
 {% for method in HTTP_METHODS %}
   def {{ method.id }}(path : String, &block : HTTP::Server::Context -> _)
     raise Kemal::Exceptions::InvalidPathStartException.new({{ method }}, path) unless Kemal::Utils.path_starts_with_slash?(path)
@@ -16,24 +30,63 @@ FILTER_METHODS = %w[get post put patch delete options all]
   end
 {% end %}
 
+# Defines a WebSocket route.
+# The path must start with a `/`.
+#
+# ```
+# ws "/chat" do |socket, env|
+#   socket.on_message do |msg|
+#     socket.send "Echo: #{msg}"
+#   end
+# end
+# ```
 def ws(path : String, &block : HTTP::WebSocket, HTTP::Server::Context ->)
   raise Kemal::Exceptions::InvalidPathStartException.new("ws", path) unless Kemal::Utils.path_starts_with_slash?(path)
   Kemal::WebSocketHandler::INSTANCE.add_route path, &block
 end
 
-# Defines an error handler to be called when route returns the given HTTP status code
+# Defines an error handler for the given HTTP status code.
+#
+# ```
+# error 404 do |env|
+#   "Page not found"
+# end
+# ```
 def error(status_code : Int32, &block : HTTP::Server::Context, Exception -> _)
   Kemal.config.add_error_handler status_code, &block
 end
 
-# Defines an error handler to be called when the given exception is raised
+# Defines an error handler for the given exception type.
+#
+# ```
+# error MyCustomException do |env, ex|
+#   "Error: #{ex.message}"
+# end
+# ```
 def error(exception : Exception.class, &block : HTTP::Server::Context, Exception -> _)
   Kemal.config.add_exception_handler exception, &block
 end
 
-# All the helper methods available are:
-#  - before_all, before_get, before_post, before_put, before_patch, before_delete, before_options
-#  - after_all, after_get, after_post, after_put, after_patch, after_delete, after_options
+# Defines filters that run before or after requests.
+#
+# Available methods:
+# - `before_all`, `before_get`, `before_post`, `before_put`, `before_patch`, `before_delete`, `before_options`
+# - `after_all`, `after_get`, `after_post`, `after_put`, `after_patch`, `after_delete`, `after_options`
+#
+# ```
+# before_all do |env|
+#   env.response.content_type = "application/json"
+# end
+#
+# before_get "/admin/*" do |env|
+#   # Authentication check
+# end
+#
+# # Multiple paths
+# after_post ["/users", "/posts"] do |env|
+#   # Logging
+# end
+# ```
 {% for type in ["before", "after"] %}
   {% for method in FILTER_METHODS %}
     def {{ type.id }}_{{ method.id }}(path : String = "*", &block : HTTP::Server::Context -> _)
