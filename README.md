@@ -59,14 +59,15 @@ crystal run src/your_app.cr
 
 ## Key Features
 
-- ✅ **Full REST Support**: Handle all HTTP verbs (GET, POST, PUT, DELETE, etc.)
-- 🔌 **WebSocket Support**: Real-time bidirectional communication
-- 📦 **Built-in JSON Support**: Native JSON handling
-- 🗄️ **Static File Serving**: Serve your static assets easily
-- 📝 **Template Support**: Built-in ECR template engine
-- 🔒 **Middleware System**: Add functionality with middleware
-- 🎯 **Request/Response Context**: Easy parameter and request handling
-- 🍪 **Session Management**: Easy session handling with [kemal-session](https://github.com/kemalcr/kemal-session)
+- 🚀 **High-performance by default**: Built on Crystal with a thin abstraction layer so you can serve a large number of requests with low latency and low memory footprint.
+- 🌐 **Full REST & HTTP support**: Handle all HTTP verbs (GET, POST, PUT, PATCH, DELETE, etc.) with a straightforward routing DSL.
+- 🔌 **WebSocket & real-time**: First-class WebSocket support for building chats, dashboards and other real-time experiences.
+- 📦 **JSON-first APIs**: Native JSON handling makes building JSON APIs and microservices feel natural.
+- 🗄️ **Static assets made easy**: Serve static files (assets, uploads, SPA bundles) efficiently from the same application.
+- 📝 **Template engine included**: Built-in ECR template engine for server‑rendered HTML when you need it.
+- 🔒 **Composable middleware**: Flexible middleware system to add logging, auth, rate limiting, metrics and more.
+- 🎯 **Ergonomic request/response API**: Simple access to params, headers, cookies and bodies via a clear context object.
+- 🍪 **Session management**: Easy session handling with [kemal-session](https://github.com/kemalcr/kemal-session), suitable for production apps.
 
 ## Philosophy
 
