@@ -17,7 +17,14 @@ Kemal is the Fast, Effective, Simple Web Framework for Crystal. It's perfect for
 
 1. First, make sure you have [Crystal installed](https://crystal-lang.org/install/).
 
-2. Add Kemal to your project's `shard.yml`:
+2. Create a new Crystal application and step into it:
+
+```bash
+crystal init app my-kemal-app
+cd my-kemal-app
+```
+
+3. Add Kemal to your app's `shard.yml`:
 
 ```yaml
 dependencies:
@@ -25,7 +32,7 @@ dependencies:
     github: kemalcr/kemal
 ```
 
-3. Create your first Kemal app:
+4. Replace the contents of `src/my_kemal_app.cr` with your first Kemal app:
 
 ```crystal
 require "kemal"
@@ -49,13 +56,14 @@ end
 Kemal.run
 ```
 
-4. Run your application:
+5. Install dependencies and run your application:
 
 ```bash
-crystal run src/your_app.cr
+shards install
+crystal run src/my_kemal_app.cr
 ```
 
-5. Visit [http://localhost:3000](http://localhost:3000) - That's it! 🎉
+6. Visit [http://localhost:3000](http://localhost:3000) - That's it! 🎉
 
 ## Key Features
 
