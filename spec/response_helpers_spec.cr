@@ -166,6 +166,18 @@ describe "Response Helpers" do
       client_response.status_code.should eq(400)
       client_response.headers["Content-Type"].should eq("application/xml; charset=utf-8")
     end
+
+    it "accepts HTTP::Status and is chainable with json" do
+      get "/status-enum-json" do |env|
+        env.status(:not_found).json({error: "User not found"})
+      end
+
+      request = HTTP::Request.new("GET", "/status-enum-json")
+      client_response = call_request_on_app(request)
+      client_response.status_code.should eq(404)
+      client_response.headers["Content-Type"].should eq("application/json")
+      client_response.body.should contain("User not found")
+    end
   end
 
   describe "real-world scenarios" do

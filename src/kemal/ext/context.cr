@@ -88,6 +88,22 @@ class HTTP::Server
       self
     end
 
+    # Sets the response status from an *HTTP::Status* and returns self for chaining.
+    #
+    # ```
+    # get "/users/:id" do |env|
+    #   env.status(:not_found).json({error: "User not found"})
+    # end
+    #
+    # post "/users" do |env|
+    #   env.status(:created).json({id: 1})
+    # end
+    # ```
+    def status(status : HTTP::Status) : self
+      @response.status_code = status.to_i
+      self
+    end
+
     # Sends a JSON response with the proper content-type header.
     # Serializes the data directly to the response (no intermediate string).
     # Use *content_type* for custom types (e.g. `application/vnd.api+json` for JSON API).
