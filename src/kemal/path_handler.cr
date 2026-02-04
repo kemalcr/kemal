@@ -1,11 +1,10 @@
 module Kemal
-  # PathHandler wraps a `Kemal::Handler` to only execute for specific path prefixes.
+  # `PathHandler` wraps a `HTTP::Handler` to only execute for specific path prefixes.
   #
   # ## Example
   #
   # ```
   # use "/api", AuthHandler.new
-  # use "/admin", AdminOnly.new
   # ```
   #
   # The handler will only execute for requests matching the path prefix:

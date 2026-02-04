@@ -61,7 +61,7 @@ end
 # Adds a `Kemal::Handler` (middleware) at a specific position in the handler chain.
 #
 # ```
-# use MyHandler.new, 1
+# use MyHandler.new, position: 1
 # ```
 def use(handler : HTTP::Handler, position : Int32)
   Kemal.config.add_handler(handler, position)
@@ -71,7 +71,6 @@ end
 #
 # ```
 # use "/api", AuthHandler.new
-# use "/admin", AdminOnly.new
 # ```
 #
 # The handler will execute for:
@@ -89,7 +88,7 @@ end
 # ```
 # use "/api", [AuthHandler.new, RateLimiter.new, CorsHandler.new]
 # ```
-def use(path : String, handlers : Array(HTTP::Handler))
+def use(path : String, handlers : Enumerable(HTTP::Handler))
   handlers.each do |handler|
     use(path, handler)
   end

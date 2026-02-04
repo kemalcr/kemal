@@ -140,7 +140,7 @@ describe "Handler" do
 
   it "adds a handler at given position" do
     post_handler = PostOnlyHandler.new
-    use post_handler, 1
+    use post_handler, position: 1
     Kemal.config.setup
     Kemal.config.handlers[1].should eq post_handler
   end
