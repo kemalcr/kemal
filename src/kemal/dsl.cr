@@ -48,7 +48,7 @@ end
   {% end %}
 {% end %}
 
-# Adds a `Kemal::Handler` (middleware) to the handler chain.
+# Adds a `HTTP::Handler` (middleware) to the handler chain.
 # The handler runs for all requests.
 #
 # ```
@@ -58,7 +58,7 @@ def use(handler : HTTP::Handler)
   Kemal.config.add_handler(handler)
 end
 
-# Adds a `Kemal::Handler` (middleware) at a specific position in the handler chain.
+# Adds a `HTTP::Handler` (middleware) at a specific position in the handler chain.
 #
 # ```
 # use MyHandler.new, position: 1
@@ -67,7 +67,7 @@ def use(handler : HTTP::Handler, position : Int32)
   Kemal.config.add_handler(handler, position)
 end
 
-# Adds a `Kemal::Handler` (middleware) that only runs for requests matching the path prefix.
+# Adds a `HTTP::Handler` (middleware) that only runs for requests matching the path prefix.
 #
 # ```
 # use "/api", AuthHandler.new
@@ -83,7 +83,7 @@ def use(path : String, handler : HTTP::Handler)
   Kemal.config.add_handler(Kemal::PathHandler.new(path, handler))
 end
 
-# Adds multiple `Kemal::Handler` (middlewares) for a specific path prefix.
+# Adds multiple `HTTP::Handler` (middlewares) for a specific path prefix.
 #
 # ```
 # use "/api", [AuthHandler.new, RateLimiter.new, CorsHandler.new]

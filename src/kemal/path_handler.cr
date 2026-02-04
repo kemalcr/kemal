@@ -34,13 +34,13 @@ module Kemal
     # - "/api" matches "/api" and "/api/*"
     # - "/api" does NOT match "/apiv2"
     private def matches_prefix?(path : String) : Bool
-      return true if @path_prefix == "/" || @path_prefix.empty?
+      return true if path_prefix.in?("/", "")
 
       # Exact match
-      return true if path == @path_prefix
+      return true if path == path_prefix
 
       # Prefix match (must be followed by /)
-      path.starts_with?(@path_prefix + "/")
+      path.starts_with?("#{path_prefix}/")
     end
   end
 end
