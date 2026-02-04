@@ -31,6 +31,17 @@ describe "Response Helpers" do
       client_response = call_request_on_app(request)
       client_response.body.should eq("[1,2,3]")
     end
+
+    it "accepts custom content_type (e.g. JSON API)" do
+      get "/json-api" do |env|
+        env.json({data: [] of String}, content_type: "application/vnd.api+json")
+      end
+
+      request = HTTP::Request.new("GET", "/json-api")
+      client_response = call_request_on_app(request)
+      client_response.headers["Content-Type"].should eq("application/vnd.api+json")
+      client_response.body.should eq(%({"data":[]}))
+    end
   end
 
   describe "#html" do
