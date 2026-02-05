@@ -88,58 +88,82 @@ class HTTP::Server
       self
     end
 
-    # Sends a JSON response with the proper content-type header.
-    # Automatically serializes the data to JSON.
+    # Sets the response status from an *HTTP::Status* and returns self for chaining.
+    #
+    # ```
+    # get "/users/:id" do |env|
+    #   env.status(:not_found).json({error: "User not found"})
+    # end
+    #
+    # post "/users" do |env|
+    #   env.status(:created).json({id: 1})
+    # end
+    # ```
+    def status(status : HTTP::Status) : self
+      @response.status = status
+      self
+    end
+
+    # Sends a JSON response with the proper `Content-Type` header.
+    # Serializes the data directly to the response (no intermediate string).
+    # Use *content_type* for custom types (e.g. `application/vnd.api+json` for JSON API).
     #
     # ```
     # get "/users" do |env|
     #   env.json({users: ["alice", "bob"]})
     # end
     #
-    # # With status code (use status chain)
     # post "/users" do |env|
     #   env.status(201).json({created: true})
     # end
+    #
+    # # JSON API
+    # get "/api/users" do |env|
+    #   env.json({data: users}, content_type: "application/vnd.api+json")
+    # end
     # ```
-    def json(data) : String
-      @response.content_type = "application/json"
-      data.to_json
+    def json(data, *, content_type : String = "application/json") : Nil
+      @response.content_type = content_type
+      data.to_json(@response)
     end
 
-    # Sends an HTML response with the proper content-type header.
+    # Sends an HTML response with the proper `Content-Type` header.
+    # Writes directly to the response.
     #
     # ```
     # get "/" do |env|
     #   env.html("<h1>Welcome</h1>")
     # end
     # ```
-    def html(content : String) : String
-      @response.content_type = "text/html; charset=utf-8"
-      content
+    def html(content : String, *, content_type : String = "text/html; charset=utf-8") : Nil
+      @response.content_type = content_type
+      content.to_s(@response)
     end
 
-    # Sends a plain text response with the proper content-type header.
+    # Sends a plain text response with the proper `Content-Type` header.
+    # Writes directly to the response.
     #
     # ```
     # get "/health" do |env|
     #   env.text("OK")
     # end
     # ```
-    def text(content : String) : String
-      @response.content_type = "text/plain; charset=utf-8"
-      content
+    def text(content : String, *, content_type : String = "text/plain; charset=utf-8") : Nil
+      @response.content_type = content_type
+      content.to_s(@response)
     end
 
-    # Sends an XML response with the proper content-type header.
+    # Sends an XML response with the proper `Content-Type` header.
+    # Writes directly to the response.
     #
     # ```
     # get "/feed.xml" do |env|
     #   env.xml("<?xml version=\"1.0\"?><rss>...</rss>")
     # end
     # ```
-    def xml(content : String) : String
-      @response.content_type = "application/xml; charset=utf-8"
-      content
+    def xml(content : String, *, content_type : String = "application/xml; charset=utf-8") : Nil
+      @response.content_type = content_type
+      content.to_s(@response)
     end
   end
 end
