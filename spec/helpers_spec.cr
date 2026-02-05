@@ -46,6 +46,61 @@ describe "Macros" do
       client_response.status_code.should eq(200)
       client_response.body.should eq("")
     end
+
+    it "halts with chained status/json" do
+      get "/halt-status-json" do |env|
+        halt env.status(500).json({error: "Something went wrong"})
+        "should-not-render"
+      end
+
+      request = HTTP::Request.new("GET", "/halt-status-json")
+      client_response = call_request_on_app(request)
+      client_response.status_code.should eq(500)
+      client_response.headers["Content-Type"].should eq("application/json")
+      client_response.body.should eq(%({"error":"Something went wrong"}))
+    end
+
+    it "halts with chained json" do
+      get "/halt-json" do |env|
+        halt env.json({error: "Something went wrong"})
+        "should-not-render"
+      end
+
+      request = HTTP::Request.new("GET", "/halt-json")
+      client_response = call_request_on_app(request)
+      client_response.status_code.should eq(200)
+      client_response.headers["Content-Type"].should eq("application/json")
+      client_response.body.should eq(%({"error":"Something went wrong"}))
+    end
+
+    it "writes body when halting with chained json" do
+      get "/halt-json-raw" do |env|
+        halt env.status(500).json({error: "Something went wrong"})
+        "should-not-render"
+      end
+
+      request = HTTP::Request.new("GET", "/halt-json-raw")
+      client_response = call_request_on_app(request)
+      client_response.status_code.should eq(500)
+      client_response.headers["Content-Type"].should eq("application/json")
+      client_response.body.should eq(%({"error":"Something went wrong"}))
+    end
+
+    it "halts env" do
+      get "/halt-env" do |env|
+        env.response.status_code = 500
+        env.response.content_type = "application/json"
+        env.response.print({error: "Something went wrong"}.to_json)
+        halt env
+        "should-not-render"
+      end
+
+      request = HTTP::Request.new("GET", "/halt-env")
+      client_response = call_request_on_app(request)
+      client_response.status_code.should eq(500)
+      client_response.headers["Content-Type"].should eq("application/json")
+      client_response.body.should eq(%({"error":"Something went wrong"}))
+    end
   end
 
   describe "#callbacks" do
@@ -63,6 +118,23 @@ describe "Macros" do
       client_response = call_request_on_app(request)
       client_response.status_code.should eq(400)
       client_response.body.should eq("Missing origin.")
+    end
+
+    it "writes body when halting with chained json in before filter" do
+      filter_middleware = Kemal::FilterHandler.new
+      filter_middleware._add_route_filter("GET", "/halt-json-filter", :before) do |env|
+        halt env.status(500).json({error: "Something went wrong"})
+      end
+
+      get "/halt-json-filter" do |_env|
+        "should-not-render"
+      end
+
+      request = HTTP::Request.new("GET", "/halt-json-filter")
+      client_response = call_request_on_app(request)
+      client_response.status_code.should eq(500)
+      client_response.headers["Content-Type"].should eq("application/json")
+      client_response.body.should eq(%({"error":"Something went wrong"}))
     end
   end
 

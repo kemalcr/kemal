@@ -74,6 +74,19 @@ macro render(filename)
   ECR.render({{ filename }})
 end
 
+# Halt execution using a chained response call (e.g. `halt env.status(500).json(...)`).
+macro halt(response)
+  {% if response.is_a?(Call) && response.receiver %}
+    %env = {{ response.receiver }}
+    {{ response }}
+    %env.response.close
+    next
+  {% else %}
+    {{ response }}.response.close
+    next
+  {% end %}
+end
+
 # Halt execution with the current context.
 # Returns 200 and an empty response by default.
 #
