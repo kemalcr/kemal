@@ -47,3 +47,49 @@ end
     end
   {% end %}
 {% end %}
+
+# Adds a `HTTP::Handler` (middleware) to the handler chain.
+# The handler runs for all requests.
+#
+# ```
+# use MyHandler.new
+# ```
+def use(handler : HTTP::Handler)
+  Kemal.config.add_handler(handler)
+end
+
+# Adds a `HTTP::Handler` (middleware) at a specific position in the handler chain.
+#
+# ```
+# use MyHandler.new, position: 1
+# ```
+def use(handler : HTTP::Handler, position : Int32)
+  Kemal.config.add_handler(handler, position)
+end
+
+# Adds a `HTTP::Handler` (middleware) that only runs for requests matching the path prefix.
+#
+# ```
+# use "/api", AuthHandler.new
+# ```
+#
+# The handler will execute for:
+# - Exact match: `/api`
+# - Prefix match: `/api/users`, `/api/posts/1`
+#
+# But NOT for:
+# - `/`, `/apiv2`, `/other`
+def use(path : String, handler : HTTP::Handler)
+  Kemal.config.add_handler(Kemal::PathHandler.new(path, handler))
+end
+
+# Adds multiple `HTTP::Handler` (middlewares) for a specific path prefix.
+#
+# ```
+# use "/api", [AuthHandler.new, RateLimiter.new, CorsHandler.new]
+# ```
+def use(path : String, handlers : Enumerable(HTTP::Handler))
+  handlers.each do |handler|
+    use(path, handler)
+  end
+end
