@@ -12,7 +12,8 @@ HTTP_METHODS   = %w[get post put patch delete options]
 FILTER_METHODS = %w[get post put patch delete options all]
 
 # Defines a route for the given HTTP method.
-# The path must start with a `/`.
+#
+# NOTE: The path must start with a `/`.
 #
 # ```
 # get "/hello" do |env|
@@ -31,7 +32,8 @@ FILTER_METHODS = %w[get post put patch delete options all]
 {% end %}
 
 # Defines a WebSocket route.
-# The path must start with a `/`.
+#
+# NOTE: The path must start with a `/`.
 #
 # ```
 # ws "/chat" do |socket, env|
@@ -54,6 +56,17 @@ end
 # ```
 def error(status_code : Int32, &block : HTTP::Server::Context, Exception -> _)
   Kemal.config.add_error_handler status_code, &block
+end
+
+# Defines an error handler for the given `HTTP::Status`.
+#
+# ```
+# error :not_found do |env|
+#   "Page not found"
+# end
+# ```
+def error(status : HTTP::Status, &block : HTTP::Server::Context, Exception -> _)
+  Kemal.config.add_error_handler status.code, &block
 end
 
 # Defines an error handler for the given exception type.
@@ -93,7 +106,7 @@ end
      Kemal::FilterHandler::INSTANCE.{{ type.id }}({{ method }}.upcase, path, &block)
     end
 
-    def {{ type.id }}_{{ method.id }}(paths : Array(String), &block : HTTP::Server::Context -> _)
+    def {{ type.id }}_{{ method.id }}(paths : Enumerable(String), &block : HTTP::Server::Context -> _)
       paths.each do |path|
         Kemal::FilterHandler::INSTANCE.{{ type.id }}({{ method }}.upcase, path, &block)
       end
@@ -159,10 +172,13 @@ end
 # # Result: GET /users
 # ```
 def mount(router : Kemal::Router)
-  router.register_routes("")
+  router.register_routes
 end
 
-# Mounts a router at the given path prefix.
+# Mounts a router at the given *path* prefix.
+#
+# NOTE: The path must start with a `/`.
+#
 # All routes defined in the router will be prefixed with the given path.
 #
 # ```

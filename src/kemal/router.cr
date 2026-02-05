@@ -2,7 +2,7 @@ module Kemal
   # Router provides modular routing capabilities for Kemal applications.
   #
   # It allows grouping routes under a common prefix and applying filters
-  # to specific route groups. Routers can be nested using `namespace` or `group`.
+  # to specific route groups. Routers can be nested using `namespace`.
   #
   # ## Example
   #
@@ -68,7 +68,7 @@ module Kemal
     end
 
     # HTTP method helpers
-    {% for method in %w[get post put patch delete options] %}
+    {% for method in HTTP_METHODS %}
       # Defines a {{ method.id.upcase }} route.
       #
       # ```
@@ -117,7 +117,7 @@ module Kemal
     end
 
     # Method-specific before/after filters
-    {% for method in %w[get post put patch delete options all] %}
+    {% for method in FILTER_METHODS %}
       # Defines a before filter for {{ method.id.upcase }} requests.
       def before_{{ method.id }}(path : String = "*", &block : HTTP::Server::Context -> _)
         add_filter(:before, {{ method.upcase }}, path, &block)
@@ -129,7 +129,10 @@ module Kemal
       end
     {% end %}
 
-    # Creates a nested namespace/group with the given path prefix.
+    # Creates a nested namespace/group with the given *path* prefix.
+    #
+    # NOTE: The path must start with a `/`.
+    #
     # All routes defined inside the block will be prefixed with the given path.
     #
     # ```
@@ -149,7 +152,9 @@ module Kemal
       @sub_routers << SubRouter.new(path: path, router: sub_router)
     end
 
-    # Mounts another router at the given path prefix.
+    # Mounts another router at the given *path* prefix.
+    #
+    # NOTE: The path must start with a `/`.
     #
     # ```
     # users_router = Kemal::Router.new
@@ -207,7 +212,6 @@ module Kemal
     end
 
     # Collect all route paths including sub-routers
-    # :nodoc:
     protected def collect_all_route_paths(full_prefix : String) : Array(Tuple(String, String))
       paths = [] of Tuple(String, String)
 
@@ -248,7 +252,7 @@ module Kemal
 
         applicable_paths.each do |route_method, route_path|
           # Check if filter method matches route method
-          next unless filter.method == "ALL" || filter.method == route_method
+          next unless filter.method.in?("ALL", route_method)
 
           # Use filter's method (ALL or specific) when registering
           register_method = filter.method
@@ -284,8 +288,8 @@ module Kemal
     end
 
     private def join_paths(a : String, b : String) : String
-      a = a.chomp("/")
-      b = b.lchop("/") if b.starts_with?("/")
+      a = a.chomp('/')
+      b = b.lchop('/') if b.starts_with?('/')
       return "/#{b}" if a.empty?
       return a if b.empty?
       "#{a}/#{b}"
