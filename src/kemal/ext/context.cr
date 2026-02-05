@@ -105,7 +105,7 @@ class HTTP::Server
     end
 
     # Sends a JSON response with the proper `Content-Type` header.
-    # Serializes the data directly to the response (no intermediate string).
+    # Serializes the data to a string and writes it to the response in a single operation.
     # Use *content_type* for custom types (e.g. `application/vnd.api+json` for JSON API).
     #
     # ```
@@ -124,11 +124,11 @@ class HTTP::Server
     # ```
     def json(data, *, content_type : String = "application/json") : Nil
       @response.content_type = content_type
-      data.to_json(@response)
+      @response << data.to_json
     end
 
     # Sends an HTML response with the proper `Content-Type` header.
-    # Writes directly to the response.
+    # Serializes the content to a string and writes it to the response in a single operation.
     #
     # ```
     # get "/" do |env|
@@ -137,11 +137,11 @@ class HTTP::Server
     # ```
     def html(content : String, *, content_type : String = "text/html; charset=utf-8") : Nil
       @response.content_type = content_type
-      content.to_s(@response)
+      @response << content
     end
 
     # Sends a plain text response with the proper `Content-Type` header.
-    # Writes directly to the response.
+    # Serializes the content to a string and writes it to the response in a single operation.
     #
     # ```
     # get "/health" do |env|
@@ -150,11 +150,11 @@ class HTTP::Server
     # ```
     def text(content : String, *, content_type : String = "text/plain; charset=utf-8") : Nil
       @response.content_type = content_type
-      content.to_s(@response)
+      @response << content
     end
 
     # Sends an XML response with the proper `Content-Type` header.
-    # Writes directly to the response.
+    # Serializes the content to a string and writes it to the response in a single operation.
     #
     # ```
     # get "/feed.xml" do |env|
@@ -163,7 +163,7 @@ class HTTP::Server
     # ```
     def xml(content : String, *, content_type : String = "application/xml; charset=utf-8") : Nil
       @response.content_type = content_type
-      content.to_s(@response)
+      @response << content
     end
   end
 end
