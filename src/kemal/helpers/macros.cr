@@ -74,7 +74,21 @@ macro render(filename)
   ECR.render({{ filename }})
 end
 
-# Halt execution using a chained response call (e.g. `halt env.status(500).json(...)`).
+# Halts execution by closing the response. Designed for use with chained response method calls.
+#
+# ```
+# # Example: Send a JSON error and halt immediately
+# halt env.status(500).json({error: "Internal Server Error"})
+#
+# # Example: Immediately close and halt after rendering HTML
+# halt env.status(403).html("Forbidden")
+# ```
+#
+# NOTE: For most cases that require setting a specific status code and body, prefer the alternative:
+#
+# ```
+# halt env, status_code: 403, response: "Forbidden"
+# ```
 macro halt(response)
   {% if response.is_a?(Call) && response.receiver %}
     %env = {{ response.receiver }}
