@@ -1,0 +1,19 @@
+#!/bin/bash
+
+
+shards install
+
+echo "Building app..."
+
+crystal build --release -o app src/app.cr
+
+echo "Starting app..."
+
+./app &
+APP_PID=$!
+sleep 2
+
+echo "Running benchmark..."
+
+wrk -t8 -c50 -d5s http://0.0.0.0:3000
+kill $APP_PID
