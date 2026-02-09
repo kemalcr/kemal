@@ -1,3 +1,74 @@
+# 1.10.0 (TBD)
+
+- Add modular `Kemal::Router` with namespaced routing, scoped filters, WebSocket support and flexible mounting while keeping the existing DSL fully compatible [#731](https://github.com/kemalcr/kemal/pull/731). Thanks @sdogruyol :pray:
+
+```crystal
+require "kemal"
+
+api = Kemal::Router.new
+
+api.namespace "/users" do
+  get "/" do |env|
+    env.json({users: ["alice", "bob"]})
+  end
+
+  get "/:id" do |env|
+    env.text "user #{env.params.url["id"]}"
+  end
+end
+
+mount "/api/v1", api
+
+Kemal.run
+```
+
+- Add `use` keyword for registering global and path-specific middleware, including support for arrays and insertion at a specific position in the handler chain [#734](https://github.com/kemalcr/kemal/pull/734). Thanks @sdogruyol :pray:
+
+```crystal
+require "kemal"
+
+# Path-specific middlewares for /api routes
+use "/api", [CORSHandler.new, AuthHandler.new]
+
+get "/" do
+  "Public home"
+end
+
+get "/api/users" do |env|
+  env.json({users: ["alice", "bob"]})
+end
+
+Kemal.run
+```
+
+- Enhance response helpers to provide chainable JSON/HTML/text/XML helpers, `HTTP::Status` support and the ability to halt execution from a chained response for concise API error handling [#733](https://github.com/kemalcr/kemal/pull/733), [#735](https://github.com/kemalcr/kemal/pull/735), [#736](https://github.com/kemalcr/kemal/pull/736). Thanks @sdogruyol and @mamantoha :pray:
+
+```crystal
+require "kemal"
+
+get "/users" do |env|
+  # Default JSON response
+  env.json({users: ["alice", "bob"]})
+end
+
+post "/users" do |env|
+  # Symbol-based HTTP::Status and chained JSON
+  env.status(:created).json({id: 1, created: true})
+end
+
+get "/admin" do |env|
+  # Halt immediately with HTML response
+  halt env.status(403).html("<h1>Forbidden</h1>")
+end
+
+get "/api/users" do |env|
+  # Custom content type (JSON:API)
+  env.json({data: ["alice", "bob"]}, content_type: "application/vnd.api+json")
+end
+
+Kemal.run
+```
+
 # 1.9.0 (28-01-2026)
 
 - Crystal 1.19.0 support :tada:
