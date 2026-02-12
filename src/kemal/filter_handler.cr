@@ -3,11 +3,23 @@ module Kemal
   class FilterHandler
     include HTTP::Handler
     INSTANCE = new
-    property tree
+
+    @tree : Radix::Tree(Array(FilterBlock))
+    @exact_filters : Hash(String, Array(FilterBlock))
+
+    def tree
+      @tree
+    end
+
+    def tree=(tree : Radix::Tree(Array(FilterBlock)))
+      @tree = tree
+      @exact_filters = Hash(String, Array(FilterBlock)).new
+    end
 
     # This middleware is lazily instantiated and added to the handlers as soon as a call to `after_X` or `before_X` is made.
     def initialize
       @tree = Radix::Tree(Array(FilterBlock)).new
+      @exact_filters = Hash(String, Array(FilterBlock)).new
       Kemal.config.add_filter_handler(self)
     end
 
@@ -35,11 +47,15 @@ module Kemal
     # I need to call it for testing purpose since I can't call the macros in the spec.
     # It adds the block for the corresponding verb/path/type combination to the tree.
     def _add_route_filter(verb : String, path, type, &block : HTTP::Server::Context -> _)
-      lookup = lookup_filters_for_path_type(verb, path, type)
-      if lookup.found? && lookup.payload.is_a?(Array(FilterBlock))
-        lookup.payload << FilterBlock.new(&block)
+      key = radix_path(verb, path, type)
+
+      if filters = @exact_filters[key]?
+        filters << FilterBlock.new(&block)
       else
-        @tree.add radix_path(verb, path, type), [FilterBlock.new(&block)]
+        filters = [FilterBlock.new(&block)]
+        @exact_filters[key] = filters
+
+        @tree.add key, filters
       end
     end
 
@@ -59,6 +75,14 @@ module Kemal
 
     # This will fetch the block for the verb/path/type from the tree and call it.
     private def call_block_for_path_type(verb : String?, path : String, type, context : HTTP::Server::Context)
+      if path != "*"
+        call_block_for_exact_path_type(verb, "*", type, context)
+      end
+
+      call_block_for_exact_path_type(verb, path, type, context)
+    end
+
+    private def call_block_for_exact_path_type(verb : String?, path : String, type, context : HTTP::Server::Context)
       lookup = lookup_filters_for_path_type(verb, path, type)
       if lookup.found? && lookup.payload.is_a? Array(FilterBlock)
         blocks = lookup.payload
