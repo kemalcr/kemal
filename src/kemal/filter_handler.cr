@@ -4,7 +4,13 @@ module Kemal
     include HTTP::Handler
     INSTANCE = new
 
+    # Path used to represent wildcard filters that apply to all routes
+    private WILDCARD_PATH = "*"
+
     @tree : Radix::Tree(Array(FilterBlock))
+
+    # Hash cache for exact path filters to avoid repeated tree lookups
+    # Key format: "/#{type}/#{verb}/#{path}" (e.g., "/before/ALL/*")
     @exact_filters : Hash(String, Array(FilterBlock))
 
     def tree
@@ -43,9 +49,11 @@ module Kemal
       context
     end
 
-    # :nodoc: This shouldn't be called directly, it's not private because
-    # I need to call it for testing purpose since I can't call the macros in the spec.
-    # It adds the block for the corresponding verb/path/type combination to the tree.
+    # :nodoc:
+    # This shouldn't be called directly, it's not private because I need to call it for testing purpose since I can't call the macros in the spec.
+    #
+    # Registers a filter block for the given verb/path/type combination.
+    # Uses @exact_filters hash for O(1) lookup when adding multiple filters to the same path.
     def _add_route_filter(verb : String, path, type, &block : HTTP::Server::Context -> _)
       key = radix_path(verb, path, type)
 
@@ -73,12 +81,20 @@ module Kemal
       _add_route_filter verb, path, :after, &block
     end
 
-    # This will fetch the block for the verb/path/type from the tree and call it.
+    # Executes filters for a given path, ensuring global wildcard filters run first.
+    #
+    # Execution order:
+    # 1. Global wildcard filters ("*") - if path is not already a wildcard
+    # 2. Exact path filters - filters registered for the specific path
+    #
+    # This ensures that global filters (like `before_all`) always execute,
+    # while namespace-specific filters only apply to their registered paths.
     private def call_block_for_path_type(verb : String?, path : String, type, context : HTTP::Server::Context)
-      if path != "*"
+      if path != WILDCARD_PATH
         call_block_for_exact_path_type(verb, "*", type, context)
       end
 
+      # Executes all filter blocks registered for a specific verb/path/type combination
       call_block_for_exact_path_type(verb, path, type, context)
     end
 
