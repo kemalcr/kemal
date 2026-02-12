@@ -200,6 +200,58 @@ describe "Kemal::Router" do
       protected_response = call_request_on_app(protected_request)
       protected_response.body.should eq("required")
     end
+
+    it "applies namespace filters only within the namespace" do
+      router = Kemal::Router.new
+
+      router.namespace "/admin" do
+        before do |env|
+          halt env, 401, "unauthorized" unless env.request.headers["X-Admin"]? == "true"
+        end
+
+        get "/dashboard" do |env|
+          env.get("path").to_s
+        end
+      end
+
+      router.get "/public" do |env|
+        env.get("path").to_s
+      end
+
+      mount "/api", router
+
+      before_all do |env|
+        env.set "path", env.request.path
+      end
+
+      get "/public" do |env|
+        env.get("path").to_s
+      end
+
+      unauthorized_request = HTTP::Request.new("GET", "/api/admin/dashboard")
+      unauthorized_response = call_request_on_app(unauthorized_request)
+      unauthorized_response.status_code.should eq(401)
+      unauthorized_response.body.should eq("unauthorized")
+
+      authorized_request = HTTP::Request.new(
+        "GET",
+        "/api/admin/dashboard",
+        headers: HTTP::Headers{"X-Admin" => "true"},
+      )
+      authorized_response = call_request_on_app(authorized_request)
+      authorized_response.status_code.should eq(200)
+      authorized_response.body.should eq("/api/admin/dashboard")
+
+      api_public_request = HTTP::Request.new("GET", "/api/public")
+      api_public_response = call_request_on_app(api_public_request)
+      api_public_response.status_code.should eq(200)
+      api_public_response.body.should eq("/api/public")
+
+      public_request = HTTP::Request.new("GET", "/public")
+      public_response = call_request_on_app(public_request)
+      public_response.status_code.should eq(200)
+      public_response.body.should eq("/public")
+    end
   end
 
   describe "nested routers" do
