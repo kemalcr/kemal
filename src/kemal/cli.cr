@@ -42,11 +42,11 @@ module Kemal
     private def configure_ssl
       {% if !flag?(:without_openssl) %}
         if @ssl_enabled
-          abort "SSL configuration error: SSL key file not specified. Use --ssl-key-file FILE to specify the key file." if !@key_file
-          abort "SSL configuration error: SSL certificate file not specified. Use --ssl-cert-file FILE to specify the certificate file." if !@cert_file
+          abort "SSL configuration error: SSL key file not specified. Use --ssl-key-file FILE to specify the key file." if @key_file.empty?
+          abort "SSL configuration error: SSL certificate file not specified. Use --ssl-cert-file FILE to specify the certificate file." if @cert_file.empty?
           ssl = Kemal::SSL.new
-          ssl.key_file = @key_file.not_nil!
-          ssl.cert_file = @cert_file.not_nil!
+          ssl.key_file = @key_file
+          ssl.cert_file = @cert_file
           Kemal.config.ssl = ssl.context
         end
       {% end %}
