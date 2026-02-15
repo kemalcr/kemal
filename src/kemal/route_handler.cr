@@ -104,11 +104,18 @@ module Kemal
     include HTTP::Handler
 
     INSTANCE = new
-    property routes, cached_routes
+    property routes
+
+    getter cached_routes
+
+    def cached_routes=(cache : LRUCache(String, Radix::Result(Route)))
+      @cache_mutex.synchronize { @cached_routes = cache }
+    end
 
     def initialize
       @routes = Radix::Tree(Route).new
       @cached_routes = LRUCache(String, Radix::Result(Route)).new(Kemal.config.max_route_cache_size)
+      @cache_mutex = Mutex.new
     end
 
     def call(context : HTTP::Server::Context)
@@ -121,11 +128,14 @@ module Kemal
     end
 
     # Looks up the route from the Radix::Tree for the first time and caches to improve performance.
+    # Cache access is synchronized so multiple fibers can call this concurrently.
     def lookup_route(verb : String, path : String)
       lookup_path = radix_path(verb, path)
 
-      if cached_route = @cached_routes.get(lookup_path)
-        return cached_route
+      @cache_mutex.synchronize do
+        if cached_route = @cached_routes.get(lookup_path)
+          return cached_route
+        end
       end
 
       route = @routes.find(lookup_path)
@@ -136,11 +146,11 @@ module Kemal
         get_route = @routes.find(get_lookup_path)
         # Cache the HEAD->GET fallback result using the original HEAD lookup_path
         if get_route.found?
-          @cached_routes.put(lookup_path, get_route)
+          @cache_mutex.synchronize { @cached_routes.put(lookup_path, get_route) }
         end
         route = get_route
       elsif route.found?
-        @cached_routes.put(lookup_path, route)
+        @cache_mutex.synchronize { @cached_routes.put(lookup_path, route) }
       end
 
       route
