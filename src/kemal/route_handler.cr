@@ -108,6 +108,7 @@ module Kemal
 
     getter cached_routes
 
+    # Setter is synchronized for thread-safety when specs reset the cache.
     def cached_routes=(cache : LRUCache(String, Radix::Result(Route)))
       @cache_mutex.synchronize { @cached_routes = cache }
     end
