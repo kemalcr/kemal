@@ -288,5 +288,25 @@ describe "Kemal::RouteHandler" do
 
       Kemal::RouteHandler::INSTANCE.cached_routes.size.should eq large_capacity
     end
+
+    it "handles concurrent lookups safely" do
+      Kemal::RouteHandler::INSTANCE.cached_routes = Kemal::LRUCache(String, Radix::Result(Kemal::Route)).new(256)
+
+      get "/concurrent" do
+        "ok"
+      end
+
+      channel = Channel(Nil).new
+      fiber_count = 100
+      fiber_count.times do
+        spawn do
+          Kemal::RouteHandler::INSTANCE.lookup_route("GET", "/concurrent").found?.should be_true
+          channel.send(nil)
+        end
+      end
+      fiber_count.times { channel.receive }
+
+      Kemal::RouteHandler::INSTANCE.cached_routes.size.should eq 1
+    end
   end
 end
