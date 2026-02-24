@@ -202,6 +202,69 @@ describe "ParamParser" do
     end
   end
 
+  describe "raw_body" do
+    it "returns raw body for url-encoded form" do
+      request = HTTP::Request.new(
+        "POST",
+        "/",
+        body: "name=serdar&age=99",
+        headers: HTTP::Headers{"Content-Type" => "application/x-www-form-urlencoded"},
+      )
+
+      parser = Kemal::ParamParser.new(request)
+      parser.raw_body.should eq("name=serdar&age=99")
+      parser.body["name"].should eq("serdar")
+      parser.body["age"].should eq("99")
+    end
+
+    it "returns raw body for JSON" do
+      request = HTTP::Request.new(
+        "POST",
+        "/",
+        body: "{\"name\": \"Serdar\"}",
+        headers: HTTP::Headers{"Content-Type" => "application/json"},
+      )
+
+      parser = Kemal::ParamParser.new(request)
+      parser.raw_body.should eq("{\"name\": \"Serdar\"}")
+      parser.json["name"].should eq("Serdar")
+    end
+
+    it "caches body so it can be accessed multiple times" do
+      request = HTTP::Request.new(
+        "POST",
+        "/",
+        body: "foo=bar&baz=qux",
+        headers: HTTP::Headers{"Content-Type" => "application/x-www-form-urlencoded"},
+      )
+
+      parser = Kemal::ParamParser.new(request)
+      parser.raw_body.should eq("foo=bar&baz=qux")
+      parser.raw_body.should eq("foo=bar&baz=qux")
+      parser.body["foo"].should eq("bar")
+      parser.raw_body.should eq("foo=bar&baz=qux")
+    end
+
+    it "returns empty string for unsupported content types" do
+      request = HTTP::Request.new(
+        "POST",
+        "/",
+        body: "some body",
+        headers: HTTP::Headers{"Content-Type" => "text/plain"},
+      )
+
+      parser = Kemal::ParamParser.new(request)
+      parser.raw_body.should eq("")
+    end
+
+    it "returns empty string when content-type is missing" do
+      request = HTTP::Request.new("POST", "/", body: "some body")
+
+      parser = Kemal::ParamParser.new(request)
+      parser.raw_body.should eq("")
+    end
+  end
+
   context "Payload too large" do
     it "raises PayloadTooLarge when body exceeds limit" do
       Kemal.config.max_request_body_size = 10
