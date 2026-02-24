@@ -22,6 +22,30 @@ module Kemal
       @body_parsed = false
       @json_parsed = false
       @files_parsed = false
+      @cached_body = nil
+    end
+
+    # Returns the raw request body, read and cached on first access.
+    # Allows multiple handlers to access the body without consuming the IO.
+    # Only caches for `application/x-www-form-urlencoded` and `application/json`.
+    def raw_body : String
+      if cached = @cached_body
+        return cached
+      end
+
+      content_type = @request.headers["Content-Type"]?
+      return @cached_body = "" if content_type.nil?
+
+      if content_type.try(&.starts_with?(URL_ENCODED_FORM)) || content_type.try(&.starts_with?(APPLICATION_JSON))
+        validate_content_length!
+        @cached_body = if body_io = @request.body
+                         read_body_with_limit(body_io)
+                       else
+                         ""
+                       end
+      else
+        @cached_body = ""
+      end
     end
 
     def cleanup_temporary_files
@@ -59,7 +83,7 @@ module Kemal
       validate_content_length!
 
       if content_type.try(&.starts_with?(URL_ENCODED_FORM))
-        @body = parse_part(@request.body)
+        @body = parse_part(raw_body)
         return
       end
 
@@ -107,12 +131,9 @@ module Kemal
     # - If request body is a JSON `Hash` then all the params are parsed and added into `params`.
     # - If request body is a JSON `Array` it's added into `params` as `_json` and can be accessed like `params["_json"]`.
     private def parse_json
-      return unless body = @request.body
       return unless @request.headers["Content-Type"]?.try(&.starts_with?(APPLICATION_JSON))
 
-      validate_content_length!
-
-      body_str = read_body_with_limit(body)
+      body_str = raw_body
       return if body_str.empty?
 
       case json = JSON.parse(body_str).raw
