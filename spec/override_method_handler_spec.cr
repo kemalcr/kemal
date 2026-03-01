@@ -26,4 +26,30 @@ describe "Kemal::OverrideMethodHandler" do
 
     context.request.method.should eq "PATCH"
   end
+
+  it "routes PUT request via _method override through full handler chain" do
+    use Kemal::OverrideMethodHandler::INSTANCE
+
+    error 404 do |env|
+      "not found"
+    end
+
+    put "/items/:id" do |env|
+      "put #{env.params.url["id"]}"
+    end
+
+    request = HTTP::Request.new(
+      "POST",
+      "/items/42",
+      body: "_method=PUT&name=test",
+      headers: HTTP::Headers{"Content-Type" => "application/x-www-form-urlencoded"}
+    )
+
+    response = call_request_on_app(request)
+
+    # BUG: OverrideMethodHandler accesses context.params.body which triggers
+    # route_lookup caching with the original POST method. The cached lookup
+    # is then reused by RouteHandler, which never sees the overridden PUT method.
+    {response.status_code, response.body}.should eq({200, "put 42"})
+  end
 end
