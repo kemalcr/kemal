@@ -26,4 +26,48 @@ describe "Kemal::OverrideMethodHandler" do
 
     context.request.method.should eq "PATCH"
   end
+
+  it "routes POST with _method=PUT to PUT handler in real app" do
+    use Kemal::OverrideMethodHandler::INSTANCE
+
+    put "/items/:id" do |env|
+      "updated #{env.params.url["id"]}"
+    end
+
+    request = HTTP::Request.new(
+      "POST",
+      "/items/42",
+      body: "_method=PUT",
+      headers: HTTP::Headers{"Content-Type" => "application/x-www-form-urlencoded; charset=UTF-8"}
+    )
+
+    response = call_request_on_app(request)
+
+    response.status_code.should eq 200
+    response.body.should eq "updated 42"
+  end
+
+  it "does not override method when _method is not allowed" do
+    use Kemal::OverrideMethodHandler::INSTANCE
+
+    post "/items/:id" do |env|
+      "posted #{env.params.url["id"]}"
+    end
+
+    put "/items/:id" do |env|
+      "updated #{env.params.url["id"]}"
+    end
+
+    request = HTTP::Request.new(
+      "POST",
+      "/items/42",
+      body: "_method=TRACE",
+      headers: HTTP::Headers{"Content-Type" => "application/x-www-form-urlencoded; charset=UTF-8"}
+    )
+
+    response = call_request_on_app(request)
+
+    response.status_code.should eq 200
+    response.body.should eq "posted 42"
+  end
 end

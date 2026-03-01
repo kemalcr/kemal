@@ -47,6 +47,18 @@ class HTTP::Server
       @cached_route_lookup ||= Kemal::RouteHandler::INSTANCE.lookup_route(@request.method.as(String), @request.path)
     end
 
+    # Clears the cached route lookup and updates params with new route. Used by handlers that
+    # modify the request (e.g. OverrideMethodHandler) so the next route lookup uses the updated request.
+    def invalidate_route_cache
+      @cached_route_lookup = nil
+      params = @params
+      if params
+        new_lookup = Kemal::RouteHandler::INSTANCE.lookup_route(@request.method.as(String), @request.path)
+        @cached_route_lookup = new_lookup
+        params.update_url_params(new_lookup.params)
+      end
+    end
+
     def route_found?
       route_lookup.found?
     end

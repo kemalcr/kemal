@@ -104,4 +104,29 @@ describe "Context" do
       context.get?("another_non_existent_key").should be_nil
     end
   end
+
+  context "route cache invalidation" do
+    it "refreshes route lookup and url params after request method changes" do
+      put "/items/:id" { "ok" }
+
+      request = HTTP::Request.new(
+        "POST",
+        "/items/42",
+        body: "_method=PUT",
+        headers: HTTP::Headers{"Content-Type" => "application/x-www-form-urlencoded; charset=UTF-8"}
+      )
+
+      io = IO::Memory.new
+      response = HTTP::Server::Response.new(io)
+      context = HTTP::Server::Context.new(request, response)
+
+      context.params.url.empty?.should be_true
+
+      request.method = "PUT"
+      context.invalidate_route_cache
+
+      context.route_found?.should be_true
+      context.params.url["id"].should eq "42"
+    end
+  end
 end

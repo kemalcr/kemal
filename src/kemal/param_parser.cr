@@ -33,6 +33,12 @@ module Kemal
       end
     end
 
+    # Updates url params (e.g. after request method override). Used by Context#invalidate_route_cache.
+    def update_url_params(new_url : Hash(String, String))
+      @url = new_url
+      @url_parsed = false
+    end
+
     private def unescape_url_param(value : String)
       value.empty? ? value : URI.decode(value)
     rescue

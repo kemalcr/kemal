@@ -4,7 +4,7 @@ module Kemal
   # This middleware is **not** in the default Kemal handlers. You need to explicitly add this to your handlers:
   #
   # ```ruby
-  # add_handler Kemal::OverrideMethodHandler
+  # use Kemal::OverrideMethodHandler
   # ```
   #
   # **Important:** This middleware consumes `params.body` to read the `_method` magic parameter.
@@ -21,6 +21,7 @@ module Kemal
       if request.method == OVERRIDE_METHOD
         if context.params.body.has_key?(OVERRIDE_METHOD_PARAM_KEY) && override_method_valid?(context.params.body[OVERRIDE_METHOD_PARAM_KEY])
           request.method = context.params.body["_method"].upcase
+          context.invalidate_route_cache
         end
       end
       call_next(context)
