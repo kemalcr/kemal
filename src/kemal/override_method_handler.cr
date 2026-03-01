@@ -4,7 +4,7 @@ module Kemal
   # This middleware is **not** in the default Kemal handlers. You need to explicitly add this to your handlers:
   #
   # ```ruby
-  # use Kemal::OverrideMethodHandler
+  # use Kemal::OverrideMethodHandler::INSTANCE
   # ```
   #
   # **Important:** This middleware consumes `params.body` to read the `_method` magic parameter.
