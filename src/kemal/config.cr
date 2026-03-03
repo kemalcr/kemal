@@ -79,6 +79,7 @@ module Kemal
       CUSTOM_HANDLERS.clear
       FILTER_HANDLERS.clear
       ERROR_HANDLERS.clear
+      EXCEPTION_HANDLERS.clear
     end
 
     def handlers
