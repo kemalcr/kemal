@@ -1,4 +1,4 @@
-# 1.10.0 (TBD)
+# 1.10.0 (03-03-2026)
 
 - Add modular `Kemal::Router` with namespaced routing, scoped filters, WebSocket support and flexible mounting while keeping the existing DSL fully compatible [#731](https://github.com/kemalcr/kemal/pull/731). Thanks @sdogruyol :pray:
 
@@ -68,6 +68,20 @@ end
 
 Kemal.run
 ```
+
+- Ensure global wildcard filters always execute while keeping namespace filters isolated to their routes [#737](https://github.com/kemalcr/kemal/pull/737). Thanks @mamantoha :pray:
+- Fix CLI SSL validation and expand CLI option parsing specs [#738](https://github.com/kemalcr/kemal/pull/738). Thanks @sdogruyol :pray:
+- Make route LRU cache concurrency-safe with Mutex [#739](https://github.com/kemalcr/kemal/pull/739). Thanks @sdogruyol :pray:
+- Add `raw_body` to ParamParser for multi-handler body access (e.g. kemal-session) [#740](https://github.com/kemalcr/kemal/pull/740). Thanks @sdogruyol :pray:
+
+```crystal
+post "/" do |env|
+  raw = env.params.raw_body  # raw body, multiple handlers can call it
+  env.params.body["name"]    # parsed body
+end
+```
+
+- Fix OverrideMethodHandler route cache bug when using `_method` override [#741](https://github.com/kemalcr/kemal/pull/741), [#742](https://github.com/kemalcr/kemal/pull/742). Thanks @skojin and @sdogruyol :pray:
 
 # 1.9.0 (28-01-2026)
 
