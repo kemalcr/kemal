@@ -43,7 +43,7 @@ delete "/users/:id" do |env|
   id = env.params.url["id"].to_i
 
   # Delete user and check if any rows were affected
-  result = DB.exec "DELETE FROM users WHERE id = $1", id
+  result = DBC.exec "DELETE FROM users WHERE id = $1", id
 
   if result.rows_affected > 0
     {message: "User deleted successfully"}.to_json
