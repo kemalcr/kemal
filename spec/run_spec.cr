@@ -42,6 +42,23 @@ describe "Run" do
       CR
   end
 
+  it "applies shutdown_timeout during graceful shutdown" do
+    output = run(<<-'CRYSTAL')
+      Kemal.config.shutdown_timeout = 30.milliseconds
+      start = Time.monotonic
+
+      Kemal.run do
+        Kemal.stop
+      end
+
+      elapsed_ms = (Time.monotonic - start).total_milliseconds
+      puts "elapsed_ms=#{elapsed_ms}"
+      CRYSTAL
+
+    match = output.match!(/elapsed_ms=([0-9]+(?:\.[0-9]+)?)/)
+    match[1].to_f.should be >= 20.0
+  end
+
   it "allows custom HTTP::Server bind" do
     run(<<-CR).should contain "[test] Kemal is running in test mode."
       Kemal.run do |config|
