@@ -22,7 +22,7 @@ module Kemal
     {% end %}
 
     property app_name, host_binding, ssl, port, env, public_folder, logging, running
-    property always_rescue, server : HTTP::Server?, extra_options, shutdown_message
+    property always_rescue, server : HTTP::Server?, extra_options, shutdown_message, shutdown_timeout
     property serve_static : (Bool | Hash(String, Bool))
     property static_headers : (HTTP::Server::Context, String, File::Info ->)?
     property? powered_by_header : Bool = true
@@ -44,6 +44,7 @@ module Kemal
       @default_handlers_setup = false
       @running = false
       @shutdown_message = true
+      @shutdown_timeout = 0.seconds
       @handler_position = 0
       @max_route_cache_size = 1024
       @max_request_body_size = 8 * 1024 * 1024 # 8MB

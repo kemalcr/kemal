@@ -40,6 +40,10 @@ describe "Config" do
     config.shutdown_message.should be_true
   end
 
+  it "sets default shutdown timeout to zero" do
+    Kemal::Config.new.shutdown_timeout.should eq 0.seconds
+  end
+
   it "adds custom options" do
     config = Kemal.config
     ARGV.push("--test")

@@ -84,6 +84,9 @@ module Kemal
     if server = config.server
       server.close unless server.closed?
       config.running = false
+      if config.shutdown_timeout.positive?
+        sleep(config.shutdown_timeout)
+      end
     else
       raise "Cannot stop #{Kemal.config.app_name}: server instance is not set. Please ensure Kemal.run has been called before calling Kemal.stop."
     end
