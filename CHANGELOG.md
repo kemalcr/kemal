@@ -1,3 +1,11 @@
+# 1.10.1 (24-03-2026)
+
+- Add `shutdown_timeout` configuration for graceful shutdown: after `Kemal.stop`, Kemal can wait before exit so in-flight work can finish [#745](https://github.com/kemalcr/kemal/pull/745). Thanks @sdogruyol :pray:
+
+```crystal
+Kemal.config.shutdown_timeout = 10.seconds
+```
+
 # 1.10.0 (03-03-2026)
 
 - Add modular `Kemal::Router` with namespaced routing, scoped filters, WebSocket support and flexible mounting while keeping the existing DSL fully compatible [#731](https://github.com/kemalcr/kemal/pull/731). Thanks @sdogruyol :pray:
