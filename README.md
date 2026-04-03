@@ -93,6 +93,7 @@ Kemal is designed to feel familiar if you come from popular web frameworks, whil
 - 📚 [Official Documentation](http://kemalcr.com)
 - 💻 [Example Applications](https://github.com/kemalcr/kemal/tree/master/examples)
 - 🚀 [Kemal Guide](http://kemalcr.com/guide/)
+- 💻 [Kemal By Example](https://github.com/sdogruyol/kemal-by-example)
 - 💬 [Community Chat](https://discord.gg/prSVAZJEpz)
 
 
