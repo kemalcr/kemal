@@ -151,18 +151,20 @@ module Kemal
       end
     end
 
-    def serve_static_size_option(name : String, default : Int64 = 0_i64) : Int64
+    def serve_static_size_option?(name : String) : Int64?
       config = @serve_static
-      return default unless config.is_a?(Hash)
+      return unless config.is_a?(Hash)
 
       case value = config[name]?
       when Int32
         value.to_i64
       when Int64
         value
-      else
-        default
       end
+    end
+
+    def serve_static_size_option(name : String, default : Int64 = 0_i64) : Int64
+      serve_static_size_option?(name) || default
     end
 
     def setup

@@ -149,6 +149,58 @@ describe Kemal::StaticFileHandler do
     response.body.should eq(File.read("#{__DIR__}/static/dir/test.txt")[0, 5])
   end
 
+  it "should revalidate cached files before honoring If-None-Match" do
+    serve_static({"gzip" => false, "dir_listing" => false, "cache" => true, "cache_size" => 1024, "cache_check_interval" => 5_000})
+    temp_dir = File.tempname("kemal-static-cache-etag")
+    Dir.mkdir(temp_dir)
+
+    begin
+      handler = Kemal::StaticFileHandler.new temp_dir
+      file_path = File.join(temp_dir, "test.txt")
+      File.write(file_path, "first version")
+
+      response = handle HTTP::Request.new("GET", "/test.txt"), public_dir: temp_dir, handler: handler
+      etag = response.headers["Etag"]
+
+      File.write(file_path, "second version")
+      sleep 20.milliseconds
+
+      headers = HTTP::Headers{"If-None-Match" => etag}
+      response = handle HTTP::Request.new("GET", "/test.txt", headers), public_dir: temp_dir, handler: handler
+      response.status_code.should eq(200)
+      response.body.should eq("second version")
+    ensure
+      File.delete?(File.join(temp_dir, "test.txt"))
+      Dir.delete(temp_dir)
+    end
+  end
+
+  it "should honor If-Modified-Since for cached files" do
+    serve_static({"gzip" => false, "dir_listing" => false, "cache" => true, "cache_size" => 1024, "cache_check_interval" => 5_000})
+    handler = Kemal::StaticFileHandler.new "#{__DIR__}/static"
+
+    response = handle HTTP::Request.new("GET", "/dir/test.txt"), handler: handler
+    last_modified = response.headers["Last-Modified"]
+
+    headers = HTTP::Headers{"If-Modified-Since" => last_modified}
+    response = handle HTTP::Request.new("GET", "/dir/test.txt", headers), handler: handler
+    response.status_code.should eq(304)
+    response.body.should eq("")
+  end
+
+  it "should match uncached HEAD responses when served from the in-memory cache" do
+    serve_static({"gzip" => false, "dir_listing" => false, "cache" => true, "cache_size" => 1024})
+    handler = Kemal::StaticFileHandler.new "#{__DIR__}/static"
+
+    expected = handle HTTP::Request.new("HEAD", "/dir/test.txt")
+    handle HTTP::Request.new("GET", "/dir/test.txt"), handler: handler
+    response = handle HTTP::Request.new("HEAD", "/dir/test.txt"), handler: handler
+
+    response.status_code.should eq(expected.status_code)
+    response.headers["Content-Type"].should eq(expected.headers["Content-Type"])
+    response.body.should eq(expected.body)
+  end
+
   it "should invalidate cached files when the source file changes" do
     serve_static({"gzip" => false, "dir_listing" => false, "cache" => true, "cache_size" => 1024, "cache_check_interval" => 10})
     temp_dir = File.tempname("kemal-static-cache")
@@ -170,6 +222,29 @@ describe Kemal::StaticFileHandler do
       response = handle HTTP::Request.new("GET", "/test.txt"), public_dir: temp_dir, handler: handler
       response.status_code.should eq(200)
       response.body.should eq("second version")
+    ensure
+      File.delete?(File.join(temp_dir, "test.txt"))
+      Dir.delete(temp_dir)
+    end
+  end
+
+  it "should return 404 after a cached file is deleted and revalidated" do
+    serve_static({"gzip" => false, "dir_listing" => false, "cache" => true, "cache_size" => 1024, "cache_check_interval" => 0})
+    temp_dir = File.tempname("kemal-static-cache-delete")
+    Dir.mkdir(temp_dir)
+
+    begin
+      handler = Kemal::StaticFileHandler.new temp_dir
+      file_path = File.join(temp_dir, "test.txt")
+      File.write(file_path, "first version")
+
+      response = handle HTTP::Request.new("GET", "/test.txt"), public_dir: temp_dir, handler: handler
+      response.status_code.should eq(200)
+
+      File.delete(file_path)
+
+      response = handle HTTP::Request.new("GET", "/test.txt"), public_dir: temp_dir, handler: handler
+      response.status_code.should eq(404)
     ensure
       File.delete?(File.join(temp_dir, "test.txt"))
       Dir.delete(temp_dir)
@@ -203,6 +278,62 @@ describe Kemal::StaticFileHandler do
       response.body.should eq("second version now")
     ensure
       File.delete?(File.join(temp_dir, "test.txt"))
+      Dir.delete(temp_dir)
+    end
+  end
+
+  it "should not cache files larger than cache_size" do
+    serve_static({"gzip" => false, "dir_listing" => false, "cache" => true, "cache_size" => 4, "cache_check_interval" => 5_000})
+    temp_dir = File.tempname("kemal-static-cache-oversize")
+    Dir.mkdir(temp_dir)
+
+    begin
+      handler = Kemal::StaticFileHandler.new temp_dir
+      file_path = File.join(temp_dir, "test.txt")
+      File.write(file_path, "first version")
+
+      response = handle HTTP::Request.new("GET", "/test.txt"), public_dir: temp_dir, handler: handler
+      response.status_code.should eq(200)
+      response.body.should eq("first version")
+
+      File.write(file_path, "second version")
+
+      response = handle HTTP::Request.new("GET", "/test.txt"), public_dir: temp_dir, handler: handler
+      response.status_code.should eq(200)
+      response.body.should eq("second version")
+    ensure
+      File.delete?(File.join(temp_dir, "test.txt"))
+      Dir.delete(temp_dir)
+    end
+  end
+
+  it "should leave newer files uncached when the cache budget is full" do
+    serve_static({"gzip" => false, "dir_listing" => false, "cache" => true, "cache_size" => 12, "cache_check_interval" => 5_000})
+    temp_dir = File.tempname("kemal-static-cache-budget")
+    Dir.mkdir(temp_dir)
+
+    begin
+      handler = Kemal::StaticFileHandler.new temp_dir
+      first_path = File.join(temp_dir, "first.txt")
+      second_path = File.join(temp_dir, "second.txt")
+      File.write(first_path, "first-one")
+      File.write(second_path, "second-a")
+
+      response = handle HTTP::Request.new("GET", "/first.txt"), public_dir: temp_dir, handler: handler
+      response.body.should eq("first-one")
+      response = handle HTTP::Request.new("GET", "/second.txt"), public_dir: temp_dir, handler: handler
+      response.body.should eq("second-a")
+
+      File.write(first_path, "first-two")
+      File.write(second_path, "second-b")
+
+      response = handle HTTP::Request.new("GET", "/first.txt"), public_dir: temp_dir, handler: handler
+      response.body.should eq("first-one")
+      response = handle HTTP::Request.new("GET", "/second.txt"), public_dir: temp_dir, handler: handler
+      response.body.should eq("second-b")
+    ensure
+      File.delete?(File.join(temp_dir, "first.txt"))
+      File.delete?(File.join(temp_dir, "second.txt"))
       Dir.delete(temp_dir)
     end
   end
