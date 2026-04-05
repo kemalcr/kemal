@@ -59,20 +59,26 @@ module Kemal
     end
 
     private def try_serve_cached_asset(context : HTTP::Server::Context, target : RequestTarget) : Bool
+      force_revalidate = conditional_cache_request?(context)
+
       if !target.is_dir_path
-        if cached = cached_file(target.file_path.to_s)
+        if cached = cached_file(target.file_path.to_s, force_revalidate)
           serve_cached_asset(context, target.file_path.to_s, cached)
           return true
         end
       elsif cacheable_directory_index?
         index_path = (target.file_path / "index.html").to_s
-        if cached = cached_file(index_path)
+        if cached = cached_file(index_path, force_revalidate)
           serve_cached_asset(context, index_path, cached)
           return true
         end
       end
 
       false
+    end
+
+    private def conditional_cache_request?(context : HTTP::Server::Context) : Bool
+      !!context.request.if_none_match || !!context.request.headers["If-Modified-Since"]?
     end
 
     private def serve_from_disk_or_fallthrough(context : HTTP::Server::Context, target : RequestTarget)
@@ -122,7 +128,7 @@ module Kemal
 
     private def serve_cached_asset(context : HTTP::Server::Context, file_path : String, cached : CachedFile, mime_path : String = file_path)
       last_modified = cached.file_info.modification_time
-      add_cache_headers(context.response.headers, last_modified)
+      add_static_cache_headers(context.response.headers, cached.file_info)
 
       if cache_request?(context, last_modified)
         context.response.status = :not_modified
@@ -135,7 +141,7 @@ module Kemal
 
     private def serve_static_asset(context : HTTP::Server::Context, file_path : String, file_info : File::Info, mime_path : String = file_path)
       last_modified = file_info.modification_time
-      add_cache_headers(context.response.headers, last_modified)
+      add_static_cache_headers(context.response.headers, file_info)
 
       if cache_request?(context, last_modified)
         context.response.status = :not_modified
@@ -150,13 +156,14 @@ module Kemal
       end
     end
 
-    private def cached_file(file_path : String) : CachedFile?
+    private def cached_file(file_path : String, force_revalidate : Bool = false) : CachedFile?
       return unless cache_enabled?
 
       entry = @cache_lock.synchronize do
         @cached_files[file_path]?
       end
       return unless entry
+      return revalidate_cached_file(file_path) if force_revalidate
       return entry unless cache_check_due?(entry)
 
       revalidate_cached_file(file_path)
@@ -194,7 +201,7 @@ module Kemal
         end
 
         unless stored
-          if @cached_bytes + data_size <= cache_limit
+          if cache_capacity_available?(data_size, cache_limit)
             cached_file = CachedFile.new(data, file_info, Time.instant)
             stored = cached_file
             @cached_files[file_path] = cached_file
@@ -224,15 +231,17 @@ module Kemal
     end
 
     private def memory_cache_limit : Int64
-      cache_size = Kemal.config.serve_static_size_option("cache_size")
-      return cache_size if cache_size.positive?
+      if cache_size = Kemal.config.serve_static_size_option?("cache_size")
+        return cache_size.positive? ? cache_size : 0_i64
+      end
+
       return DEFAULT_MEMORY_CACHE_SIZE if Kemal.config.serve_static_option?("cache")
 
       0_i64
     end
 
     private def cache_check_interval : Time::Span
-      interval = Kemal.config.serve_static_size_option("cache_check_interval", DEFAULT_CACHE_CHECK_INTERVAL)
+      interval = Kemal.config.serve_static_size_option?("cache_check_interval") || DEFAULT_CACHE_CHECK_INTERVAL
       interval = 0_i64 if interval.negative?
       interval.milliseconds
     end
@@ -248,6 +257,15 @@ module Kemal
       Time.instant - entry.checked_at >= interval
     end
 
+    private def add_static_cache_headers(headers : HTTP::Headers, file_info : File::Info)
+      headers["Etag"] = static_file_etag(file_info)
+      headers["Last-Modified"] = HTTP.format_time(file_info.modification_time)
+    end
+
+    private def static_file_etag(file_info : File::Info) : String
+      %(W/"#{file_info.modification_time.to_unix_ns}-#{file_info.size}")
+    end
+
     private def fresh_cache_entry?(entry : CachedFile, file_info : File::Info) : Bool
       cached_info = entry.file_info
       cached_info.size == file_info.size && cached_info.modification_time == file_info.modification_time
@@ -257,6 +275,10 @@ module Kemal
       refreshed = CachedFile.new(entry.data, entry.file_info, Time.instant)
       @cached_files[file_path] = refreshed
       refreshed
+    end
+
+    private def cache_capacity_available?(data_size : Int64, cache_limit : Int64) : Bool
+      @cached_bytes + data_size <= cache_limit
     end
 
     private def remove_cached_file(file_path : String, entry : CachedFile)
