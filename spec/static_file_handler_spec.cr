@@ -11,6 +11,12 @@ private def handle(request, fallthrough = true, decompress = true, public_dir = 
   HTTP::Client::Response.from_io(io, decompress: decompress)
 end
 
+class Kemal::StaticFileHandler
+  def read_file_bytes_for_spec(file_path : String, size : Int64)
+    read_file_bytes(file_path, size)
+  end
+end
+
 describe Kemal::StaticFileHandler do
   file = File.open "#{__DIR__}/static/dir/test.txt"
   File.open "#{__DIR__}/static/dir/nested/path/test.txt"
@@ -307,8 +313,8 @@ describe Kemal::StaticFileHandler do
     end
   end
 
-  it "should leave newer files uncached when the cache budget is full" do
-    serve_static({"gzip" => false, "dir_listing" => false, "cache" => true, "cache_size" => 12, "cache_check_interval" => 5_000})
+  it "should evict the least recently used file when the cache budget is full" do
+    serve_static({"gzip" => false, "dir_listing" => false, "cache" => true, "cache_size" => 16, "cache_check_interval" => 5_000})
     temp_dir = File.tempname("kemal-static-cache-budget")
     Dir.mkdir(temp_dir)
 
@@ -316,26 +322,44 @@ describe Kemal::StaticFileHandler do
       handler = Kemal::StaticFileHandler.new temp_dir
       first_path = File.join(temp_dir, "first.txt")
       second_path = File.join(temp_dir, "second.txt")
-      File.write(first_path, "first-one")
-      File.write(second_path, "second-a")
-
-      response = handle HTTP::Request.new("GET", "/first.txt"), public_dir: temp_dir, handler: handler
-      response.body.should eq("first-one")
-      response = handle HTTP::Request.new("GET", "/second.txt"), public_dir: temp_dir, handler: handler
-      response.body.should eq("second-a")
-
-      File.write(first_path, "first-two")
+      third_path = File.join(temp_dir, "third.txt")
+      File.write(first_path, "first-a")
       File.write(second_path, "second-b")
+      File.write(third_path, "third-c")
 
       response = handle HTTP::Request.new("GET", "/first.txt"), public_dir: temp_dir, handler: handler
-      response.body.should eq("first-one")
+      response.body.should eq("first-a")
+      sleep 2.milliseconds
       response = handle HTTP::Request.new("GET", "/second.txt"), public_dir: temp_dir, handler: handler
       response.body.should eq("second-b")
+      sleep 2.milliseconds
+      response = handle HTTP::Request.new("GET", "/first.txt"), public_dir: temp_dir, handler: handler
+      response.body.should eq("first-a")
+      sleep 2.milliseconds
+      response = handle HTTP::Request.new("GET", "/third.txt"), public_dir: temp_dir, handler: handler
+      response.body.should eq("third-c")
+
+      File.write(first_path, "first-z")
+      File.write(second_path, "second-z")
+      File.write(third_path, "third-z")
+
+      response = handle HTTP::Request.new("GET", "/first.txt"), public_dir: temp_dir, handler: handler
+      response.body.should eq("first-a")
+      response = handle HTTP::Request.new("GET", "/third.txt"), public_dir: temp_dir, handler: handler
+      response.body.should eq("third-c")
+      response = handle HTTP::Request.new("GET", "/second.txt"), public_dir: temp_dir, handler: handler
+      response.body.should eq("second-z")
     ensure
       File.delete?(File.join(temp_dir, "first.txt"))
       File.delete?(File.join(temp_dir, "second.txt"))
+      File.delete?(File.join(temp_dir, "third.txt"))
       Dir.delete(temp_dir)
     end
+  end
+
+  it "should not allocate cached bytes larger than Int32::MAX" do
+    handler = Kemal::StaticFileHandler.new "#{__DIR__}/static"
+    handler.read_file_bytes_for_spec("ignored", Int32::MAX.to_i64 + 1).should be_nil
   end
 
   it "should handle setting custom headers" do
