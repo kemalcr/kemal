@@ -337,5 +337,15 @@ describe "Macros" do
         conf["dir_listing"].should be_true
       end
     end
+
+    it "should accept cache options" do
+      serve_static({"cache" => true, "cache_size" => 1024})
+      conf = Kemal.config.serve_static
+      conf.is_a?(Hash).should be_true
+      if conf.is_a?(Hash)
+        conf["cache"].should be_true
+        conf["cache_size"].should eq(1024)
+      end
+    end
   end
 end

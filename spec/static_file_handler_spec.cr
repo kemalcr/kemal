@@ -1,10 +1,10 @@
 require "./spec_helper"
 
-private def handle(request, fallthrough = true, decompress = true)
+private def handle(request, fallthrough = true, decompress = true, public_dir = "#{__DIR__}/static")
   io = IO::Memory.new
   response = HTTP::Server::Response.new(io)
   context = HTTP::Server::Context.new(request, response)
-  handler = Kemal::StaticFileHandler.new "#{__DIR__}/static", fallthrough
+  handler = Kemal::StaticFileHandler.new public_dir, fallthrough
   handler.call context
   response.close
   io.rewind
@@ -139,6 +139,41 @@ describe Kemal::StaticFileHandler do
     end
   end
 
+  it "should serve byte ranges from the in-memory cache" do
+    serve_static({"gzip" => false, "dir_listing" => true, "cache" => true, "cache_size" => 1024})
+    headers = HTTP::Headers{"Range" => "bytes=0-4"}
+    response = handle HTTP::Request.new("GET", "/dir/test.txt", headers)
+
+    response.status_code.should eq(206)
+    response.headers["Content-Range"].should eq("bytes 0-4/#{file_size}")
+    response.body.should eq(File.read("#{__DIR__}/static/dir/test.txt")[0, 5])
+  end
+
+  it "should invalidate cached files when the source file changes" do
+    serve_static({"gzip" => false, "dir_listing" => false, "cache" => true, "cache_size" => 1024})
+    temp_dir = File.tempname("kemal-static-cache")
+    Dir.mkdir(temp_dir)
+
+    begin
+      file_path = File.join(temp_dir, "test.txt")
+      File.write(file_path, "first version")
+
+      response = handle HTTP::Request.new("GET", "/test.txt"), public_dir: temp_dir
+      response.status_code.should eq(200)
+      response.body.should eq("first version")
+
+      sleep 1.second
+      File.write(file_path, "second version")
+
+      response = handle HTTP::Request.new("GET", "/test.txt"), public_dir: temp_dir
+      response.status_code.should eq(200)
+      response.body.should eq("second version")
+    ensure
+      File.delete?(File.join(temp_dir, "test.txt"))
+      Dir.delete(temp_dir)
+    end
+  end
+
   it "should handle setting custom headers" do
     headers = Proc(HTTP::Server::Context, String, File::Info, Nil).new do |env, path, stat|
       if path =~ /\.html$/
@@ -181,6 +216,7 @@ describe Kemal::StaticFileHandler do
   end
 
   it "should handle requests with trailing slashes in nested paths" do
+    serve_static({"gzip" => true, "dir_listing" => true})
     response = handle HTTP::Request.new("GET", "/dir/nested/path/")
     response.status_code.should eq(200)
   end

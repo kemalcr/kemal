@@ -1,24 +1,111 @@
 module Kemal
   class StaticFileHandler < HTTP::StaticFileHandler
+    private DEFAULT_MEMORY_CACHE_SIZE = 8_i64 * 1024 * 1024
+    private record CachedFile, data : Bytes, file_info : File::Info
+
+    @cached_files = {} of String => CachedFile
+    @cached_bytes = 0_i64
+    @cache_lock = Mutex.new
+
+    private def serve_static_asset(context : HTTP::Server::Context, file_path : String, file_info : File::Info, mime_path : String = file_path)
+      last_modified = file_info.modification_time
+      add_cache_headers(context.response.headers, last_modified)
+
+      if cache_request?(context, last_modified)
+        context.response.status = :not_modified
+        return
+      end
+
+      mime_type = MIME.from_filename(mime_path, "application/octet-stream")
+      if cached = cached_file(file_path, file_info)
+        send_file(context, file_path, cached.data, cached.file_info, mime_type)
+      else
+        send_file(context, file_path, mime_type)
+      end
+    end
+
+    private def cached_file(file_path : String, file_info : File::Info) : CachedFile?
+      cache_limit = memory_cache_limit
+      return if cache_limit <= 0
+      return if file_info.size > cache_limit
+
+      cached = nil
+      @cache_lock.synchronize do
+        if entry = @cached_files[file_path]?
+          if fresh_cache_entry?(entry, file_info)
+            cached = entry
+          else
+            remove_cached_file(file_path, entry)
+          end
+        end
+      end
+      return cached if cached
+
+      data = read_file_bytes(file_path, file_info.size)
+      return unless data
+
+      stored = nil
+      data_size = data.bytesize.to_i64
+      @cache_lock.synchronize do
+        if entry = @cached_files[file_path]?
+          if fresh_cache_entry?(entry, file_info)
+            stored = entry
+          else
+            remove_cached_file(file_path, entry)
+          end
+        end
+
+        unless stored
+          if @cached_bytes + data_size <= cache_limit
+            stored = CachedFile.new(data, file_info)
+            @cached_files[file_path] = stored.not_nil!
+            @cached_bytes += data_size
+          end
+        end
+      end
+
+      stored
+    end
+
+    private def memory_cache_limit : Int64
+      cache_size = Kemal.config.serve_static_size_option("cache_size")
+      return cache_size if cache_size.positive?
+      return DEFAULT_MEMORY_CACHE_SIZE if Kemal.config.serve_static_option?("cache")
+
+      0_i64
+    end
+
+    private def fresh_cache_entry?(entry : CachedFile, file_info : File::Info) : Bool
+      cached_info = entry.file_info
+      cached_info.size == file_info.size && cached_info.modification_time == file_info.modification_time
+    end
+
+    private def remove_cached_file(file_path : String, entry : CachedFile)
+      @cached_files.delete(file_path)
+      @cached_bytes -= entry.data.bytesize.to_i64
+    end
+
+    private def read_file_bytes(file_path : String, size : Int64) : Bytes?
+      data = Bytes.new(size.to_i)
+      File.open(file_path) do |file|
+        file.read_fully(data)
+      end
+      data
+    rescue File::Error
+      nil
+    end
+
     {% if compare_versions(Crystal::VERSION, "1.17.0") >= 0 %}
       private def directory_index(context : HTTP::Server::Context, request_path : Path, file_path : Path)
-        config = Kemal.config.serve_static
-        unless config.is_a?(Hash)
+        config = Kemal.config
+        unless config.serve_static.is_a?(Hash)
           return call_next(context)
         end
 
         index_path = file_path / "index.html"
-        if config.fetch("dir_index", false) && (index_info = File.info?(index_path))
-          last_modified = index_info.modification_time
-          add_cache_headers(context.response.headers, last_modified)
-
-          if cache_request?(context, last_modified)
-            context.response.status = :not_modified
-            return
-          end
-
-          send_file(context, index_path.to_s)
-        elsif config.fetch("dir_listing", false)
+        if config.serve_static_option?("dir_index") && (index_info = File.info?(index_path))
+          serve_static_asset(context, index_path.to_s, index_info)
+        elsif config.serve_static_option?("dir_listing")
           context.response.content_type = "text/html; charset=utf-8"
           directory_listing(context.response, request_path, file_path)
         else
@@ -26,10 +113,8 @@ module Kemal
         end
       end
 
-      # NOTE: This override opts out of some behaviour from HTTP::StaticFileHandler,
-      # such as serving content ranges.
       private def serve_file(context : HTTP::Server::Context, file_info, file_path : Path, original_file_path : Path, last_modified : Time)
-        send_file(context, file_path.to_s)
+        serve_static_asset(context, file_path.to_s, file_info, original_file_path.to_s)
       end
     {% else %}
       def call(context : HTTP::Server::Context)
@@ -79,41 +164,22 @@ module Kemal
         return call_next(context) unless file_info
 
         if is_dir
-          config = Kemal.config.serve_static
+          config = Kemal.config
 
-          if config.is_a?(Hash) && config.fetch("dir_index", false) && File.exists?(File.join(file_path, "index.html"))
+          if config.serve_static.is_a?(Hash) && config.serve_static_option?("dir_index") && File.exists?(File.join(file_path, "index.html"))
             file_path = File.join(@public_dir, expanded_path, "index.html")
-
-            last_modified = modification_time(file_path)
-            add_cache_headers(context.response.headers, last_modified)
-
-            if cache_request?(context, last_modified)
-              context.response.status_code = 304
-              return
-            end
-            send_file(context, file_path)
-          elsif config.is_a?(Hash) && config.fetch("dir_listing", false)
+            serve_static_asset(context, file_path, File.info(file_path))
+          elsif config.serve_static.is_a?(Hash) && config.serve_static_option?("dir_listing")
             context.response.content_type = "text/html; charset=utf-8"
             directory_listing(context.response, request_path, file_path)
           else
             call_next(context)
           end
         elsif is_file
-          last_modified = modification_time(file_path)
-          add_cache_headers(context.response.headers, last_modified)
-
-          if cache_request?(context, last_modified)
-            context.response.status_code = 304
-            return
-          end
-          send_file(context, file_path.to_s)
+          serve_static_asset(context, file_path.to_s, file_info)
         else # Not a normal file (FIFO/device/socket)
           call_next(context)
         end
-      end
-
-      private def modification_time(file_path)
-        File.info(file_path).modification_time
       end
     {% end %}
   end
