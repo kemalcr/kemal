@@ -91,10 +91,11 @@ end
 # ```
 #
 # Static server also have some advanced customization options like `dir_listing`,
-# `dir_index`, `gzip` and in-memory caching via `cache` / `cache_size`.
+# `dir_index`, `gzip` and in-memory caching via `cache`, `cache_size` and
+# `cache_check_interval` (milliseconds).
 #
 # ```
-# serve_static({"gzip" => true, "dir_listing" => false, "cache" => true, "cache_size" => 4 * 1024 * 1024})
+# serve_static({"gzip" => true, "dir_listing" => false, "cache" => true, "cache_size" => 4 * 1024 * 1024, "cache_check_interval" => 1_000})
 # ```
 def serve_static(status : Bool)
   Kemal.config.serve_static = status

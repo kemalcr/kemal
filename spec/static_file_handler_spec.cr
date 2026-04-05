@@ -1,10 +1,10 @@
 require "./spec_helper"
 
-private def handle(request, fallthrough = true, decompress = true, public_dir = "#{__DIR__}/static")
+private def handle(request, fallthrough = true, decompress = true, public_dir = "#{__DIR__}/static", handler : Kemal::StaticFileHandler? = nil)
   io = IO::Memory.new
   response = HTTP::Server::Response.new(io)
   context = HTTP::Server::Context.new(request, response)
-  handler = Kemal::StaticFileHandler.new public_dir, fallthrough
+  handler ||= Kemal::StaticFileHandler.new public_dir, fallthrough
   handler.call context
   response.close
   io.rewind
@@ -150,24 +150,57 @@ describe Kemal::StaticFileHandler do
   end
 
   it "should invalidate cached files when the source file changes" do
-    serve_static({"gzip" => false, "dir_listing" => false, "cache" => true, "cache_size" => 1024})
+    serve_static({"gzip" => false, "dir_listing" => false, "cache" => true, "cache_size" => 1024, "cache_check_interval" => 10})
     temp_dir = File.tempname("kemal-static-cache")
     Dir.mkdir(temp_dir)
 
     begin
+      handler = Kemal::StaticFileHandler.new temp_dir
       file_path = File.join(temp_dir, "test.txt")
       File.write(file_path, "first version")
 
-      response = handle HTTP::Request.new("GET", "/test.txt"), public_dir: temp_dir
+      response = handle HTTP::Request.new("GET", "/test.txt"), public_dir: temp_dir, handler: handler
       response.status_code.should eq(200)
       response.body.should eq("first version")
 
-      sleep 1.second
       File.write(file_path, "second version")
 
-      response = handle HTTP::Request.new("GET", "/test.txt"), public_dir: temp_dir
+      sleep 20.milliseconds
+
+      response = handle HTTP::Request.new("GET", "/test.txt"), public_dir: temp_dir, handler: handler
       response.status_code.should eq(200)
       response.body.should eq("second version")
+    ensure
+      File.delete?(File.join(temp_dir, "test.txt"))
+      Dir.delete(temp_dir)
+    end
+  end
+
+  it "should defer metadata revalidation until the interval elapses" do
+    serve_static({"gzip" => false, "dir_listing" => false, "cache" => true, "cache_size" => 1024, "cache_check_interval" => 50})
+    temp_dir = File.tempname("kemal-static-cache-window")
+    Dir.mkdir(temp_dir)
+
+    begin
+      handler = Kemal::StaticFileHandler.new temp_dir
+      file_path = File.join(temp_dir, "test.txt")
+      File.write(file_path, "first version")
+
+      response = handle HTTP::Request.new("GET", "/test.txt"), public_dir: temp_dir, handler: handler
+      response.status_code.should eq(200)
+      response.body.should eq("first version")
+
+      File.write(file_path, "second version now")
+
+      response = handle HTTP::Request.new("GET", "/test.txt"), public_dir: temp_dir, handler: handler
+      response.status_code.should eq(200)
+      response.body.should eq("first version")
+
+      sleep 60.milliseconds
+
+      response = handle HTTP::Request.new("GET", "/test.txt"), public_dir: temp_dir, handler: handler
+      response.status_code.should eq(200)
+      response.body.should eq("second version now")
     ensure
       File.delete?(File.join(temp_dir, "test.txt"))
       Dir.delete(temp_dir)
