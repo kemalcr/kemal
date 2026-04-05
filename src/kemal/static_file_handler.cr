@@ -2,7 +2,7 @@ module Kemal
   class StaticFileHandler < HTTP::StaticFileHandler
     private DEFAULT_MEMORY_CACHE_SIZE    = 8_i64 * 1024 * 1024
     private DEFAULT_CACHE_CHECK_INTERVAL = 1_000_i64
-    private record CachedFile, data : Bytes, file_info : File::Info, checked_at : Time::Instant
+    private record CachedFile, data : Bytes, file_info : File::Info, checked_at : Time::Instant, accessed_at : Time::Instant
 
     @cached_files = {} of String => CachedFile
     @cached_bytes = 0_i64
@@ -159,12 +159,19 @@ module Kemal
     private def cached_file(file_path : String, force_revalidate : Bool = false) : CachedFile?
       return unless cache_enabled?
 
-      entry = @cache_lock.synchronize do
-        @cached_files[file_path]?
+      cached = nil
+      needs_revalidation = false
+      @cache_lock.synchronize do
+        if entry = @cached_files[file_path]?
+          if force_revalidate || cache_check_due?(entry)
+            needs_revalidation = true
+          else
+            cached = touch_cached_file(file_path, entry)
+          end
+        end
       end
-      return unless entry
-      return revalidate_cached_file(file_path) if force_revalidate
-      return entry unless cache_check_due?(entry)
+      return cached if cached
+      return unless needs_revalidation
 
       revalidate_cached_file(file_path)
     end
@@ -201,8 +208,9 @@ module Kemal
         end
 
         unless stored
+          evict_cached_files(data_size, cache_limit)
           if cache_capacity_available?(data_size, cache_limit)
-            cached_file = CachedFile.new(data, file_info, Time.instant)
+            cached_file = new_cached_file(data, file_info)
             stored = cached_file
             @cached_files[file_path] = cached_file
             @cached_bytes += data_size
@@ -271,10 +279,40 @@ module Kemal
       cached_info.size == file_info.size && cached_info.modification_time == file_info.modification_time
     end
 
+    private def new_cached_file(data : Bytes, file_info : File::Info) : CachedFile
+      now = Time.instant
+      CachedFile.new(data, file_info, now, now)
+    end
+
+    private def touch_cached_file(file_path : String, entry : CachedFile) : CachedFile
+      touched = CachedFile.new(entry.data, entry.file_info, entry.checked_at, Time.instant)
+      @cached_files[file_path] = touched
+      touched
+    end
+
     private def refresh_cached_file(file_path : String, entry : CachedFile) : CachedFile
-      refreshed = CachedFile.new(entry.data, entry.file_info, Time.instant)
+      now = Time.instant
+      refreshed = CachedFile.new(entry.data, entry.file_info, now, now)
       @cached_files[file_path] = refreshed
       refreshed
+    end
+
+    private def evict_cached_files(required_bytes : Int64, cache_limit : Int64)
+      while !cache_capacity_available?(required_bytes, cache_limit)
+        candidate = least_recently_used_cached_file
+        break unless candidate
+
+        file_path, entry = candidate
+        remove_cached_file(file_path, entry)
+      end
+    end
+
+    private def least_recently_used_cached_file : {String, CachedFile}?
+      return if @cached_files.empty?
+
+      @cached_files.min_by do |file_path, entry|
+        {entry.accessed_at, file_path}
+      end
     end
 
     private def cache_capacity_available?(data_size : Int64, cache_limit : Int64) : Bool
@@ -287,6 +325,8 @@ module Kemal
     end
 
     private def read_file_bytes(file_path : String, size : Int64) : Bytes?
+      return if size > Int32::MAX.to_i64
+
       data = Bytes.new(size.to_i)
       File.open(file_path) do |file|
         file.read_fully(data)
