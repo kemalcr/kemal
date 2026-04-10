@@ -55,6 +55,8 @@ module Kemal
         context.response.status_code = status_code
         context.response.print Kemal.config.error_handlers[status_code].call(context, exception)
         context
+      elsif status_code == 413
+        render_413(context, exception)
       end
     end
   end

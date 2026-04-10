@@ -323,5 +323,120 @@ describe "ParamParser" do
         Kemal::ParamParser.new(request).json
       end
     end
+
+    it "raises PayloadTooLarge for multipart file upload without Content-Length when body exceeds limit" do
+      Kemal.config.max_request_body_size = 200
+      boundary = "testboundary"
+      payload = "x" * 2_000
+      multipart = String.build do |io|
+        io << "--" << boundary << "\r\n"
+        io << "Content-Disposition: form-data; name=\"file\"; filename=\"f.txt\"\r\n\r\n"
+        io << payload
+        io << "\r\n--" << boundary << "--\r\n"
+      end
+      request = HTTP::Request.new(
+        "POST",
+        "/",
+        headers: HTTP::Headers{"Content-Type" => "multipart/form-data; boundary=#{boundary}"},
+        body: IO::Memory.new(multipart),
+      )
+      request.headers["Content-Length"]?.should be_nil
+
+      expect_raises(Kemal::Exceptions::PayloadTooLarge) do
+        Kemal::ParamParser.new(request).files
+      end
+    end
+
+    it "parses multipart file upload without Content-Length when within limit" do
+      Kemal.config.max_request_body_size = 8 * 1024
+      boundary = "smallbound"
+      multipart = String.build do |io|
+        io << "--" << boundary << "\r\n"
+        io << "Content-Disposition: form-data; name=\"file\"; filename=\"f.txt\"\r\n\r\n"
+        io << "hello"
+        io << "\r\n--" << boundary << "--\r\n"
+      end
+      request = HTTP::Request.new(
+        "POST",
+        "/",
+        headers: HTTP::Headers{"Content-Type" => "multipart/form-data; boundary=#{boundary}"},
+        body: IO::Memory.new(multipart),
+      )
+
+      parser = Kemal::ParamParser.new(request)
+      begin
+        files = parser.files
+        files["file"].filename.should eq("f.txt")
+        File.read(files["file"].tempfile.path).should eq("hello")
+      ensure
+        parser.cleanup_temporary_files
+      end
+    end
+
+    it "raises PayloadTooLarge when multipart without filename exceeds max_request_body_size" do
+      Kemal.config.max_request_body_size = 80
+      boundary = "fb"
+      multipart = String.build do |io|
+        io << "--" << boundary << "\r\n"
+        io << "Content-Disposition: form-data; name=\"note\"\r\n\r\n"
+        io << "y" * 100
+        io << "\r\n--" << boundary << "--\r\n"
+      end
+      multipart.bytesize.should be > 80
+
+      request = HTTP::Request.new(
+        "POST",
+        "/",
+        headers: HTTP::Headers{"Content-Type" => "multipart/form-data; boundary=#{boundary}"},
+        body: IO::Memory.new(multipart),
+      )
+
+      expect_raises(Kemal::Exceptions::PayloadTooLarge) do
+        Kemal::ParamParser.new(request).body
+      end
+    end
+
+    it "parses multipart field without filename within max_request_body_size" do
+      Kemal.config.max_request_body_size = 10_000
+      boundary = "fb"
+      multipart = String.build do |io|
+        io << "--" << boundary << "\r\n"
+        io << "Content-Disposition: form-data; name=\"note\"\r\n\r\n"
+        io << "hello"
+        io << "\r\n--" << boundary << "--\r\n"
+      end
+      request = HTTP::Request.new(
+        "POST",
+        "/",
+        headers: HTTP::Headers{"Content-Type" => "multipart/form-data; boundary=#{boundary}"},
+        body: IO::Memory.new(multipart),
+      )
+
+      Kemal::ParamParser.new(request).body["note"].should eq("hello")
+    end
+
+    it "allows large multipart file parts up to max_request_body_size" do
+      Kemal.config.max_request_body_size = 10_000
+      boundary = "fb"
+      multipart = String.build do |io|
+        io << "--" << boundary << "\r\n"
+        io << "Content-Disposition: form-data; name=\"file\"; filename=\"f.bin\"\r\n\r\n"
+        io << "z" * 500
+        io << "\r\n--" << boundary << "--\r\n"
+      end
+      request = HTTP::Request.new(
+        "POST",
+        "/",
+        headers: HTTP::Headers{"Content-Type" => "multipart/form-data; boundary=#{boundary}"},
+        body: IO::Memory.new(multipart),
+      )
+
+      parser = Kemal::ParamParser.new(request)
+      begin
+        File.read(parser.files["file"].tempfile.path).bytesize.should eq(500)
+      ensure
+        parser.cleanup_temporary_files
+      end
+    end
   end
 end

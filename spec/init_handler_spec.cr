@@ -41,4 +41,26 @@ describe "Kemal::InitHandler" do
     Kemal::InitHandler::INSTANCE.call(context)
     context.response.headers["X-Powered-By"]?.should be_nil
   end
+
+  it "wraps request body in BoundedTotalBodyIO for POST" do
+    request = HTTP::Request.new("POST", "/", body: IO::Memory.new("x"))
+    io = IO::Memory.new
+    response = HTTP::Server::Response.new(io)
+    context = HTTP::Server::Context.new(request, response)
+    Kemal::InitHandler::INSTANCE.next = ->(_context : HTTP::Server::Context) { }
+    Kemal::InitHandler::INSTANCE.call(context)
+    inner = context.request.body
+    inner.should be_a(Kemal::BoundedTotalBodyIO)
+    inner.as(Kemal::BoundedTotalBodyIO).read_byte.should eq('x'.ord.to_u8)
+  end
+
+  it "wraps request body for HEAD when a body IO is present" do
+    request = HTTP::Request.new("HEAD", "/", body: IO::Memory.new("x"))
+    io = IO::Memory.new
+    response = HTTP::Server::Response.new(io)
+    context = HTTP::Server::Context.new(request, response)
+    Kemal::InitHandler::INSTANCE.next = ->(_context : HTTP::Server::Context) { }
+    Kemal::InitHandler::INSTANCE.call(context)
+    context.request.body.should be_a(Kemal::BoundedTotalBodyIO)
+  end
 end

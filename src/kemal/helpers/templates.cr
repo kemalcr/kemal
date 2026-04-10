@@ -1,5 +1,5 @@
 # This file contains the built-in view templates that Kemal uses.
-# Currently it contains templates for 404 and 500 error codes.
+# Currently it contains templates for 404, 413, and 500 error codes.
 
 def render_404
   <<-HTML
@@ -19,6 +19,30 @@ def render_404
     </body>
     </html>
     HTML
+end
+
+def render_413(context, exception)
+  return context if context.response.closed?
+
+  context.response.content_type = "text/html"
+  context.response.status_code = 413
+  context.response.print <<-HTML
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8"/>
+      <title>Payload Too Large</title>
+      <style type="text/css">
+        body { text-align:center;font-family:helvetica,arial;font-size:18px;color:#888;margin:40px }
+      </style>
+    </head>
+    <body>
+      <h2>413 Payload Too Large</h2>
+      <p>#{HTML.escape(exception.message || "")}</p>
+    </body>
+    </html>
+    HTML
+  context
 end
 
 def render_500(context, exception, verbosity)
