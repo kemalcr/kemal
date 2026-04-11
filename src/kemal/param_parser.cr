@@ -3,6 +3,58 @@ module Kemal
   # and converts them into a params hash which you can use within
   # the environment context.
   class ParamParser
+    private class LimitedBodyIO < IO
+      @closed = false
+      @bytes_read = 0_i64
+
+      def initialize(@io : IO, limit : Int32)
+        @limit = limit.to_i64
+      end
+
+      def read(slice : Bytes) : Int32
+        check_open
+
+        bytes_read = @io.read(slice)
+        increment_bytes_read(bytes_read.to_i64)
+        bytes_read
+      end
+
+      def read_byte : UInt8?
+        check_open
+
+        byte = @io.read_byte
+        increment_bytes_read(1_i64) if byte
+        byte
+      end
+
+      def peek : Bytes?
+        check_open
+        @io.peek
+      end
+
+      def skip(bytes_count) : Nil
+        check_open
+
+        @io.skip(bytes_count)
+        increment_bytes_read(bytes_count.to_i64)
+      end
+
+      def write(slice : Bytes) : NoReturn
+        raise IO::Error.new "Can't write to LimitedBodyIO"
+      end
+
+      def close : Nil
+        @closed = true
+      end
+
+      private def increment_bytes_read(bytes_count : Int64)
+        return if bytes_count <= 0
+
+        @bytes_read += bytes_count
+        raise Exceptions::PayloadTooLarge.new if @bytes_read > @limit
+      end
+    end
+
     URL_ENCODED_FORM = "application/x-www-form-urlencoded"
     APPLICATION_JSON = "application/json"
     MULTIPART_FORM   = "multipart/form-data"
@@ -111,7 +163,7 @@ module Kemal
 
       validate_content_length!
 
-      HTTP::FormData.parse(@request) do |upload|
+      HTTP::FormData.parse(multipart_body_with_limit, multipart_boundary) do |upload|
         next unless upload
 
         filename = upload.filename
@@ -125,7 +177,7 @@ module Kemal
             @files[name] = FileUpload.new(upload)
           end
         else
-          @body.add(name, upload.body.gets_to_end)
+          @body.add(name, read_body_with_limit(upload.body, multipart_form_field_limit))
         end
       end
 
@@ -172,14 +224,32 @@ module Kemal
       raise Exceptions::PayloadTooLarge.new
     end
 
-    private def read_body_with_limit(io : IO) : String
-      limit = Kemal.config.max_request_body_size
+    private def read_body_with_limit(io : IO, limit : Int32 = Kemal.config.max_request_body_size) : String
       String.build do |str|
         bytes_read = IO.copy(io, str, limit + 1)
         if bytes_read > limit
           raise Exceptions::PayloadTooLarge.new
         end
       end
+    end
+
+    private def multipart_form_field_limit : Int32
+      Kemal.config.max_multipart_form_field_size
+    end
+
+    private def multipart_body_with_limit : IO
+      body = @request.body
+      raise HTTP::FormData::Error.new("Cannot extract form-data from HTTP request: body is empty") unless body
+
+      LimitedBodyIO.new(body, Kemal.config.max_request_body_size)
+    end
+
+    private def multipart_boundary : String
+      content_type = @request.headers["Content-Type"]?
+      boundary = content_type.try { |header| MIME::Multipart.parse_boundary(header) }
+      raise HTTP::FormData::Error.new("Cannot extract form-data from HTTP request: could not find boundary in Content-Type") unless boundary
+
+      boundary
     end
   end
 end

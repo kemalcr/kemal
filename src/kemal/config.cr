@@ -28,6 +28,7 @@ module Kemal
     property? powered_by_header : Bool = true
     property max_route_cache_size : Int32
     property max_request_body_size : Int32
+    property max_multipart_form_field_size : Int32
 
     def initialize
       @app_name = "Kemal"
@@ -47,7 +48,8 @@ module Kemal
       @shutdown_timeout = 0.seconds
       @handler_position = 0
       @max_route_cache_size = 1024
-      @max_request_body_size = 8 * 1024 * 1024 # 8MB
+      @max_request_body_size = 8 * 1024 * 1024         # 8MB
+      @max_multipart_form_field_size = 8 * 1024 * 1024 # 8MB
     end
 
     @[Deprecated("Use standard library Log")]
@@ -76,6 +78,7 @@ module Kemal
       @default_handlers_setup = false
       @max_route_cache_size = 1024
       @max_request_body_size = 8 * 1024 * 1024
+      @max_multipart_form_field_size = 8 * 1024 * 1024
       HANDLERS.clear
       CUSTOM_HANDLERS.clear
       FILTER_HANDLERS.clear

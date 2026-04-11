@@ -10,8 +10,13 @@ module Kemal
 
     def initialize(upload)
       @tempfile = File.tempfile
-      ::File.open(@tempfile.path, "w") do |file|
-        IO.copy(upload.body, file)
+      begin
+        ::File.open(@tempfile.path, "w") do |file|
+          IO.copy(upload.body, file)
+        end
+      rescue ex
+        cleanup
+        raise ex
       end
       @filename = upload.filename
       @headers = upload.headers

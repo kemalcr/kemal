@@ -229,4 +229,46 @@ describe "Kemal::ExceptionHandler" do
     client_response = call_request_on_app(request)
     client_response.status_code.should eq 404
   end
+
+  it "renders payload too large with 413 from the exception" do
+    error 413 do
+      "payload too large"
+    end
+
+    get "/" do
+      raise Kemal::Exceptions::PayloadTooLarge.new
+    end
+
+    request = HTTP::Request.new("GET", "/")
+    io = IO::Memory.new
+    response = HTTP::Server::Response.new(io)
+    context = HTTP::Server::Context.new(request, response)
+    Kemal::ExceptionHandler::INSTANCE.next = Kemal::RouteHandler::INSTANCE
+    Kemal::ExceptionHandler::INSTANCE.call(context)
+    response.close
+    io.rewind
+    response = HTTP::Client::Response.from_io(io, decompress: false)
+    response.status_code.should eq 413
+    response.headers["Content-Type"].should eq "text/html"
+    response.body.should eq "payload too large"
+  end
+
+  it "renders payload too large with 413 without a custom handler" do
+    get "/" do
+      raise Kemal::Exceptions::PayloadTooLarge.new
+    end
+
+    request = HTTP::Request.new("GET", "/")
+    io = IO::Memory.new
+    response = HTTP::Server::Response.new(io)
+    context = HTTP::Server::Context.new(request, response)
+    Kemal::ExceptionHandler::INSTANCE.next = Kemal::RouteHandler::INSTANCE
+    Kemal::ExceptionHandler::INSTANCE.call(context)
+    response.close
+    io.rewind
+    response = HTTP::Client::Response.from_io(io, decompress: false)
+    response.status_code.should eq 413
+    response.headers["Content-Type"].should eq "text/plain"
+    response.body.should eq "Payload Too Large"
+  end
 end
