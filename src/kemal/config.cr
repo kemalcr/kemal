@@ -29,6 +29,11 @@ module Kemal
     property max_route_cache_size : Int32
     property max_request_body_size : Int32
     property max_multipart_form_field_size : Int32
+    # When non-empty, WebSocket upgrade requests must send an `Origin` header that matches
+    # one of these values (after normalization: scheme/host/port only). Entries use the
+    # serialized origin form, e.g. `"https://example.com"` or `"http://localhost:3000"`.
+    # Use `"null"` to allow the browser's opaque `"null"` origin.
+    property websocket_allowed_origins : Array(String)
 
     def initialize
       @app_name = "Kemal"
@@ -50,6 +55,7 @@ module Kemal
       @max_route_cache_size = 1024
       @max_request_body_size = 8 * 1024 * 1024         # 8MB
       @max_multipart_form_field_size = 8 * 1024 * 1024 # 8MB
+      @websocket_allowed_origins = [] of String
     end
 
     @[Deprecated("Use standard library Log")]
@@ -79,6 +85,7 @@ module Kemal
       @max_route_cache_size = 1024
       @max_request_body_size = 8 * 1024 * 1024
       @max_multipart_form_field_size = 8 * 1024 * 1024
+      @websocket_allowed_origins = [] of String
       HANDLERS.clear
       CUSTOM_HANDLERS.clear
       FILTER_HANDLERS.clear
