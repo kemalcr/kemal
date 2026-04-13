@@ -1,3 +1,23 @@
+# 1.11.0 (13-04-2026)
+
+- ***(SECURITY)*** Fix chunked multipart body limits [#748](https://github.com/kemalcr/kemal/pull/748). Thanks @canermastan :pray:
+
+This PR adds a new config option:
+
+```crystal
+Kemal.config.max_multipart_form_field_size = 8 * 1024 * 1024
+```
+
+
+- ***(SECURITY)*** Add Websocket origin validation and configuration support [#749](https://github.com/kemalcr/kemal/pull/749). Thanks @past3l :pray:
+
+This PR adds a new config option:
+
+```crystal
+Kemal.config.websocket_allowed_origins = ["https://myapp.com", "http://localhost:3000"]
+```
+
+
 # 1.10.1 (24-03-2026)
 
 - Add `shutdown_timeout` configuration for graceful shutdown: after `Kemal.stop`, Kemal can wait before exit so in-flight work can finish [#745](https://github.com/kemalcr/kemal/pull/745). Thanks @sdogruyol :pray:
