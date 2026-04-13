@@ -1,5 +1,14 @@
 require "./spec_helper"
 
+def multipart_request(body : String, boundary = "AaB03x")
+  headers = HTTP::Headers{
+    "Content-Type"      => "multipart/form-data; boundary=#{boundary}",
+    "Transfer-Encoding" => "chunked",
+  }
+
+  HTTP::Request.new("POST", "/", headers, IO::Memory.new(body))
+end
+
 describe "ParamParser" do
   it "parses query params" do
     Route.new "POST", "/" do |env|
@@ -322,6 +331,79 @@ describe "ParamParser" do
       expect_raises(Kemal::Exceptions::PayloadTooLarge) do
         Kemal::ParamParser.new(request).json
       end
+    end
+
+    it "raises PayloadTooLarge for chunked multipart form fields" do
+      boundary = "AaB03x"
+      body = <<-MULTIPART
+        --#{boundary}\r
+        Content-Disposition: form-data; name="field"\r
+        \r
+        abcdefghijk\r
+        --#{boundary}--\r
+        MULTIPART
+
+      Kemal.config.max_request_body_size = body.bytesize - 1
+      request = multipart_request(body, boundary)
+
+      expect_raises(Kemal::Exceptions::PayloadTooLarge) do
+        Kemal::ParamParser.new(request).body
+      end
+    end
+
+    it "raises PayloadTooLarge for chunked multipart file uploads" do
+      boundary = "AaB03x"
+      body = <<-MULTIPART
+        --#{boundary}\r
+        Content-Disposition: form-data; name="file"; filename="huge.txt"\r
+        Content-Type: text/plain\r
+        \r
+        abcdefghijk\r
+        --#{boundary}--\r
+        MULTIPART
+
+      Kemal.config.max_request_body_size = body.bytesize - 1
+      request = multipart_request(body, boundary)
+
+      expect_raises(Kemal::Exceptions::PayloadTooLarge) do
+        Kemal::ParamParser.new(request).files
+      end
+    end
+
+    it "raises PayloadTooLarge when multipart form field exceeds its own limit" do
+      boundary = "AaB03x"
+      body = <<-MULTIPART
+        --#{boundary}\r
+        Content-Disposition: form-data; name="field"\r
+        \r
+        abcdefghijk\r
+        --#{boundary}--\r
+        MULTIPART
+
+      Kemal.config.max_request_body_size = body.bytesize + 100
+      Kemal.config.max_multipart_form_field_size = 5
+      request = multipart_request(body, boundary)
+
+      expect_raises(Kemal::Exceptions::PayloadTooLarge) do
+        Kemal::ParamParser.new(request).body
+      end
+    end
+
+    it "parses multipart form field within its own limit" do
+      boundary = "AaB03x"
+      body = <<-MULTIPART
+        --#{boundary}\r
+        Content-Disposition: form-data; name="field"\r
+        \r
+        hello\r
+        --#{boundary}--\r
+        MULTIPART
+
+      Kemal.config.max_request_body_size = body.bytesize + 100
+      Kemal.config.max_multipart_form_field_size = 10
+      request = multipart_request(body, boundary)
+
+      Kemal::ParamParser.new(request).body["field"].should eq("hello")
     end
   end
 end
