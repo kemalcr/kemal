@@ -16,10 +16,10 @@ module Kemal
 
     private def parse(args : Array(String))
       OptionParser.parse args do |opts|
-        opts.on("-b HOST", "--bind HOST", "Host to bind (defaults to 0.0.0.0)") do |host_binding|
+        opts.on("-b HOST", "--bind HOST", "Host to bind (defaults to #{@config.host_binding})") do |host_binding|
           @config.host_binding = host_binding
         end
-        opts.on("-p PORT", "--port PORT", "Port to listen for connections (defaults to 3000)") do |opt_port|
+        opts.on("-p PORT", "--port PORT", "Port to listen for connections (defaults to #{@config.port})") do |opt_port|
           @config.port = opt_port.to_i
         end
         opts.on("-s", "--ssl", "Enables SSL") do
