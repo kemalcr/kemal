@@ -1,4 +1,4 @@
-{% if compare_versions(Crystal::VERSION, "0.35.0-0") >= 0 && !flag?(:without_zlib) %}
+{% if !flag?(:without_zlib) %}
   require "compress/deflate"
   require "compress/gzip"
 {% end %}
@@ -90,13 +90,20 @@ end
 # serve_static false
 # ```
 #
-# Static server also have some advanced customization options like `dir_listing` and
-# `gzip`.
+# Static server also have some advanced customization options like `dir_listing`,
+# `dir_index`, `gzip` and in-memory caching via `cache`, `cache_size` and
+# `cache_check_interval` (milliseconds). Setting `cache_size` to `0` disables
+# byte caching. Setting `cache_check_interval` to `0` forces metadata
+# revalidation on every request.
 #
 # ```
-# serve_static {"gzip" => true, "dir_listing" => false}
+# serve_static({"gzip" => true, "dir_listing" => false, "cache" => true, "cache_size" => 4 * 1024 * 1024, "cache_check_interval" => 1_000})
 # ```
-def serve_static(status : (Bool | Hash))
+def serve_static(status : Bool)
+  Kemal.config.serve_static = status
+end
+
+def serve_static(status : Hash(String, V)) forall V
   Kemal.config.serve_static = status
 end
 
@@ -131,7 +138,6 @@ end
 # send_file env, "./path/to/file", filename: "image.jpg", disposition: "attachment"
 # ```
 def send_file(env : HTTP::Server::Context, path : String, mime_type : String? = nil, *, filename : String? = nil, disposition : String? = nil)
-  config = Kemal.config.serve_static
   file_path = File.expand_path(path, Dir.current)
   mime_type ||= MIME.from_filename(file_path, "application/octet-stream")
   env.response.content_type = mime_type
@@ -154,35 +160,64 @@ def send_file(env : HTTP::Server::Context, path : String, mime_type : String? = 
       env.response.content_length = filesize
       IO.copy(file, env.response)
     {% else %}
-      condition = config.is_a?(Hash) && config["gzip"]? == true && filesize > minsize && Kemal::Utils.zip_types(file_path)
+      condition = Kemal.config.serve_static_option?("gzip") && filesize > minsize && Kemal::Utils.zip_types(file_path)
       if condition && request_headers.includes_word?("Accept-Encoding", "gzip")
         env.response.headers["Content-Encoding"] = "gzip"
-        {% if compare_versions(Crystal::VERSION, "0.35.0-0") >= 0 %}
-          Compress::Gzip::Writer.open(env.response) do |deflate|
-            IO.copy(file, deflate)
-          end
-        {% else %}
-          Gzip::Writer.open(env.response) do |deflate|
-            IO.copy(file, deflate)
-          end
-        {% end %}
+        Compress::Gzip::Writer.open(env.response) do |deflate|
+          IO.copy(file, deflate)
+        end
       elsif condition && request_headers.includes_word?("Accept-Encoding", "deflate")
         env.response.headers["Content-Encoding"] = "deflate"
-        {% if compare_versions(Crystal::VERSION, "0.35.0-0") >= 0 %}
-          Compress::Deflate::Writer.open(env.response) do |deflate|
-            IO.copy(file, deflate)
-          end
-        {% else %}
-          Flate::Writer.open(env.response) do |deflate|
-            IO.copy(file, deflate)
-          end
-        {% end %}
+        Compress::Deflate::Writer.open(env.response) do |deflate|
+          IO.copy(file, deflate)
+        end
       else
         env.response.content_length = filesize
         IO.copy(file, env.response)
       end
     {% end %}
   end
+  return
+end
+
+def send_file(env : HTTP::Server::Context, path : String, data : Slice(UInt8), filestat : File::Info, mime_type : String? = nil, *, filename : String? = nil, disposition : String? = nil)
+  file_path = File.expand_path(path, Dir.current)
+  mime_type ||= MIME.from_filename(file_path, "application/octet-stream")
+  env.response.content_type = mime_type
+  env.response.headers["Accept-Ranges"] = "bytes"
+  env.response.headers["X-Content-Type-Options"] = "nosniff"
+  minsize = 860 # http://webmasters.stackexchange.com/questions/31750/what-is-recommended-minimum-object-size-for-gzip-performance-benefits ??
+  request_headers = env.request.headers
+  filesize = data.bytesize
+  attachment(env, filename, disposition)
+
+  Kemal.config.static_headers.try(&.call(env, file_path, filestat))
+
+  file = IO::Memory.new(data)
+  if env.request.method == "GET" && env.request.headers.has_key?("Range")
+    return multipart(file, env)
+  end
+
+  {% if flag?(:without_zlib) %}
+    env.response.content_length = filesize
+    IO.copy(file, env.response)
+  {% else %}
+    condition = Kemal.config.serve_static_option?("gzip") && filesize > minsize && Kemal::Utils.zip_types(file_path)
+    if condition && request_headers.includes_word?("Accept-Encoding", "gzip")
+      env.response.headers["Content-Encoding"] = "gzip"
+      Compress::Gzip::Writer.open(env.response) do |deflate|
+        IO.copy(file, deflate)
+      end
+    elsif condition && request_headers.includes_word?("Accept-Encoding", "deflate")
+      env.response.headers["Content-Encoding"] = "deflate"
+      Compress::Deflate::Writer.open(env.response) do |deflate|
+        IO.copy(file, deflate)
+      end
+    else
+      env.response.content_length = filesize
+      IO.copy(file, env.response)
+    end
+  {% end %}
   return
 end
 
