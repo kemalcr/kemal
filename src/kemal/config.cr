@@ -1,5 +1,6 @@
 module Kemal
   VERSION = {{ `shards version "#{__DIR__}"`.chomp.stringify }}
+  alias StaticFileConfigValue = Bool | Int32 | Int64
 
   # Stores all the configuration options for a Kemal application.
   # It's a singleton and you can access it like.
@@ -20,10 +21,11 @@ module Kemal
     {% else %}
       @ssl : OpenSSL::SSL::Context::Server?
     {% end %}
+    @serve_static : Bool | Hash(String, StaticFileConfigValue)
 
     property app_name, host_binding, ssl, port, env, public_folder, logging, running
     property always_rescue, server : HTTP::Server?, extra_options, shutdown_message, shutdown_timeout
-    property serve_static : (Bool | Hash(String, Bool))
+    getter serve_static : (Bool | Hash(String, StaticFileConfigValue))
     property static_headers : (HTTP::Server::Context, String, File::Info ->)?
     property? powered_by_header : Bool = true
     property max_route_cache_size : Int32
@@ -40,7 +42,7 @@ module Kemal
       @host_binding = "0.0.0.0"
       @port = 3000
       @env = ENV["KEMAL_ENV"]? || "development"
-      @serve_static = {"dir_listing" => false, "gzip" => true, "dir_index" => false}
+      @serve_static = {"dir_listing" => false, "gzip" => true, "dir_index" => false} of String => StaticFileConfigValue
       @public_folder = "./public"
       @logging = true
       @logger = nil
@@ -135,6 +137,44 @@ module Kemal
     end
 
     def extra_options(&@extra_options : OptionParser ->)
+    end
+
+    def serve_static=(value : Bool)
+      @serve_static = value
+    end
+
+    def serve_static=(value : Hash(String, V)) forall V
+      @serve_static = value.each_with_object({} of String => StaticFileConfigValue) do |(key, option), memo|
+        memo[key] = option.as(StaticFileConfigValue)
+      end
+    end
+
+    def serve_static_option?(name : String, default : Bool = false) : Bool
+      config = @serve_static
+      return default unless config.is_a?(Hash)
+
+      case value = config[name]?
+      when Bool
+        value
+      else
+        default
+      end
+    end
+
+    def serve_static_size_option?(name : String) : Int64?
+      config = @serve_static
+      return unless config.is_a?(Hash)
+
+      case value = config[name]?
+      when Int32
+        value.to_i64
+      when Int64
+        value
+      end
+    end
+
+    def serve_static_size_option(name : String, default : Int64 = 0_i64) : Int64
+      serve_static_size_option?(name) || default
     end
 
     def setup
