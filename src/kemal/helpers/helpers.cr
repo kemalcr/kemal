@@ -142,6 +142,7 @@ def send_file(env : HTTP::Server::Context, path : String, mime_type : String? = 
   env.response.headers["X-Content-Type-Options"] = "nosniff"
   minsize = 860 # http://webmasters.stackexchange.com/questions/31750/what-is-recommended-minimum-object-size-for-gzip-performance-benefits ??
   request_headers = env.request.headers
+  config = Kemal.config.serve_static
   filesize = File.size(file_path)
   filestat = File.info(file_path)
   attachment(env, filename, disposition)
@@ -157,7 +158,7 @@ def send_file(env : HTTP::Server::Context, path : String, mime_type : String? = 
       env.response.content_length = filesize
       IO.copy(file, env.response)
     {% else %}
-      condition = Kemal.config.serve_static_option?("gzip") && filesize > minsize && Kemal::Utils.zip_types(file_path)
+      condition = config.is_a?(Hash) && config["gzip"]? == true && filesize > minsize && Kemal::Utils.zip_types(file_path)
       if condition && request_headers.includes_word?("Accept-Encoding", "gzip")
         env.response.headers["Content-Encoding"] = "gzip"
         Compress::Gzip::Writer.open(env.response) do |deflate|
