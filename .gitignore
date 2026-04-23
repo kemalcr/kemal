@@ -1,5 +1,6 @@
 /lib/
 /.crystal/
+/.crystal-cache/
 /.shards/
 *.log
 /bin/
