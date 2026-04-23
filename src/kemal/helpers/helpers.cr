@@ -177,47 +177,6 @@ def send_file(env : HTTP::Server::Context, path : String, mime_type : String? = 
   return
 end
 
-def send_file(env : HTTP::Server::Context, path : String, data : Slice(UInt8), filestat : File::Info, mime_type : String? = nil, *, filename : String? = nil, disposition : String? = nil)
-  file_path = File.expand_path(path, Dir.current)
-  mime_type ||= MIME.from_filename(file_path, "application/octet-stream")
-  env.response.content_type = mime_type
-  env.response.headers["Accept-Ranges"] = "bytes"
-  env.response.headers["X-Content-Type-Options"] = "nosniff"
-  minsize = 860 # http://webmasters.stackexchange.com/questions/31750/what-is-recommended-minimum-object-size-for-gzip-performance-benefits ??
-  request_headers = env.request.headers
-  filesize = data.bytesize
-  attachment(env, filename, disposition)
-
-  Kemal.config.static_headers.try(&.call(env, file_path, filestat))
-
-  file = IO::Memory.new(data)
-  if env.request.method == "GET" && env.request.headers.has_key?("Range")
-    return multipart(file, env)
-  end
-
-  {% if flag?(:without_zlib) %}
-    env.response.content_length = filesize
-    IO.copy(file, env.response)
-  {% else %}
-    condition = Kemal.config.serve_static_option?("gzip") && filesize > minsize && Kemal::Utils.zip_types(file_path)
-    if condition && request_headers.includes_word?("Accept-Encoding", "gzip")
-      env.response.headers["Content-Encoding"] = "gzip"
-      Compress::Gzip::Writer.open(env.response) do |deflate|
-        IO.copy(file, deflate)
-      end
-    elsif condition && request_headers.includes_word?("Accept-Encoding", "deflate")
-      env.response.headers["Content-Encoding"] = "deflate"
-      Compress::Deflate::Writer.open(env.response) do |deflate|
-        IO.copy(file, deflate)
-      end
-    else
-      env.response.content_length = filesize
-      IO.copy(file, env.response)
-    end
-  {% end %}
-  return
-end
-
 # Send a file with given data and default `application/octet-stream` mime_type.
 #
 # ```
