@@ -11,12 +11,13 @@ describe Kemal::EventStream do
     client_response.status_code.should eq(200)
     client_response.headers["Content-Type"].should eq("text/event-stream; charset=utf-8")
     client_response.headers["Cache-Control"].should eq("no-cache")
+    client_response.headers["X-Accel-Buffering"].should eq("no")
     client_response.body.should eq("data: hello\n\n")
   end
 
   it "sends event with name, id, and retry" do
     sse "/events" do |stream, _|
-      stream.send("update", event: "tick", id: 42, retry: 3000)
+      stream.send("update", event: "tick", id: 42, retry: 3.seconds)
     end
 
     request = HTTP::Request.new("GET", "/events")
