@@ -5,6 +5,7 @@
 #
 # - **HTTP Routes**: `get`, `post`, `put`, `patch`, `delete`, `options`
 # - **WebSocket**: `ws`
+# - **Server-Sent Events**: `sse`
 # - **Filters**: `before_all`, `before_get`, `after_all`, `after_get`, etc.
 # - **Error Handling**: `error`
 # - **Modular Routing**: `mount`
@@ -45,6 +46,25 @@ FILTER_METHODS = %w[get post put patch delete options all]
 def ws(path : String, &block : HTTP::WebSocket, HTTP::Server::Context ->)
   raise Kemal::Exceptions::InvalidPathStartException.new("ws", path) unless Kemal::Utils.path_starts_with_slash?(path)
   Kemal::WebSocketHandler::INSTANCE.add_route path, &block
+end
+
+# Defines a Server-Sent Events (SSE) route.
+#
+# NOTE: The path must start with a `/`.
+#
+# ```
+# sse "/events" do |stream, env|
+#   loop do
+#     stream.send("tick #{Time.utc}")
+#     sleep 1
+#   end
+# end
+# ```
+def sse(path : String, &block : Kemal::EventStream, HTTP::Server::Context ->)
+  raise Kemal::Exceptions::InvalidPathStartException.new("sse", path) unless Kemal::Utils.path_starts_with_slash?(path)
+  Kemal::RouteHandler::INSTANCE.add_route("GET", path) do |env|
+    Kemal::EventStream.serve(env, &block)
+  end
 end
 
 # Defines an error handler for the given HTTP status code.

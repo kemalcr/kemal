@@ -29,6 +29,7 @@ module Kemal
     alias RouteHandler = HTTP::Server::Context -> String
     alias FilterHandler = HTTP::Server::Context -> String
     alias WSHandler = HTTP::WebSocket, HTTP::Server::Context ->
+    alias SSEHandler = EventStream, HTTP::Server::Context ->
 
     # Stored route definition
     private record RouteDefinition,
@@ -48,6 +49,11 @@ module Kemal
       path : String,
       handler : WSHandler
 
+    # Stored SSE definition
+    private record SSEDefinition,
+      path : String,
+      handler : SSEHandler
+
     # Stored sub-router
     private record SubRouter,
       path : String,
@@ -58,12 +64,14 @@ module Kemal
     @routes : Array(RouteDefinition)
     @filters : Array(FilterDefinition)
     @websockets : Array(WSDefinition)
+    @sse_routes : Array(SSEDefinition)
     @sub_routers : Array(SubRouter)
 
     def initialize(@prefix : String = "")
       @routes = [] of RouteDefinition
       @filters = [] of FilterDefinition
       @websockets = [] of WSDefinition
+      @sse_routes = [] of SSEDefinition
       @sub_routers = [] of SubRouter
     end
 
@@ -92,6 +100,17 @@ module Kemal
     # ```
     def ws(path : String, &block : HTTP::WebSocket, HTTP::Server::Context ->)
       @websockets << WSDefinition.new(path: path, handler: block)
+    end
+
+    # Defines a Server-Sent Events (SSE) route.
+    #
+    # ```
+    # router.sse "/events" do |stream, env|
+    #   stream.send("hello")
+    # end
+    # ```
+    def sse(path : String, &block : EventStream, HTTP::Server::Context ->)
+      @sse_routes << SSEDefinition.new(path: path, handler: block)
     end
 
     # Defines a before filter for all HTTP methods.
@@ -204,6 +223,15 @@ module Kemal
         Kemal::WebSocketHandler::INSTANCE.add_route(full_path, &ws_def.handler)
       end
 
+      # Register SSE routes
+      @sse_routes.each do |sse_def|
+        full_path = join_paths(full_prefix, sse_def.path)
+        validate_path!("sse", full_path)
+        Kemal::RouteHandler::INSTANCE.add_route("GET", full_path) do |env|
+          Kemal::EventStream.serve(env, &sse_def.handler)
+        end
+      end
+
       # Register sub-routers recursively
       @sub_routers.each do |sub|
         sub_prefix = join_paths(full_prefix, sub.path)
@@ -219,6 +247,11 @@ module Kemal
       @routes.each do |route|
         full_path = join_paths(full_prefix, route.path)
         paths << {route.method, full_path}
+      end
+
+      @sse_routes.each do |sse_def|
+        full_path = join_paths(full_prefix, sse_def.path)
+        paths << {"GET", full_path}
       end
 
       # Sub-router routes

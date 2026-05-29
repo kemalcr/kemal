@@ -167,6 +167,8 @@ module Kemal
         raise Kemal::Exceptions::CustomException.new(context)
       end
 
+      return if context.response.closed?
+
       context.response.print(content)
 
       context
