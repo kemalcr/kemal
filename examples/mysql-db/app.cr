@@ -33,7 +33,7 @@ post "/users" do |env|
   name = env.params.json["name"].as(String)
   email = env.params.json["email"].as(String)
 
-  user = User.from_rs(DBC.query("INSERT INTO users (name, email) VALUES ($1, $2) RETURNING id, name, email", name, email)).first
+  user = User.from_rs(DBC.query("INSERT INTO users (name, email) VALUES (?, ?) RETURNING id, name, email", name, email)).first
 
   {message: "User created with id: #{user.id}"}.to_json
 end
