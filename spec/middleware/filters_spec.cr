@@ -208,6 +208,90 @@ describe "Kemal::FilterHandler" do
     client_response.body.should eq("true-true")
   end
 
+  it "executes before_all filter only once per request" do
+    execution_count = 0
+
+    filter_middleware = Kemal::FilterHandler.new
+    filter_middleware._add_route_filter("ALL", "*", :before) { execution_count += 1 }
+
+    kemal = Kemal::RouteHandler::INSTANCE
+    kemal.add_route "GET", "/" { "home" }
+    kemal.add_route "GET", "/about" { "about" }
+
+    request = HTTP::Request.new("GET", "/")
+    create_request_and_return_io_and_context(filter_middleware, request)
+    create_request_and_return_io_and_context(kemal, request)
+    execution_count.should eq(1)
+
+    request = HTTP::Request.new("GET", "/about")
+    create_request_and_return_io_and_context(filter_middleware, request)
+    create_request_and_return_io_and_context(kemal, request)
+    execution_count.should eq(2)
+  end
+
+  it "executes before_all and path-specific filters once each" do
+    global_count = 0
+    path_count = 0
+
+    filter_middleware = Kemal::FilterHandler.new
+    filter_middleware._add_route_filter("ALL", "*", :before) { global_count += 1 }
+    filter_middleware._add_route_filter("ALL", "/about", :before) { path_count += 1 }
+
+    kemal = Kemal::RouteHandler::INSTANCE
+    kemal.add_route "GET", "/about" { "about" }
+
+    request = HTTP::Request.new("GET", "/about")
+    create_request_and_return_io_and_context(filter_middleware, request)
+    create_request_and_return_io_and_context(kemal, request)
+
+    global_count.should eq(1)
+    path_count.should eq(1)
+  end
+
+  it "executes before_all /* and /api/* filters correctly" do
+    global_count = 0
+    api_count = 0
+
+    filter_middleware = Kemal::FilterHandler.new
+    filter_middleware._add_route_filter("ALL", "/*", :before) { global_count += 1 }
+    filter_middleware._add_route_filter("ALL", "/api/*", :before) { api_count += 1 }
+
+    kemal = Kemal::RouteHandler::INSTANCE
+    kemal.add_route "GET", "/" { "home" }
+    kemal.add_route "GET", "/api/users" { "users" }
+
+    request = HTTP::Request.new("GET", "/")
+    create_request_and_return_io_and_context(filter_middleware, request)
+    create_request_and_return_io_and_context(kemal, request)
+    global_count.should eq(1)
+    api_count.should eq(0)
+
+    request = HTTP::Request.new("GET", "/api/users")
+    create_request_and_return_io_and_context(filter_middleware, request)
+    create_request_and_return_io_and_context(kemal, request)
+    global_count.should eq(2)
+    api_count.should eq(1)
+  end
+
+  it "treats * and /* as the same global filter path" do
+    star_count = 0
+    slash_star_count = 0
+
+    filter_middleware = Kemal::FilterHandler.new
+    filter_middleware._add_route_filter("ALL", "*", :before) { star_count += 1 }
+    filter_middleware._add_route_filter("ALL", "/*", :before) { slash_star_count += 1 }
+
+    kemal = Kemal::RouteHandler::INSTANCE
+    kemal.add_route "GET", "/" { "home" }
+
+    request = HTTP::Request.new("GET", "/")
+    create_request_and_return_io_and_context(filter_middleware, request)
+    create_request_and_return_io_and_context(kemal, request)
+
+    star_count.should eq(1)
+    slash_star_count.should eq(1)
+  end
+
   it "executes before_all filter on 404" do
     before_filter = FilterTest.new
     before_filter.modified = "false"
