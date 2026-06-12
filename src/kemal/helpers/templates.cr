@@ -22,6 +22,10 @@ def render_404
 end
 
 def render_500(context, exception, verbosity)
+  # If the headers were already sent, the status code and headers can no
+  # longer be changed and a meaningful error page can't be delivered.
+  return context if context.response.headers_sent?
+
   context.response.content_type = "text/html"
   context.response.status_code = 500
 

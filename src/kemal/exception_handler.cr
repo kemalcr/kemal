@@ -44,7 +44,7 @@ module Kemal
       handler : Proc(HTTP::Server::Context, Exception, String),
       status_code : Int32 = 500,
     )
-      return if context.response.closed?
+      return if context.response.closed? || context.response.headers_sent?
 
       context.response.content_type = "text/html" unless context.response.headers.has_key?("Content-Type")
       context.response.status_code = status_code
@@ -53,7 +53,7 @@ module Kemal
     end
 
     private def call_exception_with_status_code(context : HTTP::Server::Context, exception : Exception, status_code : Int32)
-      return if context.response.closed?
+      return if context.response.closed? || context.response.headers_sent?
       if !Kemal.config.error_handlers.empty? && Kemal.config.error_handlers.has_key?(status_code)
         context.response.content_type = "text/html" unless context.response.headers.has_key?("Content-Type")
         context.response.status_code = status_code
@@ -63,7 +63,7 @@ module Kemal
     end
 
     private def call_payload_too_large(context : HTTP::Server::Context, exception : Kemal::Exceptions::PayloadTooLarge)
-      return if context.response.closed?
+      return if context.response.closed? || context.response.headers_sent?
 
       context.response.content_type = "text/plain" unless context.response.headers.has_key?("Content-Type")
       context.response.status_code = 413

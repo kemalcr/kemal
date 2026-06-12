@@ -51,6 +51,7 @@ module Kemal
       if Kemal.config.error_handlers.has_key?(context.response.status_code)
         raise Kemal::Exceptions::CustomException.new(context)
       end
+
       call_next(context)
       call_block_for_path_type(context.request.method, context.request.path, :after, context)
       call_block_for_path_type("ALL", context.request.path, :after, context)
