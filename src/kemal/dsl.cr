@@ -122,9 +122,7 @@ end
 # ```
 #
 # NOTE: Response headers must be set before the response body is written,
-# so use `before_*` filters for header changes. Once the body grows beyond
-# the output buffer the headers are flushed to the client, and modifying
-# them afterwards (e.g. in an `after_*` filter) raises an `IO::Error`.
+# so use `before_*` filters for header changes.
 {% for type in ["before", "after"] %}
   {% for method in FILTER_METHODS %}
     def {{ type.id }}_{{ method.id }}(path : String = "*", &block : HTTP::Server::Context -> _)
