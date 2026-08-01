@@ -16,29 +16,40 @@ Build web applications and APIs with minimal code. 3.8k+ ⭐, 5M+ downloads sinc
 
 ## Quick Start
 
-```bash
-# Create a new app
-crystal init app my-app && cd my-app
+1. **Create a new project**
+   ```bash
+   crystal init app my-app
+   cd my-app
+   ```
 
-# Add Kemal to shard.yml
-echo 'dependencies:
-  kemal:
-    github: kemalcr/kemal' >> shard.yml
+2. **Add Kemal to `shard.yml`**
+   ```yaml
+   dependencies:
+     kemal:
+       github: kemalcr/kemal
+   ```
 
-# Write your first app
-cat > src/my-app.cr << 'EOF'
-require "kemal"
+3. **Write your app** - replace `src/my-app.cr` with:
+   ```crystal
+   require "kemal"
 
-get "/" do
-  "Hello World!"
-end
+   get "/" do
+     "Hello World!"
+   end
 
-Kemal.run
-EOF
+   get "/api" do |env|
+     env.response.content_type = "application/json"
+     {status: "ok"}.to_json
+   end
 
-# Run it
-shards install && crystal run src/my-app.cr
-```
+   Kemal.run
+   ```
+
+4. **Install dependencies and run**
+   ```bash
+   shards install
+   crystal run src/my-app.cr
+   ```
 
 Visit http://localhost:3000 - done in under a minute. 🚀
 
