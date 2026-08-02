@@ -2,9 +2,11 @@ require "kemal-basic-auth"
 
 # Create a custom authentication handler by inheriting from Kemal::BasicAuth::Handler
 class CustomAuthHandler < Kemal::BasicAuth::Handler
-  # Specify which routes should be protected by basic auth
-  # In this case, only /dashboard and /admin routes will require authentication
-  only ["/dashboard", "/admin"]
+  # Protect /dashboard and /admin (and their subpaths) for every HTTP method.
+  # `only` defaults to GET + exact path — insufficient for auth. Use "/*" for
+  # prefix matching and "*" for all methods. For subtree middleware without
+  # method filtering, prefer: use "/admin", AuthHandler.new
+  only ["/dashboard/*", "/admin/*"], "*"
 
   # Override the call method to implement custom authentication logic
   def call(context)
