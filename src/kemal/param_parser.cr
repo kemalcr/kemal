@@ -63,7 +63,9 @@ module Kemal
     alias AllParamTypes = String | Int64 | Float64 | Bool | Hash(String, JSON::Any) | Array(JSON::Any)?
     getter files, all_files
 
-    def initialize(@request : HTTP::Request, @url : Hash(String, String) = {} of String => String)
+    def initialize(@request : HTTP::Request, url : Hash(String, String) = {} of String => String)
+      # Own a copy so in-place URI decode cannot mutate a shared/cached Radix params hash.
+      @url = url.dup
       @query = HTTP::Params.new({} of String => Array(String))
       @body = HTTP::Params.new({} of String => Array(String))
       @json = {} of String => AllParamTypes
@@ -111,7 +113,7 @@ module Kemal
 
     # Updates url params (e.g. after request method override). Used by Context#invalidate_route_cache.
     def update_url_params(new_url : Hash(String, String))
-      @url = new_url
+      @url = new_url.dup
       @url_parsed = false
     end
 

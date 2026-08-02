@@ -1,6 +1,7 @@
 # Unreleased
 
 - ***(SECURITY)*** Prevent SSE injection in `Kemal::EventStream`: reject newlines in `event`/`id`, normalize CR/LF in `data`/`comment`. Thanks @hahwul for the report. Thanks @sdogruyol for the fix :pray:
+- Fix URL params being decoded again on every request when route lookup results are cached. Thanks @hahwul for the report. Thanks @sdogruyol for the fix :pray:
 
 - Add `only` / `exclude` opt-in matching for all HTTP methods (`"*"`) and path prefixes (`"/*"`). Defaults remain GET + exact path. Clarified docs and the basic-auth custom handler example. Thanks @hahwul for the report. Thanks @sdogruyol :pray:
 
