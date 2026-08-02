@@ -166,6 +166,10 @@ If Kemal helps you or your company, consider [sponsoring](https://github.com/spo
 
 We love contributions! Please read our [Contributing Guide](CONTRIBUTING.md).
 
+## Security
+
+To report a security vulnerability, please see our [Security Policy](SECURITY.md).
+
 ---
 
 ## Acknowledgments

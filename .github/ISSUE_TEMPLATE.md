@@ -1,3 +1,5 @@
+<!-- Security vulnerabilities: do not report them here. See SECURITY.md -->
+
 ### Description
 
 [Description of the issue]

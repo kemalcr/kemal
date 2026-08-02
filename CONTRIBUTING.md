@@ -76,6 +76,11 @@ If you find a bug, please open an issue on GitHub with:
 - Steps to reproduce the issue.
 - The version of Kemal and Crystal you are using.
 
+## Reporting Security Vulnerabilities
+
+Please do **not** open a public GitHub issue for security vulnerabilities.
+See our [Security Policy](SECURITY.md) for how to report them privately.
+
 ## Feature Requests
 
 We welcome new ideas! Please open an issue to discuss your feature request before implementing it.
