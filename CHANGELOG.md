@@ -1,6 +1,9 @@
 # Unreleased
 
+- ***(SECURITY)*** Prevent SSE injection in `Kemal::EventStream`: reject newlines in `event`/`id`, normalize CR/LF in `data`/`comment`. Thanks @hahwul for the report. Thanks @sdogruyol for the fix :pray:
+
 - Add `only` / `exclude` opt-in matching for all HTTP methods (`"*"`) and path prefixes (`"/*"`). Defaults remain GET + exact path. Clarified docs and the basic-auth custom handler example. Thanks @hahwul for the report. Thanks @sdogruyol :pray:
+
 - Fix `only` / `exclude` with method `"*"` over-matching every path: Radix treats `*` as a glob, so the all-methods marker is stored under a safe sentinel. Thanks @hahwul for the report. Thanks @sdogruyol :pray::
 
 - ***(SECURITY)*** Close the HTTP connection after a rejected WebSocket upgrade (403). Without `Connection: close`, a compound `Connection: keep-alive, Upgrade` request that fails Origin validation left the connection keep-alive, so a request pipelined behind a reverse proxy that tunnels upgrades could bypass the proxy’s access controls (WebSocket connection smuggling). Malformed `Origin` values that previously raised from `URI.parse` now reject with 403 instead of 500.
