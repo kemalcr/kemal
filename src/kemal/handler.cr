@@ -18,12 +18,26 @@ module Kemal
   module HandlerInterface
     include HTTP::Handler
 
+    # Public marker for "match every HTTP method" in `only` / `exclude`.
+    ALL_METHODS = "*"
+
+    # :nodoc:
+    # Radix treats path segments starting with `*` as globs. The public
+    # `ALL_METHODS` marker is rewritten to this sentinel in exact-route keys
+    # so `only ["/admin"], "*"` stays path-exact.
+    ALL_METHODS_KEY = "__ALL__"
+
     macro included
       @@only_routes_tree = Radix::Tree(String).new
       @@exclude_routes_tree = Radix::Tree(String).new
       # class_name => [{method, prefix}, ...] — grouped to avoid scanning other handlers' rules
       @@only_path_prefixes = {} of String => Array({String, String})
       @@exclude_path_prefixes = {} of String => Array({String, String})
+    end
+
+    # :nodoc:
+    def self.radix_method(method : String) : String
+      method == ALL_METHODS ? ALL_METHODS_KEY : method
     end
 
     # Restricts the handler to the given paths.
@@ -58,13 +72,17 @@ module Kemal
     # :nodoc:
     macro __add_handler_routes(class_name, paths, method, tree, prefixes)
       %class_name = {{ class_name }}
-      %class_name_method = "#{%class_name}/#{{{ method }}}"
+      %method = {{ method }}
+      %radix_method = ::Kemal::HandlerInterface.radix_method(%method)
+      %class_name_method = "#{%class_name}/#{%radix_method}"
       ({{ paths }}).each do |path|
         if path.ends_with?("/*")
           %prefix = path[0...-2]
-          ({{ prefixes }}[%class_name] ||= [] of {String, String}) << { {{ method }}, %prefix }
+          # Keep the public method marker (`"*"` / `"GET"` / …) for prefix rules;
+          # only exact-route radix keys need the glob-safe sentinel.
+          ({{ prefixes }}[%class_name] ||= [] of {String, String}) << { %method, %prefix }
         else
-          {{ tree }}.add %class_name_method + path, '/' + {{ method }} + path
+          {{ tree }}.add %class_name_method + path, '/' + %method + path
         end
       end
     end
@@ -121,11 +139,11 @@ module Kemal
       class_name = self.class.to_s
 
       return true if tree.find(radix_path(method, path)).found?
-      return true if tree.find(radix_path("*", path)).found?
+      return true if tree.find(radix_path(ALL_METHODS_KEY, path)).found?
 
       if rules = prefixes[class_name]?
         return true if rules.any? do |(rule_method, prefix)|
-                         (rule_method == "*" || rule_method == method) && Utils.matches_path_prefix?(prefix, path)
+                         (rule_method == ALL_METHODS || rule_method == method) && Utils.matches_path_prefix?(prefix, path)
                        end
       end
 

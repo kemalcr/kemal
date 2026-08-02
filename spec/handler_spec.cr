@@ -77,6 +77,26 @@ class AllMethodsOnlyHandler < Kemal::Handler
   end
 end
 
+class ExactAllMethodsOnlyHandler < Kemal::Handler
+  only ["/admin"], "*"
+
+  def call(env)
+    return call_next(env) unless only_match?(env)
+    env.response.print "Only"
+    call_next env
+  end
+end
+
+class ExactAllMethodsExcludeHandler < Kemal::Handler
+  exclude ["/public"], "*"
+
+  def call(env)
+    return call_next(env) if exclude_match?(env)
+    env.response.print "Secure"
+    call_next env
+  end
+end
+
 class PrefixOnlyHandler < Kemal::Handler
   only ["/admin/*"]
 
@@ -233,6 +253,44 @@ describe "Handler" do
 
     delete_response = call_request_on_app(HTTP::Request.new("DELETE", "/only"))
     delete_response.body.should eq "OnlyDelete"
+  end
+
+  it "keeps exact only_routes with method * path-scoped" do
+    get "/admin" do
+      "Admin"
+    end
+    post "/admin" do
+      "Admin"
+    end
+    get "/admin/users" do
+      "Users"
+    end
+    get "/other" do
+      "Other"
+    end
+    use ExactAllMethodsOnlyHandler.new
+
+    call_request_on_app(HTTP::Request.new("GET", "/admin")).body.should eq "OnlyAdmin"
+    call_request_on_app(HTTP::Request.new("POST", "/admin")).body.should eq "OnlyAdmin"
+    call_request_on_app(HTTP::Request.new("GET", "/admin/users")).body.should eq "Users"
+    call_request_on_app(HTTP::Request.new("GET", "/other")).body.should eq "Other"
+  end
+
+  it "keeps exact exclude_routes with method * path-scoped" do
+    get "/public" do
+      "Public"
+    end
+    get "/public/logo.png" do
+      "Asset"
+    end
+    post "/secret" do
+      "Secret"
+    end
+    use ExactAllMethodsExcludeHandler.new
+
+    call_request_on_app(HTTP::Request.new("GET", "/public")).body.should eq "Public"
+    call_request_on_app(HTTP::Request.new("GET", "/public/logo.png")).body.should eq "SecureAsset"
+    call_request_on_app(HTTP::Request.new("POST", "/secret")).body.should eq "SecureSecret"
   end
 
   it "runs only_routes for path prefixes ending with /*" do
