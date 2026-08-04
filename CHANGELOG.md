@@ -1,5 +1,18 @@
 # Unreleased
 
+- ***(SECURITY)*** WebSocket Origin validation is same-origin by default (CSWSH). An empty `websocket_allowed_origins` now requires `Origin` to match the request `Host` (scheme taken from `Origin`, so reverse-proxy TLS termination keeps working). Missing or empty `Origin` is rejected with 403. Set `Kemal.config.websocket_allowed_origins = ["*"]` to opt into allowing any origin, including requests without `Origin`. Explicit allowlists behave as before.
+
+```crystal
+# Default: same-origin (secure)
+# Kemal.config.websocket_allowed_origins = [] of String
+
+# Explicit allowlist
+Kemal.config.websocket_allowed_origins = ["https://myapp.com", "http://localhost:3000"]
+
+# Previous allow-all behavior (opt-in)
+Kemal.config.websocket_allowed_origins = ["*"]
+```
+
 - ***(SECURITY)*** Prevent SSE injection in `Kemal::EventStream`: reject newlines in `event`/`id`, normalize CR/LF in `data`/`comment`. Thanks @hahwul for the report. Thanks @sdogruyol for the fix :pray:
 - Fix URL params being decoded again on every request when route lookup results are cached. Thanks @hahwul for the report. Thanks @sdogruyol for the fix :pray:
 

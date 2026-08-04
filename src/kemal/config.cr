@@ -29,10 +29,19 @@ module Kemal
     property max_route_cache_size : Int32
     property max_request_body_size : Int32
     property max_multipart_form_field_size : Int32
-    # When non-empty, WebSocket upgrade requests must send an `Origin` header that matches
-    # one of these values (after normalization: scheme/host/port only). Entries use the
-    # serialized origin form, e.g. `"https://example.com"` or `"http://localhost:3000"`.
-    # Use `"null"` to allow the browser's opaque `"null"` origin.
+    # WebSocket Origin policy for upgrade requests.
+    #
+    # - Empty (default): same-origin — `Origin` must match the request `Host` (scheme is
+    #   taken from `Origin`, so TLS termination in front of Kemal still works). Missing or
+    #   empty `Origin` is rejected with 403.
+    # - Non-empty allowlist: `Origin` must match one of the entries after normalization
+    #   (scheme/host/port only). Missing `Origin` is rejected.
+    # - Include `"*"` to allow any origin, including requests without `Origin` (previous
+    #   allow-all behavior).
+    # - Use `"null"` to allow the browser's opaque `"null"` origin.
+    #
+    # Entries use the serialized origin form, e.g. `"https://example.com"` or
+    # `"http://localhost:3000"`.
     property websocket_allowed_origins : Array(String)
 
     def initialize
