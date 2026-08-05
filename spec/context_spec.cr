@@ -129,4 +129,19 @@ describe "Context" do
       context.params.url["id"].should eq "42"
     end
   end
+
+  context "url params cache isolation" do
+    it "does not mutate cached radix params across repeated requests" do
+      get "/files/:path" do |env|
+        env.params.url["path"]
+      end
+
+      path = "/%252e%252e%252fsecret.txt"
+      first = call_request_on_app(HTTP::Request.new("GET", "/files#{path}"))
+      second = call_request_on_app(HTTP::Request.new("GET", "/files#{path}"))
+
+      first.body.should eq("%2e%2e%2fsecret.txt")
+      second.body.should eq("%2e%2e%2fsecret.txt")
+    end
+  end
 end

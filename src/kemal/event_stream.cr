@@ -3,6 +3,9 @@ module Kemal
   #
   # Sets the required headers and formats events according to the SSE spec.
   class EventStream
+    # SSE treats CR, LF, and CRLF as line terminators (WHATWG HTML).
+    private SSE_LINE_BREAK = /\r\n|\r|\n/
+
     def initialize(@response : HTTP::Server::Response)
       setup_headers
     end
@@ -15,11 +18,20 @@ module Kemal
     end
 
     # Sends an SSE event. Multi-line *data* is split into separate `data:` fields.
+    # *event* and *id* must not contain CR/LF; newlines there raise `ArgumentError`
+    # so they cannot inject SSE fields.
     def send(data : String, *, event : String? = nil, id : String | Int? = nil, retry : Time::Span? = nil) : self
-      @response.puts "event: #{event}" if event
-      @response.puts "id: #{id}" if id
+      if event
+        validate_single_line!("event", event)
+        @response.puts "event: #{event}"
+      end
+      if id
+        id_value = id.to_s
+        validate_single_line!("id", id_value)
+        @response.puts "id: #{id_value}"
+      end
       @response.puts "retry: #{retry.total_milliseconds.to_i}" if retry
-      data.each_line(chomp: true) do |line|
+      each_sse_line(data) do |line|
         @response.puts "data: #{line}"
       end
       @response.puts
@@ -29,7 +41,8 @@ module Kemal
 
     # Sends a keep-alive comment (ignored by clients, useful during idle periods).
     def comment(text : String) : self
-      @response.print ": #{text}\n\n"
+      each_sse_line(text) { |line| @response.print ": #{line}\n" }
+      @response.print "\n"
       flush
       self
     end
@@ -40,6 +53,18 @@ module Kemal
 
     def close : Nil
       @response.close
+    end
+
+    private def validate_single_line!(field : String, value : String) : Nil
+      if value.includes?('\n') || value.includes?('\r')
+        raise ArgumentError.new("SSE #{field} must not contain CR or LF")
+      end
+    end
+
+    # Yields each SSE line. Normalizes CR/CRLF only when needed to avoid an extra alloc.
+    private def each_sse_line(value : String, & : String ->) : Nil
+      value = value.gsub(SSE_LINE_BREAK, "\n") if value.includes?('\r')
+      value.each_line(chomp: true) { |line| yield line }
     end
 
     private def setup_headers

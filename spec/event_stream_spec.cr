@@ -35,6 +35,47 @@ describe Kemal::EventStream do
     client_response.body.should eq("data: line one\ndata: line two\n\n")
   end
 
+  it "rejects LF, CR, and CRLF in event names" do
+    {"tick\ndata: x", "tick\rdata: x", "tick\r\ndata: x"}.each do |event|
+      io = IO::Memory.new
+      stream = Kemal::EventStream.new(HTTP::Server::Response.new(io))
+      expect_raises(ArgumentError, "SSE event must not contain CR or LF") do
+        stream.send("hello", event: event)
+      end
+    end
+  end
+
+  it "rejects LF, CR, and CRLF in ids" do
+    {"7\nevent: x", "7\revent: x", "7\r\nevent: x"}.each do |id|
+      io = IO::Memory.new
+      stream = Kemal::EventStream.new(HTTP::Server::Response.new(io))
+      expect_raises(ArgumentError, "SSE id must not contain CR or LF") do
+        stream.send("hello", id: id)
+      end
+    end
+  end
+
+  it "treats bare CR in data as a line break to prevent field smuggling" do
+    sse "/events" do |stream, _|
+      stream.send("safe\rdata: smuggled-via-CR")
+    end
+
+    request = HTTP::Request.new("GET", "/events")
+    client_response = call_request_on_app(request)
+    client_response.body.should eq("data: safe\ndata: data: smuggled-via-CR\n\n")
+    client_response.body.should_not contain("\r")
+  end
+
+  it "treats CRLF in data as a line break to prevent field smuggling" do
+    sse "/events" do |stream, _|
+      stream.send("safe\r\nevent: injected\r\ndata: owned")
+    end
+
+    request = HTTP::Request.new("GET", "/events")
+    client_response = call_request_on_app(request)
+    client_response.body.should eq("data: safe\ndata: event: injected\ndata: data: owned\n\n")
+  end
+
   it "sends keep-alive comments" do
     sse "/events" do |stream, _|
       stream.comment("ping")
@@ -43,6 +84,16 @@ describe Kemal::EventStream do
     request = HTTP::Request.new("GET", "/events")
     client_response = call_request_on_app(request)
     client_response.body.should eq(": ping\n\n")
+  end
+
+  it "splits multi-line comments to prevent SSE injection" do
+    sse "/events" do |stream, _|
+      stream.comment("ping\nevent: injected\ndata: owned")
+    end
+
+    request = HTTP::Request.new("GET", "/events")
+    client_response = call_request_on_app(request)
+    client_response.body.should eq(": ping\n: event: injected\n: data: owned\n\n")
   end
 
   it "supports url parameters" do
