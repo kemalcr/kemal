@@ -1,3 +1,7 @@
+# Unreleased
+
+- ***(SECURITY)*** Close the HTTP connection after a rejected WebSocket upgrade (403). Without `Connection: close`, a compound `Connection: keep-alive, Upgrade` request that fails Origin validation left the connection keep-alive, so a request pipelined behind a reverse proxy that tunnels upgrades could bypass the proxy’s access controls (WebSocket connection smuggling). Malformed `Origin` values that previously raised from `URI.parse` now reject with 403 instead of 500.
+
 # 1.12.0 (21-07-2026)
 
 - Crystal 1.21.0 support :tada:
