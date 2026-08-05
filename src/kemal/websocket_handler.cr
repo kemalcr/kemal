@@ -60,7 +60,7 @@ module Kemal
       return if o.empty?
       return "null" if o == "null"
 
-      uri = URI.parse(o)
+      uri = URI.parse(o) rescue return
       scheme_raw = uri.scheme
       host_raw = uri.host
       return unless scheme_raw && host_raw
@@ -80,6 +80,9 @@ module Kemal
 
     private def reject_websocket_forbidden!(context : HTTP::Server::Context)
       context.response.status_code = 403
+      # Close after rejection so a pipelined request cannot reuse this connection
+      # (WebSocket connection smuggling via `Connection: keep-alive, Upgrade`).
+      context.response.headers["Connection"] = "close"
       context.response.headers["Content-Type"] = "text/plain; charset=UTF-8"
       context.response.print "Forbidden"
     end
