@@ -81,12 +81,8 @@ describe "Kemal::WebSocketHandler" do
     handler = Kemal::WebSocketHandler::INSTANCE
     ws("/", &.send("Match"))
     ws("/no_match", &.send("No Match"))
-    headers = HTTP::Headers{
-      "Upgrade"               => "websocket",
-      "Connection"            => "Upgrade",
-      "Sec-WebSocket-Key"     => "dGhlIHNhbXBsZSBub25jZQ==",
-      "Sec-WebSocket-Version" => "13",
-    }
+    headers = ws_upgrade_headers_for_origin("http://localhost")
+    headers["Host"] = "localhost"
     request = HTTP::Request.new("GET", "/", headers)
 
     io_with_context = create_ws_request_and_return_io_and_context(handler, request)[0]
@@ -96,12 +92,8 @@ describe "Kemal::WebSocketHandler" do
   it "fetches named url parameters" do
     handler = Kemal::WebSocketHandler::INSTANCE
     ws "/:id" { |_, context| context.ws_route_lookup.params["id"] }
-    headers = HTTP::Headers{
-      "Upgrade"               => "websocket",
-      "Connection"            => "Upgrade",
-      "Sec-WebSocket-Key"     => "dGhlIHNhbXBsZSBub25jZQ==",
-      "Sec-WebSocket-Version" => "13",
-    }
+    headers = ws_upgrade_headers_for_origin("http://localhost")
+    headers["Host"] = "localhost"
     request = HTTP::Request.new("GET", "/1234", headers)
     io_with_context = create_ws_request_and_return_io_and_context(handler, request)[0]
     io_with_context.to_s.should eq("HTTP/1.1 101 Switching Protocols\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Accept: s3pPLMBiTxaQ9kYGzzhZRbK+xOo=\r\n\r\n")
@@ -167,6 +159,115 @@ describe "Kemal::WebSocketHandler" do
       handler = Kemal::WebSocketHandler::INSTANCE
       ws("/", &.send("x"))
       request = HTTP::Request.new("GET", "/", ws_upgrade_headers_for_origin("https://example.com:443"))
+      io_with_context = create_ws_request_and_return_io_and_context(handler, request)[0]
+      io_with_context.to_s.should contain("101 Switching Protocols")
+    end
+
+    it "allows same origin by default (Origin matches Host)" do
+      Kemal.config.websocket_allowed_origins = [] of String
+      handler = Kemal::WebSocketHandler::INSTANCE
+      ws "/", &.send("ok")
+      headers = ws_upgrade_headers_for_origin("http://localhost")
+      headers["Host"] = "localhost"
+      request = HTTP::Request.new("GET", "/", headers)
+      io_with_context = create_ws_request_and_return_io_and_context(handler, request)[0]
+      io_with_context.to_s.should contain("101 Switching Protocols")
+    end
+
+    it "allows https Origin against Host when TLS is terminated upstream" do
+      Kemal.config.websocket_allowed_origins = [] of String
+      handler = Kemal::WebSocketHandler::INSTANCE
+      ws "/", &.send("ok")
+      headers = ws_upgrade_headers_for_origin("https://app.example.com")
+      headers["Host"] = "app.example.com"
+      request = HTTP::Request.new("GET", "/", headers)
+      io_with_context = create_ws_request_and_return_io_and_context(handler, request)[0]
+      io_with_context.to_s.should contain("101 Switching Protocols")
+    end
+
+    it "allows same origin with non-default port" do
+      Kemal.config.websocket_allowed_origins = [] of String
+      handler = Kemal::WebSocketHandler::INSTANCE
+      ws "/", &.send("ok")
+      headers = ws_upgrade_headers_for_origin("http://localhost:3000")
+      headers["Host"] = "localhost:3000"
+      request = HTTP::Request.new("GET", "/", headers)
+      io_with_context = create_ws_request_and_return_io_and_context(handler, request)[0]
+      io_with_context.to_s.should contain("101 Switching Protocols")
+    end
+
+    it "rejects 403 when default config and Origin port does not match Host" do
+      Kemal.config.websocket_allowed_origins = [] of String
+      handler = Kemal::WebSocketHandler::INSTANCE
+      ws "/" { }
+      headers = ws_upgrade_headers_for_origin("http://localhost:3000")
+      headers["Host"] = "localhost"
+      request = HTTP::Request.new("GET", "/", headers)
+      assert_websocket_forbidden_closed(call_ws_handler_response(handler, request))
+    end
+
+    it "rejects 403 when default config and Origin does not match Host" do
+      Kemal.config.websocket_allowed_origins = [] of String
+      handler = Kemal::WebSocketHandler::INSTANCE
+      ws "/" { }
+      headers = ws_upgrade_headers_for_origin("https://evil.com")
+      headers["Host"] = "localhost"
+      request = HTTP::Request.new("GET", "/", headers)
+      assert_websocket_forbidden_closed(call_ws_handler_response(handler, request))
+    end
+
+    it "rejects 403 when default config and Origin is missing" do
+      Kemal.config.websocket_allowed_origins = [] of String
+      handler = Kemal::WebSocketHandler::INSTANCE
+      ws "/" { }
+      headers = ws_upgrade_headers_for_origin
+      headers["Host"] = "localhost"
+      request = HTTP::Request.new("GET", "/", headers)
+      assert_websocket_forbidden_closed(call_ws_handler_response(handler, request))
+    end
+
+    it "rejects 403 when default config and Host is missing" do
+      Kemal.config.websocket_allowed_origins = [] of String
+      handler = Kemal::WebSocketHandler::INSTANCE
+      ws "/" { }
+      request = HTTP::Request.new("GET", "/", ws_upgrade_headers_for_origin("http://localhost"))
+      assert_websocket_forbidden_closed(call_ws_handler_response(handler, request))
+    end
+
+    it "rejects 403 when Origin is empty string" do
+      Kemal.config.websocket_allowed_origins = [] of String
+      handler = Kemal::WebSocketHandler::INSTANCE
+      ws "/" { }
+      headers = ws_upgrade_headers_for_origin("")
+      headers["Host"] = "localhost"
+      request = HTTP::Request.new("GET", "/", headers)
+      assert_websocket_forbidden_closed(call_ws_handler_response(handler, request))
+    end
+
+    it "rejects 403 for opaque null Origin under default same-origin policy" do
+      Kemal.config.websocket_allowed_origins = [] of String
+      handler = Kemal::WebSocketHandler::INSTANCE
+      ws "/" { }
+      headers = ws_upgrade_headers_for_origin("null")
+      headers["Host"] = "localhost"
+      request = HTTP::Request.new("GET", "/", headers)
+      assert_websocket_forbidden_closed(call_ws_handler_response(handler, request))
+    end
+
+    it "allows wildcard origin when '*' is in allowlist" do
+      Kemal.config.websocket_allowed_origins = ["*"]
+      handler = Kemal::WebSocketHandler::INSTANCE
+      ws "/", &.send("ok")
+      request = HTTP::Request.new("GET", "/", ws_upgrade_headers_for_origin("https://anything.com"))
+      io_with_context = create_ws_request_and_return_io_and_context(handler, request)[0]
+      io_with_context.to_s.should contain("101 Switching Protocols")
+    end
+
+    it "allows missing Origin when '*' is in allowlist" do
+      Kemal.config.websocket_allowed_origins = ["*"]
+      handler = Kemal::WebSocketHandler::INSTANCE
+      ws "/", &.send("ok")
+      request = HTTP::Request.new("GET", "/", ws_upgrade_headers_for_origin)
       io_with_context = create_ws_request_and_return_io_and_context(handler, request)[0]
       io_with_context.to_s.should contain("101 Switching Protocols")
     end

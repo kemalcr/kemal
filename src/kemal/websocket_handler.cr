@@ -44,7 +44,9 @@ module Kemal
 
     private def websocket_origin_allowed?(request : HTTP::Request) : Bool
       allowed = Kemal.config.websocket_allowed_origins
-      return true if allowed.empty?
+
+      # Opt-in escape hatch for the previous allow-all behavior (including missing Origin).
+      return true if allowed.includes?("*")
 
       origin_header = request.headers["Origin"]?
       return false if !origin_header || origin_header.empty?
@@ -52,7 +54,29 @@ module Kemal
       actual = normalize_websocket_origin(origin_header)
       return false unless actual
 
+      if allowed.empty?
+        return websocket_same_origin?(request, actual)
+      end
+
       allowed.any? { |entry| normalize_websocket_origin(entry) == actual }
+    end
+
+    # Same-origin: Origin's host[:port] must match the request Host header.
+    # Scheme is taken from the (already normalized) Origin so TLS termination in front of
+    # Kemal still works — Kemal.config.scheme would be "http" in that setup.
+    private def websocket_same_origin?(request : HTTP::Request, actual : String) : Bool
+      return false if actual == "null"
+
+      host = request.headers["Host"]?
+      return false if !host || host.empty?
+
+      scheme = URI.parse(actual).scheme
+      return false if !scheme || scheme.empty?
+
+      expected = normalize_websocket_origin("#{scheme}://#{host}")
+      return false unless expected
+
+      actual == expected
     end
 
     private def normalize_websocket_origin(origin : String) : String?

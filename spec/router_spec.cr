@@ -384,6 +384,8 @@ describe "Kemal::Router" do
         "Connection"            => "Upgrade",
         "Sec-WebSocket-Key"     => "dGhlIHNhbXBsZSBub25jZQ==",
         "Sec-WebSocket-Version" => "13",
+        "Host"                  => "localhost",
+        "Origin"                => "http://localhost",
       }
       request = HTTP::Request.new("GET", "/ws/chat", headers)
 
@@ -405,6 +407,8 @@ describe "Kemal::Router" do
         "Connection"            => "Upgrade",
         "Sec-WebSocket-Key"     => "dGhlIHNhbXBsZSBub25jZQ==",
         "Sec-WebSocket-Version" => "13",
+        "Host"                  => "localhost",
+        "Origin"                => "http://localhost",
       }
       request = HTTP::Request.new("GET", "/ws/room/123", headers)
 
