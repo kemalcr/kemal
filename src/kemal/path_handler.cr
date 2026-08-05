@@ -20,27 +20,13 @@ module Kemal
     end
 
     def call(context : HTTP::Server::Context)
-      if matches_prefix?(context.request.path)
+      if Utils.matches_path_prefix?(@path_prefix, context.request.path)
         # Set next handler for the wrapped handler
         @handler.next = self.next
         @handler.call(context)
       else
         call_next(context)
       end
-    end
-
-    # Checks if the request path matches the handler's path prefix.
-    # - "/" or "" matches all paths
-    # - "/api" matches "/api" and "/api/*"
-    # - "/api" does NOT match "/apiv2"
-    private def matches_prefix?(path : String) : Bool
-      return true if path_prefix.in?("/", "")
-
-      # Exact match
-      return true if path == path_prefix
-
-      # Prefix match (must be followed by /)
-      path.starts_with?("#{path_prefix}/")
     end
   end
 end
