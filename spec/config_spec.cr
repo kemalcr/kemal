@@ -15,8 +15,8 @@ describe "Config" do
     config.env.should eq "production"
   end
 
-  it "sets default powered_by_header to true" do
-    Kemal::Config.new.powered_by_header?.should be_true
+  it "sets default powered_by_header to false" do
+    Kemal::Config.new.powered_by_header?.should be_false
   end
 
   it "sets host binding" do

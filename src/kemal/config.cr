@@ -25,7 +25,7 @@ module Kemal
     property always_rescue, server : HTTP::Server?, extra_options, shutdown_message, shutdown_timeout
     property serve_static : (Bool | Hash(String, Bool))
     property static_headers : (HTTP::Server::Context, String, File::Info ->)?
-    property? powered_by_header : Bool = true
+    property? powered_by_header : Bool = false
     property max_route_cache_size : Int32
     property max_request_body_size : Int32
     property max_multipart_form_field_size : Int32
@@ -87,7 +87,7 @@ module Kemal
     end
 
     def clear
-      @powered_by_header = true
+      @powered_by_header = false
       @router_included = false
       @handler_position = 0
       @default_handlers_setup = false
