@@ -1,7 +1,39 @@
 require "exception_page"
+require "html"
 
 module Kemal
   class ExceptionPage < ExceptionPage
+    # The `exception_page` shard renders some values without escaping them, in
+    # the `<title>` element and in the heading right below it. Two of them are
+    # attacker controlled: the request path, and the exception message, which
+    # applications commonly build from user input (`raise "User #{name} not
+    # found"`). Escape them here, before they reach the template, so the
+    # development error page can't be turned into a reflected XSS.
+    def self.new(context : HTTP::Server::Context, exception : Exception)
+      new(
+        exception,
+        HTML.escape(context.request.method),
+        HTML.escape(context.request.path),
+        context.response.status,
+        nil,
+        context.request.query_params,
+        context.response.headers,
+        context.response.cookies,
+        neutralize_markup(exception.message),
+        context.request.path,
+      )
+    end
+
+    # The message is rendered both unescaped (in `<title>`) and escaped (in the
+    # heading and the raw message block), so escaping it in full would show up
+    # double escaped in the latter. Neutralizing the angle brackets is enough to
+    # make the unescaped occurrence inert, and leaves quotes and ampersands —
+    # which are common in error messages — untouched. This can be dropped once
+    # the shard escapes the title itself.
+    private def self.neutralize_markup(message : String?) : String?
+      message.try &.gsub('<', "&lt;").gsub('>', "&gt;")
+    end
+
     def styles : ExceptionPage::Styles
       ExceptionPage::Styles.new(
         accent: "red",

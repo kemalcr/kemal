@@ -30,6 +30,13 @@ def render_500(context, exception, verbosity)
   context.response.status_code = 500
 
   template = if verbosity
+               # The development error page reflects request data back to the
+               # browser. It only needs its own inline stylesheet and a `data:`
+               # logo, so lock down everything else: should a value ever reach
+               # the page unescaped, injected markup can't execute or phone home.
+               context.response.headers["Content-Security-Policy"] =
+                 "default-src 'none'; style-src 'unsafe-inline'; img-src data:; base-uri 'none'; form-action 'none'"
+               context.response.headers["X-Content-Type-Options"] = "nosniff"
                Kemal::ExceptionPage.new(context, exception).to_s
              else
                Kemal::ExceptionPage.for_production_exception

@@ -271,4 +271,99 @@ describe "Kemal::ExceptionHandler" do
     response.headers["Content-Type"].should eq "text/plain"
     response.body.should eq "Payload Too Large"
   end
+
+  it "escapes the exception message on the development error page" do
+    get "/user-lookup" do |env|
+      raise "User '#{env.params.query["name"]}' not found"
+    end
+
+    request = HTTP::Request.new("GET", "/user-lookup?name=%3C/title%3E%3Cscript%3Ealert(1)%3C/script%3E")
+    io = IO::Memory.new
+    response = HTTP::Server::Response.new(io)
+    context = HTTP::Server::Context.new(request, response)
+    Kemal::ExceptionHandler::INSTANCE.next = Kemal::RouteHandler::INSTANCE
+    Kemal::ExceptionHandler::INSTANCE.call(context)
+    response.close
+    io.rewind
+    response = HTTP::Client::Response.from_io(io, decompress: false)
+    response.status_code.should eq 500
+    response.body.should_not contain "<script>alert(1)</script>"
+    response.body.should contain "&lt;script&gt;alert(1)&lt;/script&gt;"
+  end
+
+  it "escapes the request path on the development error page" do
+    get "/u/*path" do
+      raise "boom"
+    end
+
+    request = HTTP::Request.new("GET", "/u/<img/src=x/onerror=alert(1)>")
+    io = IO::Memory.new
+    response = HTTP::Server::Response.new(io)
+    context = HTTP::Server::Context.new(request, response)
+    Kemal::ExceptionHandler::INSTANCE.next = Kemal::RouteHandler::INSTANCE
+    Kemal::ExceptionHandler::INSTANCE.call(context)
+    response.close
+    io.rewind
+    response = HTTP::Client::Response.from_io(io, decompress: false)
+    response.status_code.should eq 500
+    response.body.should_not contain "<img/src=x/onerror=alert(1)>"
+    response.body.should contain "&lt;img/src=x/onerror=alert(1)&gt;"
+  end
+
+  it "leaves ordinary exception messages readable on the development error page" do
+    get "/" do
+      raise %(User 'bob' not found in "users" & sessions)
+    end
+
+    request = HTTP::Request.new("GET", "/")
+    io = IO::Memory.new
+    response = HTTP::Server::Response.new(io)
+    context = HTTP::Server::Context.new(request, response)
+    Kemal::ExceptionHandler::INSTANCE.next = Kemal::RouteHandler::INSTANCE
+    Kemal::ExceptionHandler::INSTANCE.call(context)
+    response.close
+    io.rewind
+    response = HTTP::Client::Response.from_io(io, decompress: false)
+    response.body.should contain %(- User 'bob' not found in "users" & sessions</title>)
+    response.body.should contain %(<h1 class="title">User 'bob' not found in "users" &amp; sessions</h1>)
+  end
+
+  it "sends a restrictive Content-Security-Policy with the development error page" do
+    get "/" do
+      raise "boom"
+    end
+
+    request = HTTP::Request.new("GET", "/")
+    io = IO::Memory.new
+    response = HTTP::Server::Response.new(io)
+    context = HTTP::Server::Context.new(request, response)
+    Kemal::ExceptionHandler::INSTANCE.next = Kemal::RouteHandler::INSTANCE
+    Kemal::ExceptionHandler::INSTANCE.call(context)
+    response.close
+    io.rewind
+    response = HTTP::Client::Response.from_io(io, decompress: false)
+    response.status_code.should eq 500
+    response.headers["Content-Security-Policy"].should eq "default-src 'none'; style-src 'unsafe-inline'; img-src data:; base-uri 'none'; form-action 'none'"
+    response.headers["X-Content-Type-Options"].should eq "nosniff"
+  end
+
+  it "doesn't reflect the request on the production error page" do
+    Kemal.config.env = "production"
+    get "/u/*path" do |env|
+      raise "User '#{env.params.query["name"]}' not found"
+    end
+
+    request = HTTP::Request.new("GET", "/u/<script>?name=<script>")
+    io = IO::Memory.new
+    response = HTTP::Server::Response.new(io)
+    context = HTTP::Server::Context.new(request, response)
+    Kemal::ExceptionHandler::INSTANCE.next = Kemal::RouteHandler::INSTANCE
+    Kemal::ExceptionHandler::INSTANCE.call(context)
+    response.close
+    io.rewind
+    response = HTTP::Client::Response.from_io(io, decompress: false)
+    response.status_code.should eq 500
+    response.body.should_not contain "<script>"
+    response.body.should contain "Kemal has encountered an error. (500)"
+  end
 end
