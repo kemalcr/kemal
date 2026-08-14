@@ -66,6 +66,11 @@ module Kemal
     # else goes into the radix tree with an @exact_filters hash cache for
     # O(1) lookup when adding multiple filters to the same path.
     def _add_route_filter(verb : String, path, type, &block : HTTP::Server::Context -> _)
+      # Ensure this handler is registered with Kemal (may have been cleared between tests)
+      unless Kemal::Config::FILTER_HANDLERS.includes?(self)
+        Kemal.config.add_filter_handler(self)
+      end
+
       if WILDCARD_PATHS.includes?(path)
         key = global_key(verb, type)
 

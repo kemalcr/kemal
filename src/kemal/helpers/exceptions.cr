@@ -24,4 +24,11 @@ module Kemal::Exceptions
       super "Payload Too Large"
     end
   end
+
+  # RFC 10008 requires QUERY request content to carry a media type.
+  class InvalidQueryRequest < Exception
+    def initialize
+      super "QUERY request with a body requires a Content-Type header"
+    end
+  end
 end

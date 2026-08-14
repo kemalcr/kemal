@@ -103,7 +103,7 @@ describe Kemal::StaticFileHandler do
       response.status_code.should eq(200)
     end
 
-    %w[POST PUT DELETE].each do |method|
+    %w[POST PUT DELETE QUERY].each do |method|
       response = handle HTTP::Request.new(method, "/dir/test.txt")
       response.status_code.should eq(404)
       response = handle HTTP::Request.new(method, "/dir/test.txt"), false

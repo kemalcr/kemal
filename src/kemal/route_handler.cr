@@ -161,6 +161,7 @@ module Kemal
     private def process_request(context)
       raise Kemal::Exceptions::RouteNotFound.new(context) unless context.route_found?
       return if context.response.closed?
+      validate_query_request!(context.request)
       content = context.route.handler.call(context)
 
       if !Kemal.config.error_handlers.empty? && Kemal.config.error_handlers.has_key?(context.response.status_code)
@@ -172,6 +173,27 @@ module Kemal
       context
     ensure
       context.params.cleanup_temporary_files
+    end
+
+    # RFC 10008 requires failing a QUERY request whose content lacks a media
+    # type. Only the missing-header case is enforced here; rejecting
+    # unsupported or unprocessable media types (415/406/422) is up to the
+    # application.
+    private def validate_query_request!(request : HTTP::Request)
+      return unless request.method == "QUERY"
+      return if request.headers["Content-Type"]?.presence
+      raise Kemal::Exceptions::InvalidQueryRequest.new if request_has_body?(request)
+    end
+
+    # Body presence follows RFC 9112 message framing: Transfer-Encoding takes
+    # precedence over Content-Length, and an unparsable Content-Length falls
+    # back to how the request was actually framed.
+    private def request_has_body?(request : HTTP::Request) : Bool
+      return true if request.headers["Transfer-Encoding"]?.try(&.downcase.includes?("chunked"))
+      if length = request.headers["Content-Length"]?.try(&.to_i64?)
+        return length > 0
+      end
+      !request.body.nil?
     end
 
     private def radix_path(method, path)

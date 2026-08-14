@@ -14,6 +14,19 @@ describe "Kemal::OverrideMethodHandler" do
     context.request.method.should eq "POST"
   end
 
+  it "does not override method with _method=QUERY for POST requests" do
+    request = HTTP::Request.new(
+      "POST",
+      "/",
+      body: "_method=QUERY",
+      headers: HTTP::Headers{"Content-Type" => "application/x-www-form-urlencoded; charset=UTF-8"}
+    )
+
+    context = create_request_and_return_io_and_context(Kemal::OverrideMethodHandler::INSTANCE, request)[1]
+
+    context.request.method.should eq "POST"
+  end
+
   it "overrides method with _method for POST requests" do
     request = HTTP::Request.new(
       "POST",

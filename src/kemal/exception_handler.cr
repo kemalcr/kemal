@@ -14,7 +14,13 @@ module Kemal
       if Kemal.config.error_handlers.has_key?(413)
         call_exception_with_status_code(context, ex, 413)
       else
-        call_payload_too_large(context, ex)
+        call_default_exception(context, ex, 413)
+      end
+    rescue ex : Kemal::Exceptions::InvalidQueryRequest
+      if Kemal.config.error_handlers.has_key?(400)
+        call_exception_with_status_code(context, ex, 400)
+      else
+        call_default_exception(context, ex, 400)
       end
     rescue ex : Exception
       # Matches an error handler for the given exception
@@ -62,11 +68,13 @@ module Kemal
       end
     end
 
-    private def call_payload_too_large(context : HTTP::Server::Context, exception : Kemal::Exceptions::PayloadTooLarge)
+    # Renders a plain-text response for exceptions with a fixed status code
+    # when no custom error handler is registered for that code.
+    private def call_default_exception(context : HTTP::Server::Context, exception : Exception, status_code : Int32)
       return if context.response.closed? || context.response.headers_sent?
 
       context.response.content_type = "text/plain" unless context.response.headers.has_key?("Content-Type")
-      context.response.status_code = 413
+      context.response.status_code = status_code
       context.response.print exception.message if exception.message
       context
     end

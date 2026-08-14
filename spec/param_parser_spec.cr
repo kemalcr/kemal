@@ -59,6 +59,28 @@ describe "ParamParser" do
     url_params["spanish"].should eq "año"
   end
 
+  it "parses url-encoded body of a QUERY request" do
+    request = HTTP::Request.new(
+      "QUERY",
+      "/",
+      body: "q=kemal",
+      headers: HTTP::Headers{"Content-Type" => "application/x-www-form-urlencoded"},
+    )
+    body_params = Kemal::ParamParser.new(request).body
+    body_params["q"].should eq "kemal"
+  end
+
+  it "parses JSON body of a QUERY request" do
+    request = HTTP::Request.new(
+      "QUERY",
+      "/",
+      body: %({"q": "kemal"}),
+      headers: HTTP::Headers{"Content-Type" => "application/json"},
+    )
+    json_params = Kemal::ParamParser.new(request).json
+    json_params["q"].should eq "kemal"
+  end
+
   it "parses request body" do
     Route.new "POST", "/" do |env|
       name = env.params.query["name"]
