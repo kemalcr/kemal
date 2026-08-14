@@ -267,11 +267,6 @@ module Kemal
     private def register_filters(full_prefix : String, route_paths : Array(Tuple(String, String)))
       return if @filters.empty?
 
-      # Ensure FilterHandler is registered with Kemal (may have been cleared between tests)
-      unless Kemal::Config::FILTER_HANDLERS.includes?(Kemal::FilterHandler::INSTANCE)
-        Kemal.config.add_filter_handler(Kemal::FilterHandler::INSTANCE)
-      end
-
       @filters.each do |filter|
         # Determine which paths this filter applies to
         applicable_paths = if filter.path == "*"

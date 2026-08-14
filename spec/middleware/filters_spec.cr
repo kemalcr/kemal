@@ -73,6 +73,39 @@ describe "Kemal::FilterHandler" do
     client_response.body.should eq("false")
   end
 
+  it "executes before_query filter for QUERY requests but not GET requests" do
+    before_query "/greetings" do |env|
+      env.set "filtered", "true"
+    end
+
+    query "/greetings" do |env|
+      env.get?("filtered").to_s
+    end
+
+    get "/greetings" do |env|
+      env.get?("filtered").to_s
+    end
+
+    query_response = call_request_on_app(HTTP::Request.new("QUERY", "/greetings"))
+    query_response.body.should eq("true")
+
+    get_response = call_request_on_app(HTTP::Request.new("GET", "/greetings"))
+    get_response.body.should eq("")
+  end
+
+  it "executes after_query filter for QUERY requests" do
+    after_query "/greetings" do |env|
+      env.response.headers["X-After-Query"] = "applied"
+    end
+
+    query "/greetings" do
+      "hello"
+    end
+
+    response = call_request_on_app(HTTP::Request.new("QUERY", "/greetings"))
+    response.headers["X-After-Query"].should eq("applied")
+  end
+
   it "executes code after home request" do
     test_filter = FilterTest.new
     test_filter.modified = "false"

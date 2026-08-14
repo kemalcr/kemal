@@ -3,14 +3,14 @@
 #
 # ## Available DSL Methods
 #
-# - **HTTP Routes**: `get`, `post`, `put`, `patch`, `delete`, `options`
+# - **HTTP Routes**: `get`, `post`, `put`, `patch`, `delete`, `options`, `query`
 # - **WebSocket**: `ws`
 # - **Server-Sent Events**: `sse`
 # - **Filters**: `before_all`, `before_get`, `after_all`, `after_get`, etc.
 # - **Error Handling**: `error`
 # - **Modular Routing**: `mount`
-HTTP_METHODS   = %w[get post put patch delete options]
-FILTER_METHODS = %w[get post put patch delete options all]
+HTTP_METHODS   = %w[get post put patch delete options query]
+FILTER_METHODS = %w[get post put patch delete options query all]
 
 # Defines a route for the given HTTP method.
 #
@@ -23,6 +23,21 @@ FILTER_METHODS = %w[get post put patch delete options all]
 #
 # post "/users" do |env|
 #   "User created"
+# end
+# ```
+#
+# `query` implements the HTTP QUERY method (RFC 10008): a safe, idempotent
+# request that carries the query in the request body, so handlers must not
+# change server state. A QUERY request that has a body but no `Content-Type`
+# header is rejected with 400. Responding with 415/406/422 for unsupported or
+# unprocessable query formats is up to the handler, which can advertise the
+# supported formats via the `Accept-Query` response header. Browsers always
+# send a CORS preflight for QUERY as it is not a CORS-safelisted method.
+#
+# ```
+# query "/search" do |env|
+#   q = env.params.json["q"]? # or env.params.body for form-encoded queries
+#   search_products(q).to_json
 # end
 # ```
 {% for method in HTTP_METHODS %}
@@ -103,8 +118,8 @@ end
 # Defines filters that run before or after requests.
 #
 # Available methods:
-# - `before_all`, `before_get`, `before_post`, `before_put`, `before_patch`, `before_delete`, `before_options`
-# - `after_all`, `after_get`, `after_post`, `after_put`, `after_patch`, `after_delete`, `after_options`
+# - `before_all`, `before_get`, `before_post`, `before_put`, `before_patch`, `before_delete`, `before_options`, `before_query`
+# - `after_all`, `after_get`, `after_post`, `after_put`, `after_patch`, `after_delete`, `after_options`, `after_query`
 #
 # ```
 # before_all do |env|

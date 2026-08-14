@@ -81,6 +81,24 @@ describe "Kemal::Router" do
       client_response.headers["Allow"].should eq("GET, POST, OPTIONS")
     end
 
+    it "routes QUERY request with prefix" do
+      router = Kemal::Router.new
+      router.query "/users/search" do |env|
+        "searching for #{env.params.body["q"]}"
+      end
+
+      mount "/api", router
+
+      request = HTTP::Request.new(
+        "QUERY",
+        "/api/users/search",
+        body: "q=kemal",
+        headers: HTTP::Headers{"Content-Type" => "application/x-www-form-urlencoded"},
+      )
+      client_response = call_request_on_app(request)
+      client_response.body.should eq("searching for kemal")
+    end
+
     it "mounts router without prefix" do
       router = Kemal::Router.new
       router.get "/status" do
@@ -177,6 +195,32 @@ describe "Kemal::Router" do
       post_request = HTTP::Request.new("POST", "/api/test")
       post_response = call_request_on_app(post_request)
       post_response.body.should eq("post")
+    end
+
+    it "applies QUERY-specific before filter" do
+      router = Kemal::Router.new
+
+      router.before_query do |env|
+        env.set "method", "query"
+      end
+
+      router.query "/test" do |env|
+        env.get("method").to_s
+      end
+
+      router.get "/test" do |env|
+        env.get?("method").to_s
+      end
+
+      mount "/api", router
+
+      query_request = HTTP::Request.new("QUERY", "/api/test")
+      query_response = call_request_on_app(query_request)
+      query_response.body.should eq("query")
+
+      get_request = HTTP::Request.new("GET", "/api/test")
+      get_response = call_request_on_app(get_request)
+      get_response.body.should eq("")
     end
 
     it "applies filter to specific path" do

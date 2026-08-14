@@ -21,5 +21,22 @@ describe "Route" do
         end
       end
     end
+
+    it "matches a QUERY route" do
+      query "/search" do
+        "QUERY search"
+      end
+      request = HTTP::Request.new("QUERY", "/search")
+      client_response = call_request_on_app(request)
+      client_response.body.should eq("QUERY search")
+    end
+
+    it "doesn't allow a QUERY route declaration start without /" do
+      expect_raises Kemal::Exceptions::InvalidPathStartException, "Route declaration query \"route\" needs to start with '/', should be query \"/route\"" do
+        query "route" do
+          "Route 1"
+        end
+      end
+    end
   end
 end

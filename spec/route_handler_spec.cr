@@ -113,6 +113,191 @@ describe "Kemal::RouteHandler" do
     client_response.body.should eq("Skills ruby,crystal")
   end
 
+  it "routes QUERY request with url-encoded body params" do
+    query "/search" do |env|
+      "Searching for #{env.params.body["q"]}"
+    end
+    request = HTTP::Request.new(
+      "QUERY",
+      "/search",
+      body: "q=kemal",
+      headers: HTTP::Headers{"Content-Type" => "application/x-www-form-urlencoded"},
+    )
+    client_response = call_request_on_app(request)
+    client_response.body.should eq("Searching for kemal")
+  end
+
+  it "routes QUERY request with JSON body" do
+    query "/search" do |env|
+      "Searching for #{env.params.json["q"]}"
+    end
+    request = HTTP::Request.new(
+      "QUERY",
+      "/search",
+      body: {"q": "kemal"}.to_json,
+      headers: HTTP::Headers{"Content-Type" => "application/json"},
+    )
+    client_response = call_request_on_app(request)
+    client_response.body.should eq("Searching for kemal")
+  end
+
+  it "keeps query string and body params separate for QUERY requests" do
+    query "/search" do |env|
+      "page #{env.params.query["page"]} q #{env.params.body["q"]}"
+    end
+    request = HTTP::Request.new(
+      "QUERY",
+      "/search?page=2",
+      body: "q=kemal",
+      headers: HTTP::Headers{"Content-Type" => "application/x-www-form-urlencoded"},
+    )
+    client_response = call_request_on_app(request)
+    client_response.body.should eq("page 2 q kemal")
+  end
+
+  it "does not serve a QUERY request from a GET route" do
+    error 404 do
+      "not found"
+    end
+    get "/only_get" do
+      "get"
+    end
+    Kemal::RouteHandler::INSTANCE.lookup_route("QUERY", "/only_get").found?.should be_false
+    request = HTTP::Request.new("QUERY", "/only_get")
+    client_response = call_request_on_app(request)
+    client_response.status_code.should eq(404)
+  end
+
+  it "does not serve GET or HEAD requests from a QUERY route" do
+    error 404 do
+      "not found"
+    end
+    query "/only_query" do
+      "query"
+    end
+    Kemal::RouteHandler::INSTANCE.lookup_route("GET", "/only_query").found?.should be_false
+    Kemal::RouteHandler::INSTANCE.lookup_route("HEAD", "/only_query").found?.should be_false
+    call_request_on_app(HTTP::Request.new("GET", "/only_query")).status_code.should eq(404)
+    call_request_on_app(HTTP::Request.new("HEAD", "/only_query")).status_code.should eq(404)
+  end
+
+  context "QUERY Content-Type enforcement (RFC 10008)" do
+    it "rejects a QUERY request that has a body but no Content-Type with 400" do
+      query "/search" do
+        "should not run"
+      end
+      request = HTTP::Request.new("QUERY", "/search", body: "q=kemal")
+      client_response = call_request_on_app(request)
+      client_response.status_code.should eq(400)
+      client_response.body.should eq("QUERY request with a body requires a Content-Type header")
+    end
+
+    it "rejects a chunked QUERY request without Content-Type with 400" do
+      query "/search" do
+        "should not run"
+      end
+      request = HTTP::Request.new(
+        "QUERY",
+        "/search",
+        headers: HTTP::Headers{"Transfer-Encoding" => "chunked"},
+        body: IO::Memory.new("q=kemal"),
+      )
+      client_response = call_request_on_app(request)
+      client_response.status_code.should eq(400)
+    end
+
+    it "rejects a chunked QUERY request without Content-Type even when Content-Length is 0" do
+      query "/search" do
+        "should not run"
+      end
+      request = HTTP::Request.new(
+        "QUERY",
+        "/search",
+        headers: HTTP::Headers{"Content-Length" => "0", "Transfer-Encoding" => "chunked"},
+        body: IO::Memory.new("q=kemal"),
+      )
+      client_response = call_request_on_app(request)
+      client_response.status_code.should eq(400)
+    end
+
+    it "rejects a QUERY request with duplicate Content-Length headers and no Content-Type" do
+      query "/search" do
+        "should not run"
+      end
+      headers = HTTP::Headers.new
+      headers.add("Content-Length", "7")
+      headers.add("Content-Length", "7")
+      request = HTTP::Request.new("QUERY", "/search", headers: headers, body: IO::Memory.new("q=kemal"))
+      client_response = call_request_on_app(request)
+      client_response.status_code.should eq(400)
+    end
+
+    it "rejects a QUERY request with an empty Content-Type value" do
+      query "/search" do
+        "should not run"
+      end
+      request = HTTP::Request.new(
+        "QUERY",
+        "/search",
+        body: "q=kemal",
+        headers: HTTP::Headers{"Content-Type" => ""},
+      )
+      client_response = call_request_on_app(request)
+      client_response.status_code.should eq(400)
+    end
+
+    it "lets a before_query filter halt before Content-Type validation" do
+      before_query "/search" do |env|
+        halt env, status_code: 401, response: "unauthorized"
+      end
+      query "/search" do
+        "should not run"
+      end
+      request = HTTP::Request.new("QUERY", "/search", body: "q=kemal")
+      client_response = call_request_on_app(request)
+      client_response.status_code.should eq(401)
+      client_response.body.should eq("unauthorized")
+    end
+
+    it "renders a custom error 400 handler for invalid QUERY requests" do
+      error 400 do
+        "custom bad request"
+      end
+      query "/search" do
+        "should not run"
+      end
+      request = HTTP::Request.new("QUERY", "/search", body: "q=kemal")
+      client_response = call_request_on_app(request)
+      client_response.status_code.should eq(400)
+      client_response.body.should eq("custom bad request")
+    end
+
+    it "allows a QUERY request without a body and without Content-Type" do
+      query "/search" do
+        "empty query"
+      end
+      request = HTTP::Request.new("QUERY", "/search")
+      client_response = call_request_on_app(request)
+      client_response.status_code.should eq(200)
+      client_response.body.should eq("empty query")
+    end
+
+    it "allows a QUERY request with a body and a Content-Type" do
+      query "/search" do |env|
+        "q is #{env.params.body["q"]}"
+      end
+      request = HTTP::Request.new(
+        "QUERY",
+        "/search",
+        body: "q=kemal",
+        headers: HTTP::Headers{"Content-Type" => "application/x-www-form-urlencoded"},
+      )
+      client_response = call_request_on_app(request)
+      client_response.status_code.should eq(200)
+      client_response.body.should eq("q is kemal")
+    end
+  end
+
   it "can process HTTP HEAD requests for defined GET routes" do
     get "/" do
       "Hello World from GET"
@@ -259,6 +444,25 @@ describe "Kemal::RouteHandler" do
       # Second HEAD lookup should be a cache hit; size must remain 1
       Kemal::RouteHandler::INSTANCE.lookup_route("HEAD", "/head_fallback").found?.should be_true
       Kemal::RouteHandler::INSTANCE.cached_routes.size.should eq 1
+    end
+
+    it "caches QUERY and GET routes on the same path separately" do
+      Kemal::RouteHandler::INSTANCE.cached_routes = Kemal::LRUCache(String, Radix::Result(Kemal::Route)).new(16)
+
+      get "/dual" do
+        "get"
+      end
+      query "/dual" do
+        "query"
+      end
+
+      Kemal::RouteHandler::INSTANCE.lookup_route("GET", "/dual").found?.should be_true
+      Kemal::RouteHandler::INSTANCE.lookup_route("QUERY", "/dual").found?.should be_true
+      Kemal::RouteHandler::INSTANCE.cached_routes.size.should eq 2
+
+      # Cached lookups must keep resolving to their own method's handler
+      Kemal::RouteHandler::INSTANCE.lookup_route("GET", "/dual").payload.method.should eq "GET"
+      Kemal::RouteHandler::INSTANCE.lookup_route("QUERY", "/dual").payload.method.should eq "QUERY"
     end
 
     it "keeps size capped under heavy churn with large capacity" do

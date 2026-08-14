@@ -144,6 +144,19 @@ Yes, built-in. No extra dependencies needed.
 
 Yes. JSON handling is built-in. Return hashes or JSON directly from routes.
 
+**Does Kemal support the HTTP QUERY method?**
+
+Yes. QUERY ([RFC 10008](https://www.rfc-editor.org/rfc/rfc10008)) is a safe, idempotent method that carries the query in the request body instead of the URL:
+
+```crystal
+query "/search" do |env|
+  q = env.params.json["q"]? # or env.params.body for form-encoded queries
+  search_products(q).to_json
+end
+```
+
+`before_query` / `after_query` filters and `Kemal::Router#query` work like every other verb. A QUERY request that has a body but no `Content-Type` header is rejected with `400` per the RFC.
+
 **Does Kemal work with any ORM?**
 
 Yes. You can use any Crystal ORM or database library. No forced dependencies.
