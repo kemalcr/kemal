@@ -30,7 +30,7 @@ module Kemal
         validate_single_line!("id", id_value)
         @response.puts "id: #{id_value}"
       end
-      @response.puts "retry: #{retry.total_milliseconds.to_i}" if retry
+      @response.puts "retry: #{retry.total_milliseconds.to_i64}" if retry
       each_sse_line(data) do |line|
         @response.puts "data: #{line}"
       end
