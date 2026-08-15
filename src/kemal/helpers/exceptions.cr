@@ -31,4 +31,14 @@ module Kemal::Exceptions
       super "QUERY request with a body requires a Content-Type header"
     end
   end
+
+  # Raised by `ParamParser` when the framework cannot parse the request body
+  # (broken JSON, unparseable multipart). Rendered as 400. Only wraps failures
+  # from Kemal's own body parsing, so a parse error inside handler code keeps
+  # its original class and 500 status.
+  class BadRequest < Exception
+    def initialize(message : String? = nil, cause : Exception? = nil)
+      super(message || "Bad Request", cause)
+    end
+  end
 end
