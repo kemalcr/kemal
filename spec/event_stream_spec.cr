@@ -25,6 +25,17 @@ describe Kemal::EventStream do
     client_response.body.should eq("event: tick\nid: 42\nretry: 3000\ndata: update\n\n")
   end
 
+  it "does not overflow on retry spans beyond Int32 milliseconds" do
+    # 60 days is 5_184_000_000 ms, well past Int32::MAX (~2.1e9).
+    sse "/events" do |stream, _|
+      stream.send("update", retry: 60.days)
+    end
+
+    request = HTTP::Request.new("GET", "/events")
+    client_response = call_request_on_app(request)
+    client_response.body.should eq("retry: 5184000000\ndata: update\n\n")
+  end
+
   it "splits multi-line data into separate data fields" do
     sse "/events" do |stream, _|
       stream.send("line one\nline two")
