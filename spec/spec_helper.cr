@@ -54,9 +54,7 @@ def create_ws_request_and_return_io_and_context(handler, request)
   rescue IO::Error
     # Raises because the IO::Memory is empty
   end
-  {% if compare_versions(Crystal::VERSION, "0.35.0-0") >= 0 %}
-    response.upgrade_handler.try &.call(io)
-  {% end %}
+  response.upgrade_handler.try &.call(io)
   io.rewind
   {io, context}
 end

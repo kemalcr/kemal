@@ -69,4 +69,16 @@ describe "Config" do
     config.app_name = "testapp"
     config.app_name.should eq "testapp"
   end
+
+  it "preserves explicit zero static size options" do
+    config = Kemal::Config.new
+    config.serve_static = {"cache_size" => 0, "cache_check_interval" => 0}
+
+    config.serve_static_size_option?("cache_size").should eq(0)
+    config.serve_static_size_option?("cache_check_interval").should eq(0)
+  end
+
+  it "returns nil for missing static size options" do
+    Kemal::Config.new.serve_static_size_option?("cache_size").should be_nil
+  end
 end
