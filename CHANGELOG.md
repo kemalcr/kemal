@@ -33,6 +33,8 @@ Kemal.config.websocket_allowed_origins = ["*"]
 
 - ***(SECURITY)*** Close the HTTP connection after a rejected WebSocket upgrade (403). Without `Connection: close`, a compound `Connection: keep-alive, Upgrade` request that fails Origin validation left the connection keep-alive, so a request pipelined behind a reverse proxy that tunnels upgrades could bypass the proxy’s access controls (WebSocket connection smuggling). Malformed `Origin` values that previously raised from `URI.parse` now reject with 403 instead of 500.
 
+- WebSocket upgrades now require the `GET` method per [RFC 6455 §4.1](https://www.rfc-editor.org/rfc/rfc6455.html#section-4.1) [#770](https://github.com/kemalcr/kemal/issues/770). Any other method (`POST`, `QUERY`, ...) carrying valid upgrade headers previously completed the handshake; it is now rejected with `405 Method Not Allowed`, an `Allow: GET` header, and `Connection: close` — matching the broader ecosystem (gorilla/websocket, Node `ws`, python-websockets).
+
 # 1.12.0 (21-07-2026)
 
 - Crystal 1.21.0 support :tada:

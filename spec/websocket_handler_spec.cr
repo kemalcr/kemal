@@ -28,6 +28,14 @@ def assert_websocket_forbidden_closed(response : HTTP::Client::Response)
   response.headers["Connection"]?.try(&.downcase).should eq("close")
 end
 
+def assert_websocket_method_not_allowed(response : HTTP::Client::Response)
+  response.status_code.should eq(405)
+  response.headers["Allow"]?.should eq("GET")
+  response.headers["Connection"]?.try(&.downcase).should eq("close")
+  response.headers["Content-Type"]?.should eq("text/plain; charset=UTF-8")
+  response.body.should eq("Method Not Allowed")
+end
+
 # Raw TCP exchange against a live HTTP::Server (needed to exercise Crystal keep-alive).
 def raw_http_exchange(host : String, port : Int32, payload : String, read_seconds = 1) : String
   socket = nil.as(TCPSocket?)
@@ -107,6 +115,37 @@ describe "Kemal::WebSocketHandler" do
     request = HTTP::Request.new("GET", "/")
     client_response = call_ws_handler_response(handler, request)
     client_response.body.should eq("get")
+  end
+
+  describe "handshake method (RFC 6455)" do
+    %w[POST QUERY HEAD].each do |method|
+      it "rejects a #{method} upgrade request with 405 Method Not Allowed" do
+        handler = Kemal::WebSocketHandler::INSTANCE
+        ws "/chat" { }
+        headers = ws_upgrade_headers_for_origin("http://localhost")
+        headers["Host"] = "localhost"
+        request = HTTP::Request.new(method, "/chat", headers)
+        assert_websocket_method_not_allowed(call_ws_handler_response(handler, request))
+      end
+    end
+
+    it "rejects a non-GET upgrade with 405 before the Origin check" do
+      Kemal.config.websocket_allowed_origins = ["https://app.example.com"]
+      handler = Kemal::WebSocketHandler::INSTANCE
+      ws "/chat" { }
+      request = HTTP::Request.new("POST", "/chat", ws_upgrade_headers_for_origin("https://evil.example"))
+      assert_websocket_method_not_allowed(call_ws_handler_response(handler, request))
+    end
+
+    it "passes a non-GET request without upgrade headers to the next handler" do
+      handler = Kemal::WebSocketHandler::INSTANCE
+      handler.next = Kemal::RouteHandler::INSTANCE
+      ws "/" { }
+      post "/" { "post" }
+      request = HTTP::Request.new("POST", "/")
+      client_response = call_ws_handler_response(handler, request)
+      client_response.body.should eq("post")
+    end
   end
 
   describe "websocket_allowed_origins" do
@@ -310,6 +349,47 @@ describe "Kemal::WebSocketHandler" do
       status_lines = raw.scan(/HTTP\/1\.1 \d{3}[^\r\n]*/).map(&.[0])
       status_lines.size.should eq(1)
       status_lines[0].should eq("HTTP/1.1 403 Forbidden")
+      raw.should match(/connection:\s*close/i)
+      raw.includes?("INTERNAL SECRET").should be_false
+    end
+
+    it "does not serve a pipelined HTTP request after a 405 method rejection" do
+      # Same PoC shape as the 403 spec above, but through the non-GET rejection
+      # path: even with an allowed (same-origin) Origin, a POST upgrade must get
+      # a single 405 and Connection: close must stop the keep-alive loop from
+      # reading the pipelined GET /secret.
+      Kemal.config.env = "test"
+      Kemal.config.logging = false
+
+      ws "/chat" { }
+      get "/secret" { "INTERNAL SECRET" }
+
+      Kemal.config.setup
+      server = HTTP::Server.new(Kemal.config.handlers)
+      address = server.bind_tcp("127.0.0.1", 0)
+      spawn { server.listen }
+
+      payload = String.build do |b|
+        b << "POST /chat HTTP/1.1\r\n"
+        b << "Host: 127.0.0.1\r\n"
+        b << "Upgrade: websocket\r\n"
+        b << "Connection: keep-alive, Upgrade\r\n"
+        b << "Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==\r\n"
+        b << "Sec-WebSocket-Version: 13\r\n"
+        b << "Origin: http://127.0.0.1\r\n"
+        b << "\r\n"
+        b << "GET /secret HTTP/1.1\r\n"
+        b << "Host: 127.0.0.1\r\n"
+        b << "\r\n"
+      end
+
+      raw = raw_http_exchange("127.0.0.1", address.port, payload)
+      server.close
+
+      status_lines = raw.scan(/HTTP\/1\.1 \d{3}[^\r\n]*/).map(&.[0])
+      status_lines.size.should eq(1)
+      status_lines[0].should eq("HTTP/1.1 405 Method Not Allowed")
+      raw.should match(/allow:\s*GET/i)
       raw.should match(/connection:\s*close/i)
       raw.includes?("INTERNAL SECRET").should be_false
     end

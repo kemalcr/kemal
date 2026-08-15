@@ -11,6 +11,10 @@ module Kemal
 
     def call(context : HTTP::Server::Context)
       return call_next(context) unless context.ws_route_found? && websocket_upgrade_request?(context)
+      unless context.request.method == "GET"
+        reject_websocket_method_not_allowed!(context)
+        return
+      end
       unless websocket_origin_allowed?(context.request)
         reject_websocket_forbidden!(context)
         return
@@ -103,12 +107,24 @@ module Kemal
     end
 
     private def reject_websocket_forbidden!(context : HTTP::Server::Context)
-      context.response.status_code = 403
+      reject_websocket!(context, :forbidden)
+    end
+
+    # RFC 6455 §4.1 requires the opening handshake to be a GET request.
+    private def reject_websocket_method_not_allowed!(context : HTTP::Server::Context)
+      context.response.headers["Allow"] = "GET"
+      reject_websocket!(context, :method_not_allowed)
+    end
+
+    private def reject_websocket!(context : HTTP::Server::Context, status : HTTP::Status)
+      # An upstream handler (e.g. a before filter) may have already responded.
+      return if context.response.closed?
+      context.response.status = status
       # Close after rejection so a pipelined request cannot reuse this connection
       # (WebSocket connection smuggling via `Connection: keep-alive, Upgrade`).
       context.response.headers["Connection"] = "close"
       context.response.headers["Content-Type"] = "text/plain; charset=UTF-8"
-      context.response.print "Forbidden"
+      context.response.print status.description
     end
   end
 end
