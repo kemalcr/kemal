@@ -352,5 +352,46 @@ describe "Kemal::WebSocketHandler" do
       raw.should match(/connection:\s*close/i)
       raw.includes?("INTERNAL SECRET").should be_false
     end
+
+    it "does not serve a pipelined HTTP request after a 405 method rejection" do
+      # Same PoC shape as the 403 spec above, but through the non-GET rejection
+      # path: even with an allowed (same-origin) Origin, a POST upgrade must get
+      # a single 405 and Connection: close must stop the keep-alive loop from
+      # reading the pipelined GET /secret.
+      Kemal.config.env = "test"
+      Kemal.config.logging = false
+
+      ws "/chat" { }
+      get "/secret" { "INTERNAL SECRET" }
+
+      Kemal.config.setup
+      server = HTTP::Server.new(Kemal.config.handlers)
+      address = server.bind_tcp("127.0.0.1", 0)
+      spawn { server.listen }
+
+      payload = String.build do |b|
+        b << "POST /chat HTTP/1.1\r\n"
+        b << "Host: 127.0.0.1\r\n"
+        b << "Upgrade: websocket\r\n"
+        b << "Connection: keep-alive, Upgrade\r\n"
+        b << "Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==\r\n"
+        b << "Sec-WebSocket-Version: 13\r\n"
+        b << "Origin: http://127.0.0.1\r\n"
+        b << "\r\n"
+        b << "GET /secret HTTP/1.1\r\n"
+        b << "Host: 127.0.0.1\r\n"
+        b << "\r\n"
+      end
+
+      raw = raw_http_exchange("127.0.0.1", address.port, payload)
+      server.close
+
+      status_lines = raw.scan(/HTTP\/1\.1 \d{3}[^\r\n]*/).map(&.[0])
+      status_lines.size.should eq(1)
+      status_lines[0].should eq("HTTP/1.1 405 Method Not Allowed")
+      raw.should match(/allow:\s*GET/i)
+      raw.should match(/connection:\s*close/i)
+      raw.includes?("INTERNAL SECRET").should be_false
+    end
   end
 end
