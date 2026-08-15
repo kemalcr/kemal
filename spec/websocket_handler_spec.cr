@@ -28,6 +28,14 @@ def assert_websocket_forbidden_closed(response : HTTP::Client::Response)
   response.headers["Connection"]?.try(&.downcase).should eq("close")
 end
 
+def assert_websocket_method_not_allowed(response : HTTP::Client::Response)
+  response.status_code.should eq(405)
+  response.headers["Allow"]?.should eq("GET")
+  response.headers["Connection"]?.try(&.downcase).should eq("close")
+  response.headers["Content-Type"]?.should eq("text/plain; charset=UTF-8")
+  response.body.should eq("Method Not Allowed")
+end
+
 # Raw TCP exchange against a live HTTP::Server (needed to exercise Crystal keep-alive).
 def raw_http_exchange(host : String, port : Int32, payload : String, read_seconds = 1) : String
   socket = nil.as(TCPSocket?)
@@ -107,6 +115,37 @@ describe "Kemal::WebSocketHandler" do
     request = HTTP::Request.new("GET", "/")
     client_response = call_ws_handler_response(handler, request)
     client_response.body.should eq("get")
+  end
+
+  describe "handshake method (RFC 6455)" do
+    %w[POST QUERY HEAD].each do |method|
+      it "rejects a #{method} upgrade request with 405 Method Not Allowed" do
+        handler = Kemal::WebSocketHandler::INSTANCE
+        ws "/chat" { }
+        headers = ws_upgrade_headers_for_origin("http://localhost")
+        headers["Host"] = "localhost"
+        request = HTTP::Request.new(method, "/chat", headers)
+        assert_websocket_method_not_allowed(call_ws_handler_response(handler, request))
+      end
+    end
+
+    it "rejects a non-GET upgrade with 405 before the Origin check" do
+      Kemal.config.websocket_allowed_origins = ["https://app.example.com"]
+      handler = Kemal::WebSocketHandler::INSTANCE
+      ws "/chat" { }
+      request = HTTP::Request.new("POST", "/chat", ws_upgrade_headers_for_origin("https://evil.example"))
+      assert_websocket_method_not_allowed(call_ws_handler_response(handler, request))
+    end
+
+    it "passes a non-GET request without upgrade headers to the next handler" do
+      handler = Kemal::WebSocketHandler::INSTANCE
+      handler.next = Kemal::RouteHandler::INSTANCE
+      ws "/" { }
+      post "/" { "post" }
+      request = HTTP::Request.new("POST", "/")
+      client_response = call_ws_handler_response(handler, request)
+      client_response.body.should eq("post")
+    end
   end
 
   describe "websocket_allowed_origins" do
