@@ -184,6 +184,8 @@ module Kemal
       end
 
       @files_parsed = true
+    rescue ex : HTTP::FormData::Error | MIME::Multipart::Error
+      raise Kemal::Exceptions::BadRequest.new(cause: ex)
     end
 
     # Parses JSON request body if Content-Type is `application/json`.
@@ -206,6 +208,8 @@ module Kemal
       else
         # Ignore non Array or Hash json values
       end
+    rescue ex : JSON::ParseException
+      raise Kemal::Exceptions::BadRequest.new(cause: ex)
     end
 
     private def parse_part(part : IO?)

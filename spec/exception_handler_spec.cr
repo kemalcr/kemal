@@ -272,6 +272,79 @@ describe "Kemal::ExceptionHandler" do
     response.body.should eq "Payload Too Large"
   end
 
+  it "renders 400 for a malformed JSON body" do
+    post "/j" do |env|
+      env.params.json["x"]?
+      "ok"
+    end
+
+    headers = HTTP::Headers{"Content-Type" => "application/json"}
+    request = HTTP::Request.new("POST", "/j", headers, body: "{ not valid json")
+    response = call_request_on_app(request)
+    response.status_code.should eq 400
+    response.body.should eq "Bad Request"
+  end
+
+  it "renders 400 for a malformed multipart body" do
+    post "/m" do |env|
+      env.params.files
+      "ok"
+    end
+
+    headers = HTTP::Headers{"Content-Type" => "multipart/form-data; boundary=AaB03x"}
+    request = HTTP::Request.new("POST", "/m", headers, body: "not a real multipart payload")
+    response = call_request_on_app(request)
+    response.status_code.should eq 400
+  end
+
+  it "renders 400 for a multipart body without a boundary" do
+    post "/m2" do |env|
+      env.params.files
+      "ok"
+    end
+
+    headers = HTTP::Headers{"Content-Type" => "multipart/form-data"}
+    request = HTTP::Request.new("POST", "/m2", headers, body: "whatever")
+    response = call_request_on_app(request)
+    response.status_code.should eq 400
+  end
+
+  it "uses a custom 400 handler for malformed bodies" do
+    error 400 do
+      "custom bad request"
+    end
+    post "/j" do |env|
+      env.params.json["x"]?
+      "ok"
+    end
+
+    headers = HTTP::Headers{"Content-Type" => "application/json"}
+    request = HTTP::Request.new("POST", "/j", headers, body: "{ nope")
+    response = call_request_on_app(request)
+    response.status_code.should eq 400
+    response.body.should eq "custom bad request"
+  end
+
+  it "does not reclassify a parse error raised inside handler code as 400" do
+    # A JSON::ParseException from handler code (e.g. parsing an upstream API
+    # response) is a server error and must stay a 500, not be turned into a 400.
+    get "/" do
+      JSON.parse("{ not json")
+      "ok"
+    end
+
+    request = HTTP::Request.new("GET", "/")
+    io = IO::Memory.new
+    response = HTTP::Server::Response.new(io)
+    context = HTTP::Server::Context.new(request, response)
+    Kemal::ExceptionHandler::INSTANCE.next = Kemal::RouteHandler::INSTANCE
+    Kemal::ExceptionHandler::INSTANCE.call(context)
+    response.close
+    io.rewind
+    response = HTTP::Client::Response.from_io(io, decompress: false)
+    response.status_code.should eq 500
+  end
+
   it "escapes the exception message on the development error page" do
     get "/user-lookup" do |env|
       raise "User '#{env.params.query["name"]}' not found"

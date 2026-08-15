@@ -11,17 +11,14 @@ module Kemal
     rescue ex : Kemal::Exceptions::CustomException
       call_exception_with_status_code(context, ex, context.response.status_code)
     rescue ex : Kemal::Exceptions::PayloadTooLarge
-      if Kemal.config.error_handlers.has_key?(413)
-        call_exception_with_status_code(context, ex, 413)
-      else
-        call_default_exception(context, ex, 413)
-      end
+      call_fixed_status(context, ex, 413)
     rescue ex : Kemal::Exceptions::InvalidQueryRequest
-      if Kemal.config.error_handlers.has_key?(400)
-        call_exception_with_status_code(context, ex, 400)
-      else
-        call_default_exception(context, ex, 400)
-      end
+      call_fixed_status(context, ex, 400)
+    rescue ex : Kemal::Exceptions::BadRequest
+      # A request body the framework could not parse (broken JSON, unparseable
+      # multipart) is a client error, so respond 400 instead of 500. Only body
+      # parsing raises this; a parse error in handler code keeps its 500.
+      call_fixed_status(context, ex, 400)
     rescue ex : Exception
       # Matches an error handler for the given exception
       #
@@ -65,6 +62,17 @@ module Kemal
         context.response.status_code = status_code
         context.response.print Kemal.config.error_handlers[status_code].call(context, exception)
         context
+      end
+    end
+
+    # Dispatches a framework-raised exception with a fixed status code: a custom
+    # handler registered for that status if present, otherwise a default
+    # plain-text response.
+    private def call_fixed_status(context : HTTP::Server::Context, exception : Exception, status_code : Int32)
+      if Kemal.config.error_handlers.has_key?(status_code)
+        call_exception_with_status_code(context, exception, status_code)
+      else
+        call_default_exception(context, exception, status_code)
       end
     end
 
