@@ -312,6 +312,147 @@ describe "Macros" do
       second_part.should contain("Content-Range: bytes 3-8/18")
       second_part.split("\r\n\r\n")[1].strip.should eq("lo <%=")
     end
+
+    it "ignores range sets asking for more bytes than the file holds" do
+      get "/" do |env|
+        send_file env, "#{__DIR__}/asset/hello.ecr"
+      end
+
+      # Each open-ended range expands to the whole file, so 2000 of them used to produce
+      # 2000 copies of it from a single request. The byte budget rejects this at the
+      # second range; the range count is covered separately below.
+      headers = HTTP::Headers{"Range" => "bytes=" + Array.new(2000, "0-").join(",")}
+      request = HTTP::Request.new("GET", "/", headers)
+      response = call_request_on_app(request)
+
+      response.status_code.should eq(200)
+      response.body.should eq(File.read("#{__DIR__}/asset/hello.ecr"))
+    end
+
+    it "ignores many small ranges that stay within the byte budget" do
+      # Small ranges never exhaust the byte budget on a large enough file, so only the
+      # range count stops them. Each part still costs a seek plus its multipart framing.
+      path = File.tempname("kemal-spec", ".txt")
+      File.write(path, "a" * 8192)
+
+      begin
+        get "/" do |env|
+          send_file env, path
+        end
+
+        ranges = (0...2000).map { |i| "#{i * 2}-#{i * 2 + 1}" }
+        headers = HTTP::Headers{"Range" => "bytes=#{ranges.join(",")}"}
+        request = HTTP::Request.new("GET", "/", headers)
+        response = call_request_on_app(request)
+
+        response.status_code.should eq(200)
+        response.body.bytesize.should eq(8192)
+      ensure
+        File.delete(path)
+      end
+    end
+
+    it "compresses the full response it falls back to when a range set is refused" do
+      # The fallback must cost no more than a plain GET of the same URL. Serving it
+      # uncompressed would let a two-range header defeat compression on every request.
+      path = File.tempname("kemal-spec", ".js")
+      File.write(path, "var x = 1;\n" * 1000)
+      previous_serve_static = Kemal.config.serve_static
+
+      begin
+        serve_static({"gzip" => true})
+
+        get "/" do |env|
+          send_file env, path
+        end
+
+        headers = HTTP::Headers{"Range" => "bytes=0-,0-", "Accept-Encoding" => "gzip"}
+        request = HTTP::Request.new("GET", "/", headers)
+        response = call_request_on_app(request)
+
+        response.status_code.should eq(200)
+        response.headers["Content-Encoding"].should eq("gzip")
+        response.body.bytesize.should be < File.size(path)
+      ensure
+        Kemal.config.serve_static = previous_serve_static
+        File.delete(path)
+      end
+    end
+
+    it "ignores range sets that overlap into more bytes than the file holds" do
+      get "/" do |env|
+        send_file env, "#{__DIR__}/asset/hello.ecr"
+      end
+
+      # 0-9 and 5-17 overlap and together cover 23 bytes of an 18 byte file.
+      headers = HTTP::Headers{"Range" => "bytes=0-9,5-17"}
+      request = HTTP::Request.new("GET", "/", headers)
+      response = call_request_on_app(request)
+
+      response.status_code.should eq(200)
+      response.body.should eq(File.read("#{__DIR__}/asset/hello.ecr"))
+    end
+
+    it "serves a range set that is exactly at the range limit" do
+      get "/" do |env|
+        send_file env, "#{__DIR__}/asset/layout_with_yield_and_vars.ecr"
+      end
+
+      ranges = (0...Kemal.config.max_ranges).map { |i| "#{i * 2}-#{i * 2 + 1}" }
+      headers = HTTP::Headers{"Range" => "bytes=#{ranges.join(",")}"}
+      request = HTTP::Request.new("GET", "/", headers)
+      response = call_request_on_app(request)
+
+      response.status_code.should eq(206)
+      boundary = response.headers["Content-Type"].split("boundary=")[1]
+      # One empty part before the first boundary and one trailing part after the last.
+      response.body.split("--#{boundary}").size.should eq(Kemal.config.max_ranges + 2)
+    end
+
+    it "ignores range sets with more ranges than `max_ranges`" do
+      get "/" do |env|
+        send_file env, "#{__DIR__}/asset/layout_with_yield_and_vars.ecr"
+      end
+
+      ranges = (0..Kemal.config.max_ranges).map { |i| "#{i * 2}-#{i * 2 + 1}" }
+      headers = HTTP::Headers{"Range" => "bytes=#{ranges.join(",")}"}
+      request = HTTP::Request.new("GET", "/", headers)
+      response = call_request_on_app(request)
+
+      response.status_code.should eq(200)
+      response.body.should eq(File.read("#{__DIR__}/asset/layout_with_yield_and_vars.ecr"))
+    end
+
+    it "honors a custom `max_ranges`" do
+      Kemal.config.max_ranges = 1
+
+      get "/" do |env|
+        send_file env, "#{__DIR__}/asset/hello.ecr"
+      end
+
+      headers = HTTP::Headers{"Range" => "bytes=0-4,7-11"}
+      request = HTTP::Request.new("GET", "/", headers)
+      response = call_request_on_app(request)
+
+      response.status_code.should eq(200)
+      response.body.should eq(File.read("#{__DIR__}/asset/hello.ecr"))
+    end
+
+    it "advertises `Accept-Ranges: none` when ranges are disabled" do
+      Kemal.config.max_ranges = 0
+
+      get "/" do |env|
+        send_file env, "#{__DIR__}/asset/hello.ecr"
+      end
+
+      headers = HTTP::Headers{"Range" => "bytes=0-4"}
+      request = HTTP::Request.new("GET", "/", headers)
+      response = call_request_on_app(request)
+
+      response.status_code.should eq(200)
+      response.headers["Accept-Ranges"].should eq("none")
+      response.body.should eq(File.read("#{__DIR__}/asset/hello.ecr"))
+    end
   end
 
   describe "#gzip" do

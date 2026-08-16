@@ -29,6 +29,20 @@ module Kemal
     property max_route_cache_size : Int32
     property max_request_body_size : Int32
     property max_multipart_form_field_size : Int32
+    # Maximum number of byte ranges accepted in a single `Range` request header.
+    #
+    # A `Range` header listing more parts than this is ignored and the full representation
+    # is served with `200` instead. Since `send_file` also refuses range sets asking for
+    # more bytes in total than the file holds, a multi-range response stays within the
+    # file's own size plus roughly 150 bytes of multipart framing per part. Raising this
+    # therefore raises the framing a single request can ask for; `0` ignores `Range`
+    # headers entirely and advertises `Accept-Ranges: none`.
+    #
+    # Without a bound, a header such as `bytes=0-,0-,0-,...` makes the server re-read the
+    # whole file once per range. RFC 9110 §14.2 explicitly allows rejecting such range
+    # sets, as they indicate "either a broken client or a deliberate denial-of-service
+    # attack".
+    property max_ranges : Int32
     # WebSocket Origin policy for upgrade requests.
     #
     # - Empty (default): same-origin — `Origin` must match the request `Host` (scheme is
@@ -64,6 +78,7 @@ module Kemal
       @max_route_cache_size = 1024
       @max_request_body_size = 8 * 1024 * 1024         # 8MB
       @max_multipart_form_field_size = 8 * 1024 * 1024 # 8MB
+      @max_ranges = 16
       @websocket_allowed_origins = [] of String
     end
 
@@ -94,6 +109,7 @@ module Kemal
       @max_route_cache_size = 1024
       @max_request_body_size = 8 * 1024 * 1024
       @max_multipart_form_field_size = 8 * 1024 * 1024
+      @max_ranges = 16
       @websocket_allowed_origins = [] of String
       HANDLERS.clear
       CUSTOM_HANDLERS.clear

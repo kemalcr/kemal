@@ -9,6 +9,13 @@ query "/search" do |env|
 end
 ```
 
+- ***(SECURITY)*** Bound the byte ranges `send_file` serves for a single `Range` request header. Ranges were served unchecked, and since an open-ended `bytes=0-` expands to the whole file, a header such as `bytes=0-,0-,0-,...` turned one 16 KB request into a response thousands of times the file's size (the CVE-2011-3192 "Apache Killer" pattern). Affects any app serving static files, which is the default. A range set is now ignored — and the full representation served instead, as RFC 9110 §14.2 allows — when it lists more than `Kemal.config.max_ranges` parts (16 by default) or asks for more bytes in total than the file holds. Requests within those limits are unchanged. Ignored and unsatisfiable `Range` headers now take the same path as a plain `GET`, so they are compressed as usual. Thanks @onurcangnc for the report :pray:
+
+```crystal
+# Allow more parts per Range request, or set to 0 to ignore Range headers entirely
+Kemal.config.max_ranges = 16
+```
+
 - ***(SECURITY)*** Escape the request path and the exception message on the development error page. Both reached the `exception_page` template unescaped, so a crafted URL — or user input interpolated into an exception message, e.g. `raise "User #{name} not found"` — could run JavaScript in the visitor's browser (reflected XSS). The page is now also served with a restrictive `Content-Security-Policy`. Only affects `Kemal.config.env == "development"`, which is the default; the production error page never reflected request data. Thanks @onurcangnc for the report :pray:
 
 - ***(SECURITY)*** WebSocket Origin validation is same-origin by default (CSWSH). An empty `websocket_allowed_origins` now requires `Origin` to match the request `Host` (scheme taken from `Origin`, so reverse-proxy TLS termination keeps working). Missing or empty `Origin` is rejected with 403. Set `Kemal.config.websocket_allowed_origins = ["*"]` to opt into allowing any origin, including requests without `Origin`. Explicit allowlists behave as before.

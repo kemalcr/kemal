@@ -138,7 +138,7 @@ def send_file(env : HTTP::Server::Context, path : String, mime_type : String? = 
   file_path = File.expand_path(path, Dir.current)
   mime_type ||= MIME.from_filename(file_path, "application/octet-stream")
   env.response.content_type = mime_type
-  env.response.headers["Accept-Ranges"] = "bytes"
+  env.response.headers["Accept-Ranges"] = Kemal.config.max_ranges > 0 ? "bytes" : "none"
   env.response.headers["X-Content-Type-Options"] = "nosniff"
   minsize = 860 # http://webmasters.stackexchange.com/questions/31750/what-is-recommended-minimum-object-size-for-gzip-performance-benefits ??
   request_headers = env.request.headers
@@ -151,7 +151,12 @@ def send_file(env : HTTP::Server::Context, path : String, mime_type : String? = 
 
   File.open(file_path) do |file|
     if env.request.method == "GET" && env.request.headers.has_key?("Range")
-      next multipart(file, env)
+      ranges = parse_ranges(env.request.headers["Range"]?, file.size)
+      # An empty set means the header was unsatisfiable, or was refused as abusive. Falling
+      # through serves the full representation exactly as a plain GET of the same URL would,
+      # compression included, instead of a bespoke uncompressed copy that a client could ask
+      # for with a two-range header.
+      next multipart(file, env, ranges) unless ranges.empty?
     end
 
     {% if flag?(:without_zlib) %}
@@ -203,17 +208,9 @@ def send_file(env : HTTP::Server::Context, data : Slice(UInt8), mime_type : Stri
   env.response.write data
 end
 
-private def multipart(file, env : HTTP::Server::Context)
+private def multipart(file, env : HTTP::Server::Context, ranges : Array({Int64, Int64}))
   # See http://httpwg.org/specs/rfc7233.html
   fileb = file.size
-  ranges = parse_ranges(env.request.headers["Range"]?, fileb)
-
-  if ranges.empty?
-    env.response.content_length = fileb
-    env.response.status_code = 200 # Range not satisfiable
-    IO.copy(file, env.response)
-    return
-  end
 
   if ranges.size == 1
     # Single range - send as regular partial content
@@ -253,13 +250,31 @@ private def parse_ranges(range_header : String?, file_size : Int64) : Array({Int
   ranges = [] of {Int64, Int64}
   return ranges unless range_header.starts_with?("bytes=")
 
-  range_header[6..].split(",").each do |range|
+  # A range set is only served if it stays within both limits below. Returning an empty set
+  # makes `send_file` ignore the header and serve the full representation, which RFC 9110
+  # §14.2 allows for range sets that indicate "either a broken client or a deliberate
+  # denial-of-service attack".
+  max_ranges = Kemal.config.max_ranges
+  requested_bytes = 0_i64
+  parts = 0
+
+  range_header[6..].split(",") do |range|
+    # Each range costs a seek plus a copy, so an unbounded count lets one request do an
+    # unbounded amount of work.
+    parts += 1
+    return [] of {Int64, Int64} if parts > max_ranges
+
     if match = range.match /(\d{1,})-(\d{0,})/
       startb = match[1].to_i64 { 0_i64 }
       endb = match[2].to_i64 { 0_i64 }
       endb = file_size - 1 if endb == 0
 
       if startb < endb && endb < file_size
+        # Overlapping or repeated ranges can ask for many times the file's own size, so a
+        # small request would otherwise be amplified into an arbitrarily large response.
+        requested_bytes += 1_i64 + endb - startb
+        return [] of {Int64, Int64} if requested_bytes > file_size
+
         ranges << {startb, endb}
       end
     end
