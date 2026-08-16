@@ -40,7 +40,30 @@ ws "/:id" do |socket, context|
 end
 ```
 
-Configure production browser origins with `Kemal.config.websocket_allowed_origins`. An empty list means checks are not enforced. Origin validation does not replace authentication or authorization.
+Configure browser WebSocket origin policy with
+`Kemal.config.websocket_allowed_origins`.
+
+By default, an empty `websocket_allowed_origins` list enforces same-origin
+WebSocket connections.
+
+Use an explicit allowlist when trusted cross-origin browser clients need
+access:
+
+```crystal
+Kemal.config.websocket_allowed_origins = [
+  "https://myapp.com",
+  "http://localhost:3000",
+]
+```
+
+To explicitly allow connections from any origin:
+
+```crystal
+Kemal.config.websocket_allowed_origins = ["*"]
+```
+
+Origin validation is an additional browser security boundary and does not
+replace application authentication or authorization.
 
 Handle disconnects and lifecycle/shutdown behavior for long-lived connections.
 
