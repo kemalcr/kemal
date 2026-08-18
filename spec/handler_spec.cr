@@ -97,6 +97,26 @@ class ExactAllMethodsExcludeHandler < Kemal::Handler
   end
 end
 
+class HeadOnlyHandler < Kemal::Handler
+  only ["/head-only"], "HEAD"
+
+  def call(env)
+    return call_next(env) unless only_match?(env)
+    env.response.print "Only"
+    call_next env
+  end
+end
+
+class HeadExcludeHandler < Kemal::Handler
+  exclude ["/head-exclude"], "HEAD"
+
+  def call(env)
+    return call_next(env) if exclude_match?(env)
+    env.response.print "Exclude"
+    call_next env
+  end
+end
+
 class PrefixOnlyHandler < Kemal::Handler
   only ["/admin/*"]
 
@@ -331,6 +351,81 @@ describe "Handler" do
 
     call_request_on_app(HTTP::Request.new("GET", "/public/logo.png")).body.should eq "Asset"
     call_request_on_app(HTTP::Request.new("POST", "/secret")).body.should eq "SecureSecret"
+  end
+
+  it "runs a GET-scoped only handler for a HEAD request served by the GET route" do
+    get "/admin/users" do
+      "Users"
+    end
+    use PrefixOnlyHandler.new
+
+    # HEAD has no route of its own, so the GET handler runs and the GET-scoped
+    # middleware has to run with it. The body is suppressed, so the byte count
+    # is what shows whether the handler prefixed its output.
+    get_response = call_request_on_app(HTTP::Request.new("GET", "/admin/users"))
+    get_response.body.should eq "OnlyUsers"
+
+    head_response = call_request_on_app(HTTP::Request.new("HEAD", "/admin/users"))
+    head_response.body.should eq ""
+    head_response.headers["Content-Length"].should eq("9")
+  end
+
+  it "keeps only_routes scoped to HEAD matching a HEAD request" do
+    get "/head-only" do
+      "abc"
+    end
+    use HeadOnlyHandler.new
+
+    # Following the GET route must not drop the request method: a rule the app
+    # deliberately scoped to HEAD has to keep matching.
+    head_response = call_request_on_app(HTTP::Request.new("HEAD", "/head-only"))
+    head_response.headers["Content-Length"].should eq("7")
+  end
+
+  it "keeps exclude_routes scoped to HEAD excluding a HEAD request" do
+    get "/head-exclude" do
+      "abcdef"
+    end
+    use HeadExcludeHandler.new
+
+    head_response = call_request_on_app(HTTP::Request.new("HEAD", "/head-exclude"))
+    head_response.headers["Content-Length"].should eq("6")
+  end
+
+  it "keeps a POST-scoped only handler off HEAD requests" do
+    get "/route1" do
+      "Get"
+    end
+    use PostOnlyHandler.new
+
+    # POST carries its own handler, so a POST rule still has nothing to say
+    # about a HEAD request that runs the GET handler.
+    head_response = call_request_on_app(HTTP::Request.new("HEAD", "/route1"))
+    head_response.headers["Content-Length"].should eq("3")
+  end
+
+  it "keeps the HEAD verb for an explicit HEAD route" do
+    Kemal::RouteHandler::INSTANCE.add_route("HEAD", "/admin/users") { "explicit" }
+    get "/admin/users" do
+      "Users"
+    end
+    use PrefixOnlyHandler.new
+
+    head_response = call_request_on_app(HTTP::Request.new("HEAD", "/admin/users"))
+    head_response.headers["Content-Length"].should eq("8")
+  end
+
+  it "applies a GET-scoped exclude to HEAD requests served by the GET route" do
+    get "/exclude" do
+      "Exclude"
+    end
+    use ExcludeHandler.new
+
+    get_response = call_request_on_app(HTTP::Request.new("GET", "/exclude"))
+    get_response.body.should eq "Exclude"
+
+    head_response = call_request_on_app(HTTP::Request.new("HEAD", "/exclude"))
+    head_response.headers["Content-Length"].should eq("7")
   end
 
   it "scopes path prefixes to the handler class" do

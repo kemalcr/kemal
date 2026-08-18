@@ -245,6 +245,100 @@ describe "Kemal::Router" do
       protected_response.body.should eq("required")
     end
 
+    it "applies a filter registered with \"/*\" to every router route" do
+      router = Kemal::Router.new
+
+      router.before "/*" do |env|
+        env.set "filtered", "yes"
+      end
+
+      router.get "/test" do |env|
+        env.get("filtered").to_s
+      end
+
+      mount "/api", router
+
+      request = HTTP::Request.new("GET", "/api/test")
+      client_response = call_request_on_app(request)
+      client_response.body.should eq("yes")
+    end
+
+    it "scopes a filter with a \"/*\" suffix to that subtree" do
+      router = Kemal::Router.new
+
+      router.before "/admin/*" do |env|
+        env.set "auth", "required"
+      end
+
+      router.get "/admin/users" do |env|
+        env.get("auth").to_s
+      end
+
+      router.get "/public" do |env|
+        env.get?("auth").to_s
+      end
+
+      mount "/api", router
+
+      admin_response = call_request_on_app(HTTP::Request.new("GET", "/api/admin/users"))
+      admin_response.body.should eq("required")
+
+      public_response = call_request_on_app(HTTP::Request.new("GET", "/api/public"))
+      public_response.body.should eq("")
+    end
+
+    it "registers a filter once for a path that carries several methods" do
+      calls = 0
+
+      router = Kemal::Router.new
+      router.before "/admin/*" do |_env|
+        calls += 1
+        ""
+      end
+
+      router.get "/admin/users" do
+        "get"
+      end
+
+      router.post "/admin/users" do
+        "post"
+      end
+
+      mount "/api", router
+
+      call_request_on_app(HTTP::Request.new("GET", "/api/admin/users"))
+      calls.should eq(1)
+    end
+
+    it "guards every router route when before_get is registered with \"/*\"" do
+      router = Kemal::Router.new
+
+      router.before_get "/*" do |env|
+        unless env.request.headers["Authorization"]? == "Bearer s3cret"
+          halt env, status_code: 401, response: "Unauthorized"
+        end
+      end
+
+      handler_ran = false
+      router.get "/secret" do
+        handler_ran = true
+        "secret"
+      end
+
+      mount "/api", router
+
+      # A filter path that silently registered nowhere left the route wide open.
+      call_request_on_app(HTTP::Request.new("GET", "/api/secret")).status_code.should eq(401)
+      call_request_on_app(HTTP::Request.new("HEAD", "/api/secret")).status_code.should eq(401)
+      handler_ran.should be_false
+
+      headers = HTTP::Headers{"Authorization" => "Bearer s3cret"}
+      authorized = call_request_on_app(HTTP::Request.new("GET", "/api/secret", headers))
+      authorized.status_code.should eq(200)
+      authorized.body.should eq("secret")
+      handler_ran.should be_true
+    end
+
     it "applies namespace filters only within the namespace" do
       router = Kemal::Router.new
 

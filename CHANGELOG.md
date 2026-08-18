@@ -9,6 +9,16 @@ query "/search" do |env|
 end
 ```
 
+- ***(SECURITY)*** Run the `GET` filters for `HEAD` requests served by the `GET` route ([GHSA-jf9q-62h3-924j](https://github.com/kemalcr/kemal/security/advisories/GHSA-jf9q-62h3-924j)). Kemal serves a `HEAD` request with the `GET` route when no explicit `HEAD` route exists, but `Kemal::FilterHandler` dispatched verb specific filters on the literal request method. `before_get` and `after_get` were therefore skipped while the `GET` handler still ran, so `HEAD /admin/users` bypassed a `before_get` authentication filter — Kemal's documented auth pattern — executed the protected handler along with its side effects, returned the headers that handler set, and left no `after_get` audit record. Filters now run for both the request method and the method of the route that serves it, so the `GET` filters guard `HEAD` while filters registered for `HEAD` keep firing. A route registered explicitly for `HEAD` is unaffected. Thanks @JirayuThongchotchaung for the report :pray:
+
+- ***(SECURITY)*** Scope `Kemal::Handler` `only` / `exclude` by the route that serves the request as well as by the request method, so `HEAD` cannot slip past middleware scoped to `GET`. This is the same defect as the filter fix above, in the sibling API: `only ["/admin/*"]` — the `GET` default — did not match `HEAD /admin/users`, so authentication middleware never ran while the `GET` handler executed and returned the headers it set. Rules scoped to `HEAD` keep matching, and verbs that carry their own handler are untouched: a `POST` rule still ignores `HEAD`. `exclude` follows the same rule, so a `HEAD` request served by an excluded `GET` route is now excluded too — matching what that route already does for `GET`.
+
+- ***(SECURITY)*** Register `Kemal::Router` filters whose path ends in `/*`. `register_filters` treated the trailing `*` as a literal path segment, so `router.before_get "/*"` and `router.before_get "/admin/*"` matched no route and were silently registered nowhere — a router-scoped filter used for authentication never ran, for any HTTP method. A trailing `/*` now marks a subtree, so `"/admin/*"` scopes the filter to the same routes as `"/admin"`, and `"/*"` covers every route in the router just like `"*"`. Filter paths without a glob are unchanged.
+
+- Register a `Kemal::Router` filter once per path instead of once per route on that path. A path carrying several methods — `router.get "/users"` plus `router.post "/users"` — got the same filter block appended once per method, so the filter ran that many times for a single request, double-counting rate limits and duplicating audit records.
+
+- Drop the cached `HEAD` → `GET` fallback for a path when a `HEAD` route is registered for it afterwards. The stale cache entry kept routing `HEAD` to the `GET` handler, and it now also selects which verb scoped filters and `only` / `exclude` rules apply.
+
 - ***(SECURITY)*** Bound the byte ranges `send_file` serves for a single `Range` request header. Ranges were served unchecked, and since an open-ended `bytes=0-` expands to the whole file, a header such as `bytes=0-,0-,0-,...` turned one 16 KB request into a response thousands of times the file's size (the CVE-2011-3192 "Apache Killer" pattern). Affects any app serving static files, which is the default. A range set is now ignored — and the full representation served instead, as RFC 9110 §14.2 allows — when it lists more than `Kemal.config.max_ranges` parts (16 by default) or asks for more bytes in total than the file holds. Requests within those limits are unchanged. Ignored and unsatisfiable `Range` headers now take the same path as a plain `GET`, so they are compressed as usual. Thanks @onurcangnc for the report :pray:
 
 ```crystal
@@ -70,7 +80,6 @@ This PR adds a new config option:
 Kemal.config.max_multipart_form_field_size = 8 * 1024 * 1024
 ```
 
-
 - ***(SECURITY)*** Add Websocket origin validation and configuration support [#749](https://github.com/kemalcr/kemal/pull/749). Thanks @past3l :pray:
 
 This PR adds a new config option:
@@ -78,7 +87,6 @@ This PR adds a new config option:
 ```crystal
 Kemal.config.websocket_allowed_origins = ["https://myapp.com", "http://localhost:3000"]
 ```
-
 
 # 1.10.1 (24-03-2026)
 

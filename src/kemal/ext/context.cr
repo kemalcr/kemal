@@ -63,6 +63,21 @@ class HTTP::Server
       route_lookup.found?
     end
 
+    # The HTTP method of the route that actually serves this request. A `HEAD`
+    # request with no `HEAD` route of its own is served by the `GET` route
+    # (`Kemal::RouteHandler#lookup_route`), so verb scoped guards - filters and
+    # `only` / `exclude` - have to consult this alongside `request.method`, or
+    # `HEAD` skips a guard the `GET` handler still runs behind.
+    #
+    # Deliberately does not memoize into `@cached_route_lookup`: guards run from
+    # middleware, ahead of anything that may still rewrite the request.
+    def effective_route_method : String
+      method = @request.method.as(String)
+      return method unless method == "HEAD"
+      lookup = Kemal::RouteHandler::INSTANCE.lookup_route(method, @request.path)
+      lookup.found? ? lookup.payload.method : method
+    end
+
     # Optimized: Cache websocket route lookup result to avoid redundant lookups
     def ws_route_lookup
       @cached_ws_route_lookup ||= Kemal::WebSocketHandler::INSTANCE.lookup_ws_route(@request.path)

@@ -46,14 +46,24 @@ module Kemal
         return call_next(context)
       end
 
+      # A `HEAD` request with no `HEAD` route of its own runs the `GET` handler, so
+      # the `GET` filters have to run with it - dispatching on the request method
+      # alone let `HEAD /admin/users` bypass a `before_get` authentication filter
+      # and slip past `after_get` audit logging. Filters registered for `HEAD`
+      # still run, and a route registered explicitly for `HEAD` adds nothing.
+      method = context.request.method
+      route_method = context.effective_route_method
+
       call_block_for_path_type("ALL", context.request.path, :before, context)
-      call_block_for_path_type(context.request.method, context.request.path, :before, context)
+      call_block_for_path_type(method, context.request.path, :before, context)
+      call_block_for_path_type(route_method, context.request.path, :before, context) unless route_method == method
       if Kemal.config.error_handlers.has_key?(context.response.status_code)
         raise Kemal::Exceptions::CustomException.new(context)
       end
 
       call_next(context)
-      call_block_for_path_type(context.request.method, context.request.path, :after, context)
+      call_block_for_path_type(route_method, context.request.path, :after, context) unless route_method == method
+      call_block_for_path_type(method, context.request.path, :after, context)
       call_block_for_path_type("ALL", context.request.path, :after, context)
       context
     end

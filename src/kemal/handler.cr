@@ -8,6 +8,10 @@ module Kemal
   # exact path. Pass `"*"` as the method to match all methods, and end a path
   # with `"/*"` for prefix matching (same rules as `PathHandler`).
   #
+  # A `HEAD` request with no `HEAD` route of its own is served by the `GET`
+  # route, so it matches a `GET` rule as well as a `HEAD` rule - the scope
+  # follows the handler that runs, without dropping the request method.
+  #
   # For middleware that should run for an entire path subtree on every method,
   # prefer `use "/admin", MyHandler.new` instead of `only`.
   #
@@ -134,16 +138,30 @@ module Kemal
     end
 
     private def matches_scoped_routes?(env : HTTP::Server::Context, tree : Radix::Tree(String), prefixes : Hash(String, Array({String, String}))) : Bool
-      method = env.request.method
       path = env.request.path
-      class_name = self.class.to_s
 
-      return true if tree.find(radix_path(method, path)).found?
       return true if tree.find(radix_path(ALL_METHODS_KEY, path)).found?
 
-      if rules = prefixes[class_name]?
+      method = env.request.method
+      return true if matches_verb?(tree, prefixes, method, path)
+
+      # A `HEAD` request with no `HEAD` route of its own runs the `GET` handler, so
+      # a rule scoped to `GET` has to match it too - scoping on the request method
+      # alone let `HEAD` skip authentication middleware the handler still ran
+      # behind. Rules scoped to `HEAD` keep matching, and verbs that carry their
+      # own handler are untouched: a `POST` rule still ignores `HEAD`.
+      route_method = env.effective_route_method
+      return true if route_method != method && matches_verb?(tree, prefixes, route_method, path)
+
+      false
+    end
+
+    private def matches_verb?(tree : Radix::Tree(String), prefixes : Hash(String, Array({String, String})), verb : String, path : String) : Bool
+      return true if tree.find(radix_path(verb, path)).found?
+
+      if rules = prefixes[self.class.to_s]?
         return true if rules.any? do |(rule_method, prefix)|
-                         (rule_method == ALL_METHODS || rule_method == method) && Utils.matches_path_prefix?(prefix, path)
+                         (rule_method == ALL_METHODS || rule_method == verb) && Utils.matches_path_prefix?(prefix, path)
                        end
       end
 

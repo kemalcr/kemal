@@ -35,6 +35,121 @@ describe "Kemal::FilterHandler" do
     client_response.body.should eq("")
   end
 
+  context "HEAD requests served by the GET route" do
+    it "runs before_get filters so HEAD cannot bypass them" do
+      filter_handler = Kemal::FilterHandler.new
+      filter_handler._add_route_filter("GET", "/admin/*", :before) do |env|
+        unless env.request.headers["Authorization"]? == "Bearer s3cret"
+          halt env, status_code: 401, response: "Unauthorized"
+        end
+      end
+      Kemal.config.add_filter_handler(filter_handler)
+
+      handler_ran = false
+      get "/admin/users" do
+        handler_ran = true
+        "users"
+      end
+
+      # No explicit HEAD route exists, so the GET handler serves this request.
+      # The GET filters have to guard it just like they guard a plain GET.
+      request = HTTP::Request.new("HEAD", "/admin/users")
+      client_response = call_request_on_app(request)
+      client_response.status_code.should eq(401)
+      handler_ran.should be_false
+    end
+
+    it "runs after_get filters so HEAD is not missing from audit logs" do
+      calls = [] of String
+
+      filter_handler = Kemal::FilterHandler.new
+      filter_handler._add_route_filter("GET", "/admin/*", :after) do |_env|
+        calls << "after_get"
+      end
+      Kemal.config.add_filter_handler(filter_handler)
+
+      get "/admin/users" do
+        calls << "handler"
+        "users"
+      end
+
+      request = HTTP::Request.new("HEAD", "/admin/users")
+      client_response = call_request_on_app(request)
+      client_response.status_code.should eq(200)
+      calls.should eq(["handler", "after_get"])
+    end
+
+    it "runs filters registered for the HEAD verb alongside the GET filters" do
+      calls = [] of String
+
+      filter_handler = Kemal::FilterHandler.new
+      filter_handler._add_route_filter("HEAD", "/admin/*", :before) do |_env|
+        calls << "before_head"
+      end
+      filter_handler._add_route_filter("GET", "/admin/*", :before) do |_env|
+        calls << "before_get"
+      end
+      Kemal.config.add_filter_handler(filter_handler)
+
+      get "/admin/users" do
+        calls << "handler"
+        "users"
+      end
+
+      # Picking up the GET filters must not drop the ones registered for HEAD.
+      request = HTTP::Request.new("HEAD", "/admin/users")
+      call_request_on_app(request).status_code.should eq(200)
+      calls.should eq(["before_head", "before_get", "handler"])
+    end
+
+    it "keeps the HEAD verb for an explicit HEAD route" do
+      calls = [] of String
+
+      filter_handler = Kemal::FilterHandler.new
+      filter_handler._add_route_filter("GET", "/admin/*", :before) do |_env|
+        calls << "before_get"
+      end
+      filter_handler._add_route_filter("HEAD", "/admin/*", :before) do |_env|
+        calls << "before_head"
+      end
+      Kemal.config.add_filter_handler(filter_handler)
+
+      Kemal::RouteHandler::INSTANCE.add_route("HEAD", "/admin/users") { "" }
+      get "/admin/users" do
+        "users"
+      end
+
+      request = HTTP::Request.new("HEAD", "/admin/users")
+      client_response = call_request_on_app(request)
+      client_response.status_code.should eq(200)
+      calls.should eq(["before_head"])
+    end
+
+    it "still runs the GET filters for a plain GET request" do
+      calls = [] of String
+
+      filter_handler = Kemal::FilterHandler.new
+      filter_handler._add_route_filter("GET", "/admin/*", :before) do |_env|
+        calls << "before_get"
+      end
+      filter_handler._add_route_filter("GET", "/admin/*", :after) do |_env|
+        calls << "after_get"
+      end
+      Kemal.config.add_filter_handler(filter_handler)
+
+      get "/admin/users" do
+        calls << "handler"
+        "users"
+      end
+
+      request = HTTP::Request.new("GET", "/admin/users")
+      client_response = call_request_on_app(request)
+      client_response.status_code.should eq(200)
+      client_response.body.should eq("users")
+      calls.should eq(["before_get", "handler", "after_get"])
+    end
+  end
+
   context "after filters" do
     it "does not crash when modifying headers for large responses (#759)" do
       filter_handler = Kemal::FilterHandler.new

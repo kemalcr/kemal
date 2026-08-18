@@ -56,6 +56,26 @@ module Kemal
       insert_front(node)
     end
 
+    def delete(key : K) : Nil
+      node = @map.delete(key)
+      return unless node
+
+      prev = node.prev
+      nxt = node.next
+
+      if prev
+        prev.next = nxt
+      else
+        @head = nxt
+      end
+
+      if nxt
+        nxt.prev = prev
+      else
+        @tail = prev
+      end
+    end
+
     private def insert_front(node : Node(K, V))
       node.prev = nil
       node.next = @head
@@ -126,6 +146,14 @@ module Kemal
     # Adds a given route to routing tree.
     def add_route(method : String, path : String, &handler : HTTP::Server::Context -> _)
       add_to_radix_tree method, path, Route.new(method, path, &handler)
+      # A HEAD request served through the GET fallback is cached under the HEAD
+      # key. A HEAD route registered for that path afterwards has to drop that
+      # entry or the stale fallback keeps winning - and it now also decides which
+      # verb scoped filters and only/exclude rules apply. Only the one key is
+      # dropped, so the rest of the cache and its capacity survive.
+      if method == "HEAD"
+        @cache_mutex.synchronize { @cached_routes.delete(radix_path(method, path)) }
+      end
     end
 
     # Looks up the route from the Radix::Tree for the first time and caches to improve performance.

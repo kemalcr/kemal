@@ -512,5 +512,18 @@ describe "Kemal::RouteHandler" do
 
       Kemal::RouteHandler::INSTANCE.cached_routes.size.should eq 1
     end
+
+    it "invalidates a cached HEAD -> GET fallback when a HEAD route is added later" do
+      get "/late" do
+        "getbody"
+      end
+
+      call_request_on_app(HTTP::Request.new("HEAD", "/late"))
+
+      Kemal::RouteHandler::INSTANCE.add_route("HEAD", "/late") { "headroute" }
+
+      response = call_request_on_app(HTTP::Request.new("HEAD", "/late"))
+      response.headers["Content-Length"].should eq("9")
+    end
   end
 end

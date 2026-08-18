@@ -59,6 +59,10 @@ module Kemal
       path : String,
       router : Router
 
+    # Path spellings that scope a filter to every route in the router:
+    # `before_get` registers on "*" while `before_get "/*"` registers on "/*".
+    private WILDCARD_FILTER_PATHS = {"*", "/*"}
+
     getter prefix : String
 
     @routes : Array(RouteDefinition)
@@ -269,18 +273,28 @@ module Kemal
 
       @filters.each do |filter|
         # Determine which paths this filter applies to
-        applicable_paths = if filter.path == "*"
+        applicable_paths = if WILDCARD_FILTER_PATHS.includes?(filter.path)
                              # Apply to all routes in this router
                              route_paths
                            else
-                             # Apply to specific path
-                             filter_full_path = join_paths(full_prefix, filter.path)
+                             # A trailing "/*" marks a subtree rather than a literal
+                             # path segment, so "/admin/*" scopes the filter to the
+                             # same routes as "/admin". Without the chop the "*" ends
+                             # up inside the prefix, no route path can ever match it,
+                             # and the filter is silently registered nowhere.
+                             filter_full_path = join_paths(full_prefix, filter.path.rchop("/*"))
                              route_paths.select { |_, path| path == filter_full_path || path.starts_with?(filter_full_path + "/") }
                            end
+
+        registered = Set(String).new
 
         applicable_paths.each do |route_method, route_path|
           # Check if filter method matches route method
           next unless filter.method.in?("ALL", route_method)
+          # One path can carry several methods. Registering per route entry adds
+          # the same block to the same filter key once per method, and the filter
+          # then runs that many times for a single request.
+          next unless registered.add?(route_path)
 
           # Use filter's method (ALL or specific) when registering
           register_method = filter.method

@@ -160,6 +160,8 @@ Typical order:
 before_all -> before_<verb> -> route -> after_<verb> -> after_all
 ```
 
+A `HEAD` request without its own route is served by the `GET` route, and it runs that route's filters as well as any registered for `HEAD`. `before_get` guards therefore apply to `HEAD`, and so do `Kemal::Handler` `only` / `exclude` rules scoped to `GET`.
+
 Reusable cross-cutting behavior belongs in middleware:
 
 ```crystal
