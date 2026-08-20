@@ -63,6 +63,17 @@ class HTTP::Server
       route_lookup.found?
     end
 
+    # Returns the `Kemal::ParamParser` for this request, or `nil` when nothing
+    # has touched `params` yet.
+    #
+    # `params` allocates a parser on first access, so a handler that only needs
+    # to clean up after whoever parsed the request - `Kemal::InitHandler` and
+    # its temporary file cleanup - has to ask this way, or it creates a parser
+    # for every request that never had one.
+    def params? : Kemal::ParamParser?
+      @params
+    end
+
     # The HTTP method of the route that actually serves this request. A `HEAD`
     # request with no `HEAD` route of its own is served by the `GET` route
     # (`Kemal::RouteHandler#lookup_route`), so verb scoped guards - filters and
