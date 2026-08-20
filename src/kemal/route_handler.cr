@@ -199,8 +199,6 @@ module Kemal
       context.response.print(content)
 
       context
-    ensure
-      context.params.cleanup_temporary_files
     end
 
     # RFC 10008 requires failing a QUERY request whose content lacks a media
