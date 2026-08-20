@@ -69,7 +69,7 @@ Dynamic route parameters:
 
 ```crystal
 get "/users/:id" do |env|
-  id = env.params.url["id"]
+  id = env.params.url["id"]?
   env.json({id: id})
 end
 ```
@@ -78,33 +78,33 @@ Wildcard remainder:
 
 ```crystal
 get "/files/*all" do |env|
-  env.params.url["all"]
+  env.params.url["all"]?
 end
 ```
 
-For `QUERY`, use the same Kemal parameter APIs appropriate to the request body. A QUERY request with a body and no `Content-Type` is rejected according to Kemal's current behavior.
+For `QUERY` (RFC 10008, Kemal master / upcoming 1.13.0), use the same Kemal parameter APIs appropriate to the request body. A QUERY request with a body and no `Content-Type` is rejected with 400 Bad Request according to Kemal's current behavior.
 
 ## Parameters
 
 Query parameters:
 
 ```crystal
-width = env.params.query["width"]
+width = env.params.query["width"]?
 ```
 
 JSON body (`Content-Type: application/json`):
 
 ```crystal
-name = env.params.json["name"].as(String)
+name = env.params.json["name"]?.as?(String)
 ```
 
 Form/body parameters:
 
 ```crystal
-name = env.params.body["name"].as(String)
+name = env.params.body["name"]?.as?(String)
 ```
 
-Repeated/bracketed form keys must be accessed exactly as sent, for example `env.params.body["likes[]"]`.
+Repeated/bracketed form keys must be accessed exactly as sent, for example `env.params.body["likes[]"]?`.
 
 Uploads are available through `env.params.files`.
 
@@ -114,7 +114,7 @@ Prefer response helpers when they express the result clearly:
 
 ```crystal
 get "/users" do |env|
-  env.json({users: ["alice", "bob"]})
+  env.json({users: %w[alice bob]})
 end
 
 post "/users" do |env|
@@ -128,7 +128,7 @@ Use `halt` inside routes when route execution must stop:
 
 ```crystal
 get "/admin" do |env|
-  halt env.status(403).html("<h1>Forbidden</h1>")
+  halt env.status(:forbidden).html("<h1>Forbidden</h1>")
 end
 ```
 
@@ -141,7 +141,7 @@ api = Kemal::Router.new
 
 api.namespace "/users" do
   get "/" do |env|
-    env.json({users: ["alice", "bob"]})
+    env.json({users: %w[alice bob]})
   end
 end
 
@@ -173,7 +173,11 @@ class CustomHandler < Kemal::Handler
   end
 end
 
-add_handler CustomHandler.new
+# Preferred modern registration (Kemal 1.10+):
+use CustomHandler.new
+
+# Or configure on Kemal.config:
+# Kemal.config.add_handler CustomHandler.new
 ```
 
 Do not call `call_next` after intentionally short-circuiting the request.
@@ -251,6 +255,24 @@ Before considering Kemal work complete:
 - [ ] Relevant `spec-kemal` tests pass.
 - [ ] Production build and deployment behavior are verified for the target platform.
 
+## Specialized domain skills
+
+For targeted domain implementations with tested patterns from `kemal-by-example`, see the dedicated domain skills:
+
+- **Core Routing & Handlers**: [`kemal-core`](../kemal-core/SKILL.md)
+- **Real-Time WebSockets**: [`kemal-websocket`](../kemal-websocket/SKILL.md)
+- **Server-Sent Events (SSE)**: [`kemal-sse`](../kemal-sse/SKILL.md)
+- **JSON APIs & Helpers**: [`kemal-json`](../kemal-json/SKILL.md)
+- **Middleware & HMAC**: [`kemal-middleware`](../kemal-middleware/SKILL.md)
+- **File Uploads & Security**: [`kemal-upload`](../kemal-upload/SKILL.md)
+- **Authentication & Sessions**: [`kemal-auth`](../kemal-auth/SKILL.md)
+- **SQLite Database & Models**: [`kemal-database`](../kemal-database/SKILL.md)
+- **OAuth2 Integration**: [`kemal-oauth`](../kemal-oauth/SKILL.md)
+- **Crecto ORM**: [`kemal-orm`](../kemal-orm/SKILL.md)
+- **Views & ECR Templates**: [`kemal-view`](../kemal-view/SKILL.md)
+
 ## Sources
 
-Treat the current Kemal repository and official Kemal documentation as the source of truth. Use current APIs when this skill conflicts with newer project documentation.
+Treat the current Kemal repository and official Kemal documentation as the source of truth.
+
+The modular skill definitions are maintained and formally verified under [kemal-skills](https://gitlab.com/renich/kemal-skills).
