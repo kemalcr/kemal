@@ -82,7 +82,7 @@ get "/files/*all" do |env|
 end
 ```
 
-For `QUERY` (RFC 10008, Kemal master / upcoming 1.13.0), use the same Kemal parameter APIs appropriate to the request body. A QUERY request with a body and no `Content-Type` is rejected with 400 Bad Request according to Kemal's current behavior.
+For `QUERY` (RFC 10008, on Kemal master and not yet in a stable release), use the same Kemal parameter APIs appropriate to the request body. A QUERY request with a body and no `Content-Type` is rejected with 400 Bad Request according to Kemal's current behavior.
 
 ## Parameters
 
@@ -257,7 +257,7 @@ Before considering Kemal work complete:
 
 ## Specialized domain skills
 
-For targeted domain implementations with tested patterns from `kemal-by-example`, see the dedicated domain skills:
+For targeted domain implementations with tested patterns from [`kemal-by-example`](https://github.com/sdogruyol/kemal-by-example), see the dedicated domain skills:
 
 - **Core Routing & Handlers**: [`kemal-core`](../kemal-core/SKILL.md)
 - **Real-Time WebSockets**: [`kemal-websocket`](../kemal-websocket/SKILL.md)

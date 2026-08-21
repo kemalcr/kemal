@@ -1,20 +1,12 @@
 ---
 name: kemal-orm
 description: Object-Relational Mapping (ORM) with Crecto and SQLite in Kemal, following established project patterns.
+license: MIT
 ---
 
 # Kemal ORM Integration (Crecto)
 
-This skill provides expert guidance on using Crecto ORM with Kemal applications and SQLite, strictly following patterns from `src/kemal-by-example/budget-management-orm/`.
-
-## Compatibility Matrix
-
-| Feature | Kemal 1.12.0 (Release) | Kemal Master (Unreleased / Next) |
-| :--- | :--- | :--- |
-| Crecto ORM (`crecto`) Integration | Supported | Supported |
-| Crecto Adapters (`Crecto::Adapters::SQLite3`) | Supported | Supported |
-| Declarative Schema, Validations & Queries | Supported | Supported |
-| Centwise Integer Currency Handling | Supported | Supported |
+This skill provides expert guidance on using Crecto ORM with Kemal applications and SQLite, strictly following patterns from [`kemal-by-example/budget-management-orm`](https://github.com/sdogruyol/kemal-by-example/tree/master/budget-management-orm).
 
 ## Core Mandates
 

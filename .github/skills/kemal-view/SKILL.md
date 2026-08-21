@@ -1,20 +1,12 @@
 ---
 name: kemal-view
 description: Rendering ECR templates and layouts with Kemal.
+license: MIT
 ---
 
 # Kemal View Rendering
 
-This skill provides expert guidance on rendering HTML templates using ECR (Embedded Crystal) in Kemal, strictly following patterns from `src/kemal-by-example/`.
-
-## Compatibility Matrix
-
-| Feature | Kemal 1.12.0 (Release) | Kemal Master (Unreleased / Next) |
-| :--- | :--- | :--- |
-| `render` Macro (View only) | Supported | Supported |
-| `render` Macro with Layout (`view, layout`) | Supported | Supported |
-| Layout Yield (`<%= content %>`) | Supported | Supported |
-| Local Variable Bindings in ECR Scope | Supported | Supported |
+This skill provides expert guidance on rendering HTML templates using ECR (Embedded Crystal) in Kemal, strictly following patterns from [`kemal-by-example`](https://github.com/sdogruyol/kemal-by-example).
 
 ## Core Mandates
 
@@ -22,6 +14,7 @@ This skill provides expert guidance on rendering HTML templates using ECR (Embed
 - **Layouts:** Use `render "path/to/view.ecr", "path/to/layout.ecr"` for layout support.
 - **Paths:** Always use relative paths from the project root (e.g., `src/views/index.ecr`).
 - **Data Passing:** Local variables in the route block are directly accessible within ECR templates.
+- **Escaping:** ECR does not auto-escape. Wrap user-provided values in `HTML.escape(...)` (`require "html"`) when outputting with `<%= ... %>`.
 
 ## Patterns from Source Code
 
@@ -97,15 +90,15 @@ Typical layout file at `src/views/layouts/application.ecr`:
 
 ### View Template Example
 
-Typical view file at `src/views/posts/index.ecr`:
+Typical view file at `src/views/posts/index.ecr`. ECR does **not** auto-escape output, so any user-provided value rendered with `<%= ... %>` must go through `HTML.escape` (stdlib, `require "html"`) to prevent XSS:
 
 ```html
 <h1>Posts</h1>
 
 <% posts.each do |post| %>
   <article>
-    <h2><%= post.title %></h2>
-    <p><%= post.body %></p>
+    <h2><%= HTML.escape(post.title) %></h2>
+    <p><%= HTML.escape(post.body) %></p>
     <a href="/posts/<%= post.id %>/edit">Edit</a>
   </article>
 <% end %>
@@ -140,7 +133,7 @@ end
 - **Layout Structure:** Use `<%= content %>` in layout files to render the view content.
 - **Partials:** Use `render "path/to/_partial.ecr"` for reusable UI components (not shown in examples but standard practice).
 - **ECR Directives:** Prefer `<%= ... %>` for output and `<% ... %>` for logic/control flow.
-- **Sanitization:** Be mindful of XSS when outputting user-provided data. Use `HTML.escape` where necessary.
+- **Escaping (XSS):** ECR performs no automatic HTML escaping. Always wrap user-provided data in `HTML.escape(...)` inside `<%= ... %>`; only render raw HTML you generated yourself (like the layout's `<%= content %>`).
 - **Local Variables:** Pass data to views by defining local variables in the route block before calling `render`.
 - **Error Handling:** Handle missing resources (404) by checking models before rendering, or set appropriate status codes.
 

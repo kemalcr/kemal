@@ -1,21 +1,17 @@
 ---
 name: kemal-sse
 description: Real-time Server-Sent Events (SSE) streaming in Kemal 1.12+, following established project patterns.
+license: MIT
 ---
 
 # Kemal Server-Sent Events (SSE)
 
 This skill provides expert guidance on implementing real-time unidirectional event streaming using Kemal's built-in `sse` helper (available in Kemal 1.12.0+).
 
-## Compatibility Matrix
+## Version Notes
 
-| Feature | Kemal 1.12.0 (Release) | Kemal Master (Unreleased / Next) |
-| :--- | :--- | :--- |
-| `sse` Route Helper & `Kemal::EventStream` | Supported (1.12.0+) | Supported |
-| Named Events (`event:`, `id:`, `retry:`) | Supported | Supported |
-| Automatic `text/event-stream` Headers | Supported | Supported |
-| Newline Injection Protection & CRLF Normalization | **Not available** | Supported (prevents SSE header/event injection) |
-| `retry` Field Int32 Overflow Fix | **Not available** | Supported |
+- `sse` route helper and `Kemal::EventStream` (named events, `id:`, `retry:`): since Kemal 1.12.0.
+- SSE injection protection (CR/LF rejected in `event`/`id`, CRLF normalization in `data` and comments) and the `retry` field Int32 overflow fix: Kemal master only.
 
 ## Core Mandates
 

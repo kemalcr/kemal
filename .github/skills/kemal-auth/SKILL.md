@@ -1,20 +1,12 @@
 ---
 name: kemal-auth
 description: User authentication and session management in Kemal, following established project patterns.
+license: MIT
 ---
 
 # Kemal Authentication & Sessions
 
-This skill provides expert guidance on implementing user authentication and session management in Kemal, strictly following patterns from `src/kemal-by-example/ecommerce/` and `src/kemal-by-example/oauth-login/`.
-
-## Compatibility Matrix
-
-| Feature | Kemal 1.12.0 (Release) | Kemal Master (Unreleased / Next) |
-| :--- | :--- | :--- |
-| `kemal-session` Integration | Supported | Supported |
-| Password Hashing (`Crypto::Bcrypt::Password`) | Supported | Supported |
-| Session-backed Auth Middleware & Helpers | Supported | Supported |
-| CSRF Protection via POST Actions | Supported | Supported |
+This skill provides expert guidance on implementing user authentication and session management in Kemal, strictly following patterns from [`kemal-by-example/ecommerce`](https://github.com/sdogruyol/kemal-by-example/tree/master/ecommerce) and [`kemal-by-example/oauth-login`](https://github.com/sdogruyol/kemal-by-example/tree/master/oauth-login).
 
 ## Core Mandates
 
@@ -162,7 +154,7 @@ end
 ## Best Practices
 
 - **Local Variables for Errors:** Pass error messages as local variables directly to the `render` macro (e.g., `error_message = "Invalid email or password."`).
-- **Security:** Use `POST` for login and logout routes to prevent CSRF.
+- **Security:** Use `POST` (never `GET`) for login and logout so state changes are not triggerable via simple links — but note that using `POST` alone does **not** prevent CSRF. Add real CSRF protection: validate a per-session CSRF token on state-changing requests (e.g. the [`kemal-csrf`](https://github.com/kemalcr/kemal-csrf) handler) and set session cookies with `SameSite`. Regenerate the session on login to prevent session fixation.
 - **Session Safe Access:** Use `env.session.bigint?("user_id")` or similar to safely retrieve session data.
 - **Model Methods:** Implement `User.authenticate(email, password)` and `User.find_by_email(email)` in the model.
 

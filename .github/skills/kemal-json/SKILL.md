@@ -1,21 +1,17 @@
 ---
 name: kemal-json
 description: Building JSON APIs with Kemal using built-in response helpers and established project patterns.
+license: MIT
 ---
 
 # Kemal JSON API Development
 
-This skill provides expert guidance on building robust JSON APIs with Kemal, establishing the canonical patterns for JSON response helpers and strictly following patterns from `src/kemal-by-example/json-api/`.
+This skill provides expert guidance on building robust JSON APIs with Kemal, establishing the canonical patterns for JSON response helpers and strictly following patterns from [`kemal-by-example/json-api`](https://github.com/sdogruyol/kemal-by-example/tree/master/json-api).
 
-## Compatibility Matrix
+## Version Notes
 
-| Feature | Kemal 1.12.0 (Release) | Kemal Master (Unreleased / Next) |
-| :--- | :--- | :--- |
-| `env.json(payload)` Response Helper | Supported (1.10+) | Supported |
-| `env.status(:symbol)` Status Helper | Supported (1.10+) | Supported |
-| `env.params.raw_body` Safe Parsing | Supported | Supported |
-| Symbol Status Mapping (`:ok`, `:created`, etc.) | Supported | Supported |
-| Malformed Body 400 Response (Auto-handling) | Returns 500 | Supported (400 Bad Request) |
+- `env.json` and `env.status` response helpers (symbol or integer statuses): since Kemal 1.10.
+- Malformed request bodies (e.g. invalid JSON) are answered with `400 Bad Request` on Kemal master; earlier releases return `500`.
 
 ## Core Mandates
 

@@ -1,20 +1,17 @@
 ---
 name: kemal-upload
 description: Handling file uploads and storage in Kemal using body size safety configuration and established project patterns.
+license: MIT
 ---
 
 # Kemal File Uploads & Storage
 
-This skill provides expert guidance on implementing file uploads and storage in Kemal, with explicit safety bounds and validation, strictly following patterns from `src/kemal-by-example/file-upload-storage/`.
+This skill provides expert guidance on implementing file uploads and storage in Kemal, with explicit safety bounds and validation, strictly following patterns from [`kemal-by-example/file-upload-storage`](https://github.com/sdogruyol/kemal-by-example/tree/master/file-upload-storage).
 
-## Compatibility Matrix
+## Version Notes
 
-| Feature | Kemal 1.12.0 (Release) | Kemal Master (Unreleased / Next) |
-| :--- | :--- | :--- |
-| Multipart Uploads (`env.params.files`) | Supported | Supported |
-| Global Request Body Limit (`Kemal.config.max_request_body_size`) | Supported (1.9+) | Supported |
-| Multipart Field Size Limit (`Kemal.config.max_multipart_form_field_size`) | Supported (1.11+) | Supported |
-| Relative Path Safety & Storage Sandboxing | Supported | Supported |
+- `Kemal.config.max_request_body_size`: since Kemal 1.9.
+- `Kemal.config.max_multipart_form_field_size`: since Kemal 1.11.
 
 ## Core Mandates
 

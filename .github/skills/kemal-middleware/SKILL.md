@@ -1,21 +1,18 @@
 ---
 name: kemal-middleware
 description: Creating and using custom middleware in Kemal using modern `use` keyword and handler classes.
+license: MIT
 ---
 
 # Kemal Middleware & Handlers
 
-This skill provides expert guidance on creating and using custom middleware in Kemal, leveraging modern `use` registration and filter macros, strictly following patterns from `src/kemal-by-example/webhook-inbox/`.
+This skill provides expert guidance on creating and using custom middleware in Kemal, leveraging modern `use` registration and filter macros, strictly following patterns from [`kemal-by-example/webhook-inbox`](https://github.com/sdogruyol/kemal-by-example/tree/master/webhook-inbox).
 
-## Compatibility Matrix
+## Version Notes
 
-| Feature | Kemal 1.12.0 (Release) | Kemal Master (Unreleased / Next) |
-| :--- | :--- | :--- |
-| `use` Keyword Registration | Supported (1.10+) | Supported |
-| Path-Scoped `use "/api", [handlers]` | Supported (1.10+) | Supported |
-| `Kemal::Handler` Inheritance & `call_next` | Supported | Supported |
-| `only` / `exclude` Filtering with `*` & Globs | Supported (1.12.0+) | Supported |
-| Auth Middleware Scope Fix (Prefix matching) | Partial | Supported (strict prefix check) |
+- `use` registration (global and path-scoped): since Kemal 1.10.
+- `only` / `exclude` with a single method and exact paths: all supported versions.
+- `only` / `exclude` with `"*"` methods and `"/*"` path globs: Kemal master only — do **not** use the glob syntax on 1.12.0 or earlier, where it matches every path (see the warning below).
 
 ## Core Mandates
 
@@ -43,12 +40,11 @@ This skill provides expert guidance on creating and using custom middleware in K
   end
   ```
 
-- **Selective Filtering in Handlers:** Use `only` or `exclude` macros to restrict execution within the handler class. Supports specific verbs, all verbs (`"*"`), and path prefix globs (`"/*"`):
+- **Selective Filtering in Handlers:** Use `only` or `exclude` macros to restrict execution within the handler class. On Kemal 1.12.0 they support a single HTTP method and exact paths only:
 
   ```crystal
   class MyHandler < Kemal::Handler
-    # Matches all HTTP methods on /admin and sub-paths
-    only %w[/admin/*], "*"
+    only %w[/admin], "POST"
 
     def call(context)
       return call_next(context) unless only_match?(context)
@@ -57,6 +53,19 @@ This skill provides expert guidance on creating and using custom middleware in K
     end
   end
   ```
+
+  On Kemal master, `"*"` matches all methods and paths ending in `"/*"` match a prefix:
+
+  ```crystal
+  # Kemal master only:
+  class MyHandler < Kemal::Handler
+    # Matches all HTTP methods on /admin and sub-paths
+    only %w[/admin/*], "*"
+    # ...
+  end
+  ```
+
+  **WARNING:** Do not use `"*"` or `"/*"` globs on Kemal 1.12.0. The 1.12.0 route matcher treats `*` as a radix glob, so a rule like `only %w[/admin/*], "*"` matches **every path on every method** — an auth handler scoped this way locks the whole site. For middleware that should cover an entire path subtree on any version, prefer `use "/admin", MyHandler.new` instead.
 
 - **Legacy Registration (`add_handler`):** `add_handler MyHandler.new` remains supported for backward compatibility.
 

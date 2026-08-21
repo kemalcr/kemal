@@ -1,20 +1,12 @@
 ---
 name: kemal-database
 description: Database initialization and interaction with SQLite and raw SQL in Kemal, following established project patterns.
+license: MIT
 ---
 
 # Kemal Database Integration
 
-This skill provides expert guidance on integrating SQLite databases with Kemal using the `db` and `sqlite3` shards, strictly following patterns from `src/kemal-by-example/`.
-
-## Compatibility Matrix
-
-| Feature | Kemal 1.12.0 (Release) | Kemal Master (Unreleased / Next) |
-| :--- | :--- | :--- |
-| Crystal `crystal-lang/crystal-db` (`db`) | Supported | Supported |
-| SQLite Driver (`crystal-lang/crystal-sqlite3`) | Supported | Supported |
-| Model Serialization (`DB::Serializable`) | Supported | Supported |
-| Connection Pooling & Transactions | Supported | Supported |
+This skill provides expert guidance on integrating SQLite databases with Kemal using the `db` and `sqlite3` shards, strictly following patterns from [`kemal-by-example`](https://github.com/sdogruyol/kemal-by-example).
 
 ## Core Mandates
 
@@ -169,14 +161,17 @@ class Post
 
   def self.create(title : String, body : String) : Post
     now = Time.utc.to_s
-    Blog::Database.connection.exec(
+    # `Database.connection` is a pooled `DB::Database`: a separate
+    # `SELECT last_insert_rowid()` may run on a different connection and return
+    # the wrong id. Read the id from the `DB::ExecResult` of the INSERT itself.
+    result = Blog::Database.connection.exec(
       "INSERT INTO posts (title, body, created_at, updated_at) VALUES (?, ?, ?, ?)",
       title,
       body,
       now,
       now
     )
-    id = Blog::Database.connection.scalar("SELECT last_insert_rowid()").as(Int64)
+    id = result.last_insert_id
     find(id) || raise "Failed to load post ##{id} after creation"
   end
 

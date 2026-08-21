@@ -1,22 +1,18 @@
 ---
 name: kemal-websocket
 description: Implementing real-time bi-directional communication with WebSockets in Kemal, origin security, and lifecycle management.
+license: MIT
 ---
 
 # Kemal WebSocket Integration
 
-This skill provides expert guidance on using WebSockets for real-time features in Kemal, with precise security guidance for Kemal 1.12.0 release versus Kemal master, strictly following patterns from `src/kemal-by-example/real-time-dashboard/` and `src/kemal-by-example/twitter-clone/`.
+This skill provides expert guidance on using WebSockets for real-time features in Kemal, with version-aware origin security guidance, strictly following patterns from [`kemal-by-example/real-time-dashboard`](https://github.com/sdogruyol/kemal-by-example/tree/master/real-time-dashboard) and [`kemal-by-example/twitter-clone`](https://github.com/sdogruyol/kemal-by-example/tree/master/twitter-clone).
 
-## Compatibility Matrix
+## Version Notes
 
-| Feature | Kemal 1.12.0 (Release) | Kemal Master (Unreleased / Next) |
-| :--- | :--- | :--- |
-| `ws` Route Helper & Lifecycle | Supported | Supported |
-| Origin Validation Config (`websocket_allowed_origins`) | Supported | Supported |
-| **Default Origin Policy** (`allowed_origins = []`) | **Allow-All (Open by default)** | **Same-Origin (Strict by default)** |
-| Allow-All Escape Hatch (`["*"]`) | N/A (default is already open) | Supported (opt-in allow-all) |
-| Non-GET Upgrade Rejection (RFC 6455 §4.1) | **Not available** (returns standard error) | Supported (`405 Method Not Allowed` + `Allow: GET`) |
-| Connection Teardown on Handshake Failure | Standard close | Explicit `Connection: close` (anti-smuggling) |
+- **Default Origin policy changed on master:** with an empty `websocket_allowed_origins` (the default), Kemal master enforces same-origin and rejects missing or mismatched `Origin` headers with `403 Forbidden`; releases up to 1.12.0 allow **all** origins (CSWSH risk — configure an allowlist explicitly, see below).
+- `websocket_allowed_origins = ["*"]` opt-in allow-all: Kemal master only.
+- Non-GET upgrade rejection (RFC 6455 §4.1, `405 Method Not Allowed` + `Allow: GET`) and explicit `Connection: close` after a rejected handshake: Kemal master only.
 
 ## Core Mandates
 
@@ -29,22 +25,22 @@ This skill provides expert guidance on using WebSockets for real-time features i
   ```
 
 - **Origin Validation & CSWSH Security:**
-  - **CRITICAL ON KEMAL 1.12.0 RELEASE:** An empty `Kemal.config.websocket_allowed_origins = [] of String` (default) **permits all origins** (`return true if allowed.empty?`).
-    To protect against Cross-Site WebSocket Hijacking (CSWSH) in production on Kemal 1.12.0, you **MUST explicitly configure allowed origins**:
+  - **CRITICAL ON STABLE RELEASES (1.12.0 and earlier):** An empty `Kemal.config.websocket_allowed_origins = [] of String` (default) **permits all origins** (`return true if allowed.empty?`).
+    To protect against Cross-Site WebSocket Hijacking (CSWSH) in production on these releases, you **MUST explicitly configure allowed origins**:
 
     ```crystal
-    # MANDATORY on Kemal 1.12.0 to protect against CSWSH:
+    # MANDATORY on 1.12.0 and earlier to protect against CSWSH:
     Kemal.config.websocket_allowed_origins = %w[https://myapp.com http://localhost:3000]
     ```
 
-  - **ON KEMAL MASTER (Unreleased / Next):** An empty `websocket_allowed_origins` defaults to strict **same-origin** enforcement (matching request `Host`). Missing or mismatched `Origin` headers are rejected with `403 Forbidden`. To explicitly allow all origins on master:
+  - **ON KEMAL MASTER (not yet in a stable release):** An empty `websocket_allowed_origins` defaults to strict **same-origin** enforcement (matching request `Host`). Missing or mismatched `Origin` headers are rejected with `403 Forbidden`. To explicitly allow all origins on master:
 
     ```crystal
-    # Kemal master / upcoming 1.13.0 opt-in allow-all:
+    # Kemal master only — opt-in allow-all:
     Kemal.config.websocket_allowed_origins = ["*"]
     ```
 
-- **Protocol Compliance (RFC 6455 §4.1) — *[Kemal Master / Unreleased]*:**
+- **Protocol Compliance (RFC 6455 §4.1) — *[Kemal master only]*:**
   - On Kemal master, WebSocket upgrade handshakes require the `GET` method. Non-GET upgrade requests (`POST`, `QUERY`, etc.) are automatically rejected with `405 Method Not Allowed`, `Allow: GET`, and `Connection: close`.
   - Failed handshakes close the connection immediately to prevent WebSocket connection smuggling.
 
@@ -81,8 +77,10 @@ require "kemal"
 
 module RealTimeDashboard
   class DashboardHub
-    include JSON::Serializable
-
+    # NOTE: Do not `include JSON::Serializable` here — it removes the default
+    # constructor, and sockets/mutexes are not serializable anyway. Serialize a
+    # plain stats payload (e.g. `{"total_requests" => total_requests}.to_json`)
+    # when broadcasting instead.
     getter total_requests : Int64 = 0_i64
     getter active_users : Int32 = 0
 
@@ -118,7 +116,7 @@ end
 ```crystal
 require "kemal"
 
-# Configure allowed origins explicitly (mandatory on 1.12.0 for security, recommended everywhere)
+# Configure allowed origins explicitly (mandatory on 1.12.0 and earlier for security, recommended everywhere)
 Kemal.config.websocket_allowed_origins = %w[http://127.0.0.1:3000 http://localhost:3000]
 
 HUB = RealTimeDashboard::DashboardHub.new

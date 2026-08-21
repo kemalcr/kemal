@@ -1,23 +1,16 @@
 ---
 name: kemal-oauth
 description: Implementing OAuth2 authentication in Kemal, following established project patterns.
+license: MIT
 ---
 
 # Kemal OAuth2 Integration
 
-This skill provides expert guidance on integrating OAuth2 authentication (e.g., GitHub, Google) into Kemal applications, strictly following patterns from `src/kemal-by-example/oauth-login/`.
-
-## Compatibility Matrix
-
-| Feature | Kemal 1.12.0 (Release) | Kemal Master (Unreleased / Next) |
-| :--- | :--- | :--- |
-| `HTTP::Client` & `URI::Params` Integration | Supported | Supported |
-| CSRF State via `kemal-session` | Supported | Supported |
-| OAuth2 Token Exchange & API Profile Fetch | Supported | Supported |
-| Standard Flow Redirection & Halting | Supported | Supported |
+This skill provides expert guidance on integrating OAuth2 authentication (e.g., GitHub, Google) into Kemal applications, strictly following patterns from [`kemal-by-example/oauth-login`](https://github.com/sdogruyol/kemal-by-example/tree/master/oauth-login).
 
 ## Core Mandates
 
+- **Dependencies:** The route examples below use `env.session` and `env.flash`, both provided by [`kemal-session`](https://github.com/kemalcr/kemal-session) (`env.flash` since kemal-session 1.4.0). Add it to `shard.yml` and `require "kemal-session"`.
 - **Configuration:** Use environment variables for client IDs and secrets:
 
   ```crystal
@@ -170,6 +163,8 @@ end
 ```
 
 ### OAuth Routes (oauth-login/src/routes/oauth.cr)
+
+`env.flash` below is kemal-session's one-time flash message helper (see Dependencies above).
 
 ```crystal
 require "random"
