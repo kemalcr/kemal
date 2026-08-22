@@ -273,6 +273,4 @@ For targeted domain implementations with tested patterns from [`kemal-by-example
 
 ## Sources
 
-Treat the current Kemal repository and official Kemal documentation as the source of truth.
-
-The modular skill definitions are maintained and formally verified under [kemal-skills](https://gitlab.com/renich/kemal-skills).
+Treat the current Kemal repository and official Kemal documentation as the source of truth. Use current APIs when this skill conflicts with newer project documentation.
