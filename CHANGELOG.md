@@ -1,4 +1,4 @@
-# Unreleased
+# 1.13.0 (24-08-2026)
 
 - ***(SECURITY)*** Delete uploaded temporary files for every request, not only for requests that reach `Kemal::RouteHandler` [#776](https://github.com/kemalcr/kemal/issues/776). `Kemal::ParamParser` spools multipart file parts to `File.tempfile` as soon as anything touches `params` — including `params.body` on a multipart request, which writes every file part out just to read one form field — but cleanup ran in the route handler's `ensure`. Anything that answered before the route handler leaked those files permanently: a `before` filter that `halt`s into a custom `error` handler (Kemal's documented auth pattern), an exception raised in a filter, and middleware that responds without calling the next handler. An unauthenticated client could therefore fill the disk one *rejected* upload at a time — with default settings, 20 curl requests left 153 MB behind for good. Cleanup now lives in `Kemal::InitHandler`, which heads the handler chain, so it runs however the request ends. A handler registered ahead of it with `use handler, 0` still owns the cleanup for uploads it parses itself, as that position already opts out of everything else `Kemal::InitHandler` does. Thanks @canermastan for the report :pray:
 
@@ -48,11 +48,19 @@ Kemal.config.websocket_allowed_origins = ["*"]
 
 - Add `only` / `exclude` opt-in matching for all HTTP methods (`"*"`) and path prefixes (`"/*"`). Defaults remain GET + exact path. Clarified docs and the basic-auth custom handler example. Thanks @hahwul for the report. Thanks @sdogruyol :pray:
 
-- Fix `only` / `exclude` with method `"*"` over-matching every path: Radix treats `*` as a glob, so the all-methods marker is stored under a safe sentinel. Thanks @hahwul for the report. Thanks @sdogruyol :pray::
+- Fix `only` / `exclude` with method `"*"` over-matching every path: Radix treats `*` as a glob, so the all-methods marker is stored under a safe sentinel. Thanks @hahwul for the report. Thanks @sdogruyol :pray:
 
 - ***(SECURITY)*** Close the HTTP connection after a rejected WebSocket upgrade (403). Without `Connection: close`, a compound `Connection: keep-alive, Upgrade` request that fails Origin validation left the connection keep-alive, so a request pipelined behind a reverse proxy that tunnels upgrades could bypass the proxy’s access controls (WebSocket connection smuggling). Malformed `Origin` values that previously raised from `URI.parse` now reject with 403 instead of 500.
 
 - WebSocket upgrades now require the `GET` method per [RFC 6455 §4.1](https://www.rfc-editor.org/rfc/rfc6455.html#section-4.1) [#770](https://github.com/kemalcr/kemal/issues/770). Any other method (`POST`, `QUERY`, ...) carrying valid upgrade headers previously completed the handshake; it is now rejected with `405 Method Not Allowed`, an `Allow: GET` header, and `Connection: close` — matching the broader ecosystem (gorilla/websocket, Node `ws`, python-websockets).
+
+- Respond 400 instead of 500 for malformed request bodies (invalid JSON, unparseable multipart) [#772](https://github.com/kemalcr/kemal/pull/772). Thanks @sdogruyol :pray:
+
+- Fix `Int32` overflow in the SSE `retry` field for spans beyond ~24.8 days [#771](https://github.com/kemalcr/kemal/pull/771). Thanks @sdogruyol :pray:
+
+- Disable the `X-Powered-By` header by default. Set `Kemal.config.powered_by_header = true` to restore the previous behavior.
+
+- Add Crystal-Kemal agent skills for routing, WebSockets, SSE, JSON APIs, middleware, uploads, auth, and related domains [#774](https://github.com/kemalcr/kemal/pull/774) [#777](https://github.com/kemalcr/kemal/pull/777).
 
 # 1.12.0 (21-07-2026)
 
