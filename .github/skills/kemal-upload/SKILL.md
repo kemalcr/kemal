@@ -12,6 +12,7 @@ This skill provides expert guidance on implementing file uploads and storage in 
 
 - `Kemal.config.max_request_body_size`: since Kemal 1.9.
 - `Kemal.config.max_multipart_form_field_size`: since Kemal 1.11.
+- Upload tempfile cleanup in `Kemal::InitHandler` (runs for every request, including halted filters): since Kemal 1.13.0.
 
 ## Core Mandates
 

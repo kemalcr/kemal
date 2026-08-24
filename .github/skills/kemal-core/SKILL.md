@@ -6,14 +6,14 @@ license: MIT
 
 # Kemal Core Development
 
-This skill provides expert guidance on using the Kemal web framework for Crystal, with version notes for features that are not yet in a stable release.
+This skill provides expert guidance on using the Kemal web framework for Crystal, with version notes for when APIs landed.
 
 ## Version Notes
 
 Everything in this skill works on current Kemal unless marked otherwise.
 
-- HTTP `QUERY` method (RFC 10008) — `query`, `before_query`, `after_query`: Kemal master only, not yet in a stable release (on 1.12.0 and earlier, use `post` or `get` with query parameters).
-- `Kemal.config.max_ranges` (Range request bounds): Kemal master only.
+- HTTP `QUERY` method (RFC 10008) — `query`, `before_query`, `after_query`: since Kemal 1.13.0 (on 1.12.0 and earlier, use `post` or `get` with query parameters).
+- `Kemal.config.max_ranges` (Range request bounds): since Kemal 1.13.0.
 - Response helpers (`env.json`, `env.status`, `env.html`, `env.text`): since Kemal 1.10.
 - `Kemal::Router`, `mount`, `namespace`: since Kemal 1.10.
 - `Kemal.config.max_request_body_size`: since Kemal 1.9. `Kemal.config.shutdown_timeout`: since Kemal 1.10.1.
@@ -21,11 +21,11 @@ Everything in this skill works on current Kemal unless marked otherwise.
 ## Core Mandates
 
 - **Routing:** Use top-level route methods (`get`, `post`, `put`, `patch`, `delete`, `options`) or modular routers (`Kemal::Router`).
-- **HTTP QUERY Method (RFC 10008) — *[Kemal master only]*:**
-  - On Kemal master, use `query` for safe, read-only queries with complex request bodies (JSON or form-encoded):
+- **HTTP QUERY Method (RFC 10008) — *[Kemal 1.13.0+]*:**
+  - On Kemal 1.13.0+, use `query` for safe, read-only queries with complex request bodies (JSON or form-encoded):
 
   ```crystal
-  # Kemal master only (not yet in a stable release):
+  # Kemal 1.13.0+:
   query "/search" do |env|
     q = env.params.json["q"]?.as?(String)
     halt env.status(:bad_request).json({error: "Query parameter 'q' required"}) unless q
@@ -122,7 +122,7 @@ admin_router.namespace "/posts" do
     end
   end
 
-  # HTTP QUERY (Kemal master only):
+  # HTTP QUERY (Kemal 1.13.0+):
   query "/search" do |env|
     term = env.params.json["term"]?.as?(String)
     halt env.status(:bad_request).json({error: "Search term required"}) unless term
@@ -142,9 +142,9 @@ mount "/admin", admin_router
   ```crystal
   Kemal.config.max_request_body_size = 50 * 1024 * 1024 # 50 MB
   ```
-- **Range Request Bounds (Kemal master only):** On Kemal master, Kemal bounds HTTP `Range` request parts (default 16) to mitigate CVE-2011-3192 resource exhaustion:
+- **Range Request Bounds (Kemal 1.13.0+):** Kemal bounds HTTP `Range` request parts (default 16) to mitigate CVE-2011-3192 resource exhaustion:
   ```crystal
-  # Kemal master only:
+  # Kemal 1.13.0+:
   Kemal.config.max_ranges = 16 # set to 0 to ignore Range headers entirely
   ```
 - **Graceful Shutdown (Kemal 1.10.1+):** Configure shutdown timeout so in-flight requests finish cleanly before exit:
@@ -157,6 +157,6 @@ mount "/admin", admin_router
 - When creating or modifying routes in a Kemal application.
 - When organizing modular route namespaces with `Kemal::Router` (Kemal 1.10+).
 - When handling incoming request parameters (URL, body, query, JSON, files, raw body).
-- When implementing search/filter endpoints (using `get`/`post` on 1.12.0 and earlier, or `query` on master).
+- When implementing search/filter endpoints (using `get`/`post` on 1.12.0 and earlier, or `query` on 1.13.0+).
 - When returning JSON, HTML, or plain text responses.
 - When configuring global runtime settings and security bounds for Kemal.

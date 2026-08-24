@@ -11,7 +11,7 @@ This skill provides expert guidance on implementing real-time unidirectional eve
 ## Version Notes
 
 - `sse` route helper and `Kemal::EventStream` (named events, `id:`, `retry:`): since Kemal 1.12.0.
-- SSE injection protection (CR/LF rejected in `event`/`id`, CRLF normalization in `data` and comments) and the `retry` field Int32 overflow fix: Kemal master only.
+- SSE injection protection (CR/LF rejected in `event`/`id`, CRLF normalization in `data` and comments) and the `retry` field Int32 overflow fix: since Kemal 1.13.0.
 
 ## Core Mandates
 
@@ -31,7 +31,7 @@ This skill provides expert guidance on implementing real-time unidirectional eve
   end
   ```
 
-  *Security Note (Kemal Master)*: `Kemal::EventStream` on master prevents SSE injection by rejecting raw newlines in `event` and `id` arguments, and automatically normalizes CRLF sequences in `data` and `comment`.
+  *Security Note (Kemal 1.13.0+)*: `Kemal::EventStream` prevents SSE injection by rejecting raw newlines in `event` and `id` arguments, and automatically normalizes CRLF sequences in `data` and `comment`.
 
 - **Streaming Loops & Channels:** Use Crystal channels or keep-alive loops for streaming events:
 

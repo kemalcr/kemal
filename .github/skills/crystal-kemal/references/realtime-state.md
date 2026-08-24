@@ -43,8 +43,8 @@ end
 Configure browser WebSocket origin policy with
 `Kemal.config.websocket_allowed_origins`.
 
-On Kemal master (not yet in a stable release), an empty `websocket_allowed_origins` list enforces same-origin
-WebSocket connections. On stable releases (1.12.0 and earlier), an empty list permits all origins by default.
+On Kemal 1.13.0+, an empty `websocket_allowed_origins` list enforces same-origin
+WebSocket connections. On 1.12.0 and earlier, an empty list permits all origins by default.
 
 Use an explicit allowlist when trusted cross-origin browser clients need access (mandatory on 1.12.0 and earlier for CSWSH protection):
 
@@ -55,7 +55,7 @@ Kemal.config.websocket_allowed_origins = %w[
 ]
 ```
 
-To explicitly allow connections from any origin (on master):
+To explicitly allow connections from any origin (Kemal 1.13.0+):
 
 ```crystal
 Kemal.config.websocket_allowed_origins = ["*"]

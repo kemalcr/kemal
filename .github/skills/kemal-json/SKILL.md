@@ -11,7 +11,7 @@ This skill provides expert guidance on building robust JSON APIs with Kemal, est
 ## Version Notes
 
 - `env.json` and `env.status` response helpers (symbol or integer statuses): since Kemal 1.10.
-- Malformed request bodies (e.g. invalid JSON) are answered with `400 Bad Request` on Kemal master; earlier releases return `500`.
+- Malformed request bodies (e.g. invalid JSON) are answered with `400 Bad Request` since Kemal 1.13.0; earlier releases return `500`.
 
 ## Core Mandates
 

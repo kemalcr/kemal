@@ -12,7 +12,7 @@ This skill provides expert guidance on creating and using custom middleware in K
 
 - `use` registration (global and path-scoped): since Kemal 1.10.
 - `only` / `exclude` with a single method and exact paths: all supported versions.
-- `only` / `exclude` with `"*"` methods and `"/*"` path globs: Kemal master only — do **not** use the glob syntax on 1.12.0 or earlier, where it matches every path (see the warning below).
+- `only` / `exclude` with `"*"` methods and `"/*"` path globs: since Kemal 1.13.0 — do **not** use the glob syntax on 1.12.0 or earlier, where it matches every path (see the warning below).
 
 ## Core Mandates
 
@@ -54,10 +54,10 @@ This skill provides expert guidance on creating and using custom middleware in K
   end
   ```
 
-  On Kemal master, `"*"` matches all methods and paths ending in `"/*"` match a prefix:
+  On Kemal 1.13.0+, `"*"` matches all methods and paths ending in `"/*"` match a prefix:
 
   ```crystal
-  # Kemal master only:
+  # Kemal 1.13.0+:
   class MyHandler < Kemal::Handler
     # Matches all HTTP methods on /admin and sub-paths
     only %w[/admin/*], "*"
