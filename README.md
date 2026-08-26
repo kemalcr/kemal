@@ -173,6 +173,44 @@ If Kemal helps you or your company, consider [sponsoring](https://github.com/spo
 
 [![Sponsor](https://img.shields.io/badge/Sponsor-30363D?style=flat-square&logo=githubsponsors&logoColor=white)](https://github.com/sponsors/sdogruyol)
 
+### Corporate
+
+<p align="center">
+  <a href="https://marsus.com">
+    <img src="https://github.com/marsus-com.png?size=280" width="140" alt="Marsus"><br>
+    Marsus
+  </a>
+</p>
+
+### Crystal Champions
+
+<p align="center">
+  <a href="https://github.com/f">
+    <img src="https://github.com/f.png?size=160" width="80" alt="Fatih Kadir Akın"><br>
+    Fatih Kadir Akın
+  </a>
+</p>
+
+### Backers
+
+<p align="center">
+  <a href="https://github.com/pyrsmk">Aurélien Delogu</a> ·
+  <a href="https://github.com/JadeKharats">David YOTEAU</a> ·
+  <a href="https://github.com/mvatansever">Mesut Vatansever</a>
+</p>
+
+### Supporters
+
+<p align="center">
+  <a href="https://github.com/treagod"><img src="https://github.com/treagod.png?size=80" width="40" alt="Marvin Ahlgrimm"></a>
+  <a href="https://github.com/hahwul"><img src="https://github.com/hahwul.png?size=80" width="40" alt="hahwul"></a>
+  <a href="https://github.com/jwoertink"><img src="https://github.com/jwoertink.png?size=80" width="40" alt="Jeremy Woertink"></a>
+  <a href="https://github.com/laktosterror"><img src="https://github.com/laktosterror.png?size=80" width="40" alt="laktosterror"></a>
+  <a href="https://github.com/luislavena"><img src="https://github.com/luislavena.png?size=80" width="40" alt="Luis Lavena"></a>
+  <a href="https://github.com/nbrandaleone"><img src="https://github.com/nbrandaleone.png?size=80" width="40" alt="Nick Brandaleone"></a>
+  <a href="https://github.com/tarikcayir"><img src="https://github.com/tarikcayir.png?size=80" width="40" alt="Tarık Çayır"></a>
+</p>
+
 ---
 
 ## Contributing
