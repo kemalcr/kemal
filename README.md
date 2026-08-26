@@ -193,11 +193,28 @@ If Kemal helps you or your company, consider [sponsoring](https://github.com/spo
 
 ### Backers
 
-<p align="center">
-  <a href="https://github.com/pyrsmk">Aurélien Delogu</a> ·
-  <a href="https://github.com/JadeKharats">David YOTEAU</a> ·
-  <a href="https://github.com/mvatansever">Mesut Vatansever</a>
-</p>
+<table align="center">
+  <tr>
+    <td align="center">
+      <a href="https://github.com/pyrsmk">
+        <img src="https://github.com/pyrsmk.png?size=120" width="56" alt="Aurélien Delogu"><br>
+        Aurélien Delogu
+      </a>
+    </td>
+    <td align="center">
+      <a href="https://github.com/JadeKharats">
+        <img src="https://github.com/JadeKharats.png?size=120" width="56" alt="David YOTEAU"><br>
+        David YOTEAU
+      </a>
+    </td>
+    <td align="center">
+      <a href="https://github.com/mvatansever">
+        <img src="https://github.com/mvatansever.png?size=120" width="56" alt="Mesut Vatansever"><br>
+        Mesut Vatansever
+      </a>
+    </td>
+  </tr>
+</table>
 
 ### Supporters
 
