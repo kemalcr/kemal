@@ -7,13 +7,14 @@ Set application-specific limits rather than copying example values blindly:
 ```crystal
 Kemal.config.max_request_body_size = 10 * 1024 * 1024
 Kemal.config.max_multipart_form_field_size = 8 * 1024 * 1024
+Kemal.config.max_ranges = 16 # Part limit per Range request (since 1.13.0; set to 0 to ignore Range headers)
 ```
 
 Multipart limits apply to individual multipart fields/file parts according to current Kemal behavior.
 
 ## Security baseline
 
-Typical controls include explicit WebSocket origins, hidden framework headers when desired, request/upload limits, HTTPS, deliberate security headers, authorization on sensitive routes, server-controlled file paths, and protection of secrets.
+Typical controls include explicit WebSocket origins, disabled `X-Powered-By` header by default (`Kemal.config.powered_by_header = false` since 1.13.0), request/multipart/Range size limits, HTTPS, deliberate security headers, authorization on sensitive routes, server-controlled file paths, and protection of secrets.
 
 Third-party security middleware may be appropriate, but verify maintenance status and compatibility before adding dependencies.
 

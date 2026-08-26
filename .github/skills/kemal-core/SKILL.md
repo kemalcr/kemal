@@ -14,6 +14,7 @@ Everything in this skill works on current Kemal unless marked otherwise.
 
 - HTTP `QUERY` method (RFC 10008) — `query`, `before_query`, `after_query`: since Kemal 1.13.0 (on 1.12.0 and earlier, use `post` or `get` with query parameters).
 - `Kemal.config.max_ranges` (Range request bounds): since Kemal 1.13.0.
+- Disabled `X-Powered-By` header by default (`Kemal.config.powered_by_header = false`): since Kemal 1.13.0.
 - Response helpers (`env.json`, `env.status`, `env.html`, `env.text`): since Kemal 1.10.
 - `Kemal::Router`, `mount`, `namespace`: since Kemal 1.10.
 - `Kemal.config.max_request_body_size`: since Kemal 1.9. `Kemal.config.shutdown_timeout`: since Kemal 1.10.1.
@@ -146,6 +147,10 @@ mount "/admin", admin_router
   ```crystal
   # Kemal 1.13.0+:
   Kemal.config.max_ranges = 16 # set to 0 to ignore Range headers entirely
+  ```
+- **Powered-By Header (Kemal 1.13.0+):** Kemal disables the `X-Powered-By: Kemal` response header by default. To re-enable it if required:
+  ```crystal
+  Kemal.config.powered_by_header = true
   ```
 - **Graceful Shutdown (Kemal 1.10.1+):** Configure shutdown timeout so in-flight requests finish cleanly before exit:
   ```crystal

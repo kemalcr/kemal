@@ -13,6 +13,8 @@ This skill provides expert guidance on creating and using custom middleware in K
 - `use` registration (global and path-scoped): since Kemal 1.10.
 - `only` / `exclude` with a single method and exact paths: all supported versions.
 - `only` / `exclude` with `"*"` methods and `"/*"` path globs: since Kemal 1.13.0 — do **not** use the glob syntax on 1.12.0 or earlier, where it matches every path (see the warning below).
+- `HEAD` fallback route-scoped dispatch: since Kemal 1.13.0. On Kemal 1.12.0 and earlier, `HEAD` requests falling back to `GET` routes bypassed `GET`-scoped filters (`before_get`) and `GET`-scoped `only` / `exclude` middleware because dispatch checked the literal request method (`HEAD`) rather than the serving route method, creating an authentication bypass risk ([GHSA-jf9q-62h3-924j](https://github.com/kemalcr/kemal/security/advisories/GHSA-jf9q-62h3-924j)). Kemal 1.13.0+ evaluates both the request method and the serving route's effective method.
+- `Kemal::Router` filters registered with trailing `/*` match path subtrees: since Kemal 1.13.0 (on 1.12.0 and earlier, trailing `*` was treated as a literal path segment and silently failed to register/match routes).
 
 ## Core Mandates
 
