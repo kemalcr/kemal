@@ -60,9 +60,9 @@ This skill provides expert guidance on integrating SQLite databases with Kemal u
   end
   ```
 
-- **Data Retrieval:** Use `query_all` and `query_one?` with the `as: Class` argument:
-  - `Database.connection.query_all("SELECT * FROM items", as: Item)`
-  - `Database.connection.query_one?("SELECT * FROM items WHERE id = ?", id, as: Item)`
+- **Data Retrieval:** Use `query_all` and `query_one?` with explicit column lists and the `as: Class` argument:
+  - `Database.connection.query_all("SELECT id, name, created_at FROM items", as: Item)`
+  - `Database.connection.query_one?("SELECT id, name, created_at FROM items WHERE id = ?", id, as: Item)`
 
 ## Patterns from Source Code
 
