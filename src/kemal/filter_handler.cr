@@ -132,6 +132,11 @@ module Kemal
         global_filters.each &.call(context)
       end
 
+      # With only global filters registered (`before_all` and friends) the tree
+      # is empty, yet every request would still pay a radix key allocation and
+      # a lookup per verb/type combination - four to six times per request.
+      return if path_filters_empty?
+
       lookup = lookup_filters_for_path_type(verb, path, type)
       if lookup.found? && lookup.payload.is_a? Array(FilterBlock)
         blocks = lookup.payload
@@ -148,6 +153,14 @@ module Kemal
     # This returns a lookup for verb/path/type
     private def lookup_filters_for_path_type(verb : String?, path : String, type)
       @tree.find radix_path(verb, path, type)
+    end
+
+    # `tree` is a public getter, so filters can enter the radix tree without
+    # going through `_add_route_filter` - ask the tree itself rather than
+    # tracking a flag that such additions would bypass.
+    private def path_filters_empty? : Bool
+      root = @tree.root
+      root.children.empty? && root.payload?.nil?
     end
 
     private def radix_path(verb : String?, path : String, type : Symbol)

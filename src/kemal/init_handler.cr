@@ -8,10 +8,26 @@ module Kemal
 
     INSTANCE = new
 
+    # An HTTP `Date` value only changes once a second, while formatting one
+    # costs ~215ns and 240B of garbage per request. Held as a single immutable
+    # object behind an `Atomic` because the server may run in a parallel
+    # execution context: the atomic swap publishes the fully constructed
+    # object to other threads instead of tearing a timestamp/string pair
+    # updated separately.
+    private class CachedDate
+      getter unix : Int64
+      getter value : String
+
+      def initialize(@unix : Int64, @value : String)
+      end
+    end
+
+    @cached_date = Atomic(CachedDate).new(CachedDate.new(Int64::MIN, ""))
+
     def call(context : HTTP::Server::Context)
       context.response.headers.add "X-Powered-By", "Kemal" if Kemal.config.powered_by_header?
       context.response.content_type = "text/html" unless context.response.headers.has_key?("Content-Type")
-      context.response.headers.add "Date", HTTP.format_time(Time.utc)
+      context.response.headers.add "Date", date_header
       call_next context
     ensure
       # Uploads are spooled to disk by `Kemal::ParamParser` the moment anything
@@ -37,6 +53,17 @@ module Kemal
         # log line, not a broken response.
         Log.error(exception: ex) { "Failed to clean up uploaded temporary files" }
       end
+    end
+
+    private def date_header : String
+      now = Time.utc
+      epoch = now.to_unix
+      cached = @cached_date.get
+      return cached.value if cached.unix == epoch
+
+      formatted = HTTP.format_time(now)
+      @cached_date.set(CachedDate.new(epoch, formatted))
+      formatted
     end
   end
 end

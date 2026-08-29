@@ -1,3 +1,9 @@
+# Unreleased
+
+- Skip filter tree lookups when no path-scoped filters are registered. Apps using only global filters (`before_all` and friends) no longer pay 4-6 radix lookups and key allocations per request [#781](https://github.com/kemalcr/kemal/pull/781).
+
+- Cache the `Date` response header string per second instead of formatting it on every request. The value is unchanged: the string is reused only within the same UTC second [#781](https://github.com/kemalcr/kemal/pull/781).
+
 # 1.13.0 (24-08-2026)
 
 - ***(SECURITY)*** Delete uploaded temporary files for every request, not only for requests that reach `Kemal::RouteHandler` [#776](https://github.com/kemalcr/kemal/issues/776). `Kemal::ParamParser` spools multipart file parts to `File.tempfile` as soon as anything touches `params` — including `params.body` on a multipart request, which writes every file part out just to read one form field — but cleanup ran in the route handler's `ensure`. Anything that answered before the route handler leaked those files permanently: a `before` filter that `halt`s into a custom `error` handler (Kemal's documented auth pattern), an exception raised in a filter, and middleware that responds without calling the next handler. An unauthenticated client could therefore fill the disk one *rejected* upload at a time — with default settings, 20 curl requests left 153 MB behind for good. Cleanup now lives in `Kemal::InitHandler`, which heads the handler chain, so it runs however the request ends. A handler registered ahead of it with `use handler, 0` still owns the cleanup for uploads it parses itself, as that position already opts out of everything else `Kemal::InitHandler` does. Thanks @canermastan for the report :pray:
