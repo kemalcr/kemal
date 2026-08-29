@@ -36,6 +36,26 @@ describe Kemal::EventStream do
     client_response.body.should eq("retry: 5184000000\ndata: update\n\n")
   end
 
+  it "emits a zero retry span" do
+    sse "/events" do |stream, _|
+      stream.send("update", retry: 0.seconds)
+    end
+
+    request = HTTP::Request.new("GET", "/events")
+    client_response = call_request_on_app(request)
+    client_response.body.should eq("retry: 0\ndata: update\n\n")
+  end
+
+  it "omits negative retry spans" do
+    sse "/events" do |stream, _|
+      stream.send("update", retry: -3.seconds)
+    end
+
+    request = HTTP::Request.new("GET", "/events")
+    client_response = call_request_on_app(request)
+    client_response.body.should eq("data: update\n\n")
+  end
+
   it "splits multi-line data into separate data fields" do
     sse "/events" do |stream, _|
       stream.send("line one\nline two")

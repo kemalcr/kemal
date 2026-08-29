@@ -1,5 +1,7 @@
 # Unreleased
 
+- Omit the SSE `retry` field for negative `Time::Span` values instead of emitting e.g. `retry: -3000`, which clients discard per the SSE spec. The value now renders via `.to_u64`; output for non-negative spans is unchanged.
+
 - Skip filter tree lookups when no path-scoped filters are registered. Apps using only global filters (`before_all` and friends) no longer pay 4-6 radix lookups and key allocations per request [#781](https://github.com/kemalcr/kemal/pull/781).
 
 - Cache the `Date` response header string per second instead of formatting it on every request. The value is unchanged: the string is reused only within the same UTC second [#781](https://github.com/kemalcr/kemal/pull/781).

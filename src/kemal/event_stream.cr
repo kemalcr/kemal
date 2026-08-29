@@ -19,7 +19,8 @@ module Kemal
 
     # Sends an SSE event. Multi-line *data* is split into separate `data:` fields.
     # *event* and *id* must not contain CR/LF; newlines there raise `ArgumentError`
-    # so they cannot inject SSE fields.
+    # so they cannot inject SSE fields. A negative *retry* span is omitted from the
+    # output, since clients discard non-digit `retry` values anyway.
     def send(data : String, *, event : String? = nil, id : String | Int? = nil, retry : Time::Span? = nil) : self
       if event
         validate_single_line!("event", event)
@@ -30,7 +31,11 @@ module Kemal
         validate_single_line!("id", id_value)
         @response.puts "id: #{id_value}"
       end
-      @response.puts "retry: #{retry.total_milliseconds.to_i64}" if retry
+      # Clients discard non-digit retry values (WHATWG HTML), so negative spans are
+      # skipped. The guard also protects to_u64 below, which raises on negatives.
+      if retry && !retry.negative?
+        @response.puts "retry: #{retry.total_milliseconds.to_u64}"
+      end
       each_sse_line(data) do |line|
         @response.puts "data: #{line}"
       end
