@@ -12,6 +12,7 @@ This skill provides expert guidance on implementing real-time unidirectional eve
 
 - `sse` route helper and `Kemal::EventStream` (named events, `id:`, `retry:`): since Kemal 1.12.0.
 - SSE injection protection (CR/LF rejected in `event`/`id`, CRLF normalization in `data` and comments) and the `retry` field Int32 overflow fix: since Kemal 1.13.0.
+- Negative `retry` spans are omitted from the output (clients discard non-digit values): unreleased, after Kemal 1.13.0.
 
 ## Core Mandates
 
