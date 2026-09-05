@@ -252,19 +252,199 @@ describe "Macros" do
       response.status_code.should eq(200)
       response.body.should eq(File.read("#{__DIR__}/asset/hello.ecr"))
 
-      # Range out of bounds
-      headers = HTTP::Headers{"Range" => "bytes=100-200"}
-      request = HTTP::Request.new("GET", "/", headers)
-      response = call_request_on_app(request)
-      response.status_code.should eq(200)
-      response.body.should eq(File.read("#{__DIR__}/asset/hello.ecr"))
-
-      # Invalid range values
+      # A last-pos below the first-pos makes the range set invalid (RFC 9110 §14.1.2),
+      # and an invalid Range header is ignored (§14.1.1)
       headers = HTTP::Headers{"Range" => "bytes=5-3"}
       request = HTTP::Request.new("GET", "/", headers)
       response = call_request_on_app(request)
       response.status_code.should eq(200)
       response.body.should eq(File.read("#{__DIR__}/asset/hello.ecr"))
+
+      # Not a byte-range-spec
+      headers = HTTP::Headers{"Range" => "bytes=abc"}
+      request = HTTP::Request.new("GET", "/", headers)
+      response = call_request_on_app(request)
+      response.status_code.should eq(200)
+      response.body.should eq(File.read("#{__DIR__}/asset/hello.ecr"))
+
+      # Range units other than bytes are not supported and therefore ignored
+      headers = HTTP::Headers{"Range" => "items=0-4"}
+      request = HTTP::Request.new("GET", "/", headers)
+      response = call_request_on_app(request)
+      response.status_code.should eq(200)
+      response.body.should eq(File.read("#{__DIR__}/asset/hello.ecr"))
+    end
+
+    # The 18 byte fixture reads "Hello <%= name %>\n"; the cases below follow RFC 9110 §14.1.2.
+    it "serves a single byte range" do
+      get "/" do |env|
+        send_file env, "#{__DIR__}/asset/hello.ecr"
+      end
+
+      {"bytes=0-0" => {"0-0", "H"}, "bytes=5-5" => {"5-5", " "}}.each do |range, (content_range, body)|
+        headers = HTTP::Headers{"Range" => range}
+        request = HTTP::Request.new("GET", "/", headers)
+        response = call_request_on_app(request)
+
+        response.status_code.should eq(206)
+        response.headers["Content-Range"].should eq("bytes #{content_range}/18")
+        response.headers["Content-Length"].should eq("1")
+        response.body.should eq(body)
+      end
+    end
+
+    it "serves an open-ended range up to the last byte" do
+      get "/" do |env|
+        send_file env, "#{__DIR__}/asset/hello.ecr"
+      end
+
+      headers = HTTP::Headers{"Range" => "bytes=17-"}
+      request = HTTP::Request.new("GET", "/", headers)
+      response = call_request_on_app(request)
+
+      response.status_code.should eq(206)
+      response.headers["Content-Range"].should eq("bytes 17-17/18")
+      response.body.should eq("\n")
+    end
+
+    it "clamps a last-pos beyond the end of the file" do
+      get "/" do |env|
+        send_file env, "#{__DIR__}/asset/hello.ecr"
+      end
+
+      headers = HTTP::Headers{"Range" => "bytes=0-99999"}
+      request = HTTP::Request.new("GET", "/", headers)
+      response = call_request_on_app(request)
+
+      response.status_code.should eq(206)
+      response.headers["Content-Range"].should eq("bytes 0-17/18")
+      response.headers["Content-Length"].should eq("18")
+      response.body.should eq(File.read("#{__DIR__}/asset/hello.ecr"))
+    end
+
+    it "serves a suffix range" do
+      get "/" do |env|
+        send_file env, "#{__DIR__}/asset/hello.ecr"
+      end
+
+      headers = HTTP::Headers{"Range" => "bytes=-5"}
+      request = HTTP::Request.new("GET", "/", headers)
+      response = call_request_on_app(request)
+
+      response.status_code.should eq(206)
+      response.headers["Content-Range"].should eq("bytes 13-17/18")
+      response.body.should eq("e %>\n")
+
+      # A suffix longer than the file selects the whole file
+      headers = HTTP::Headers{"Range" => "bytes=-100"}
+      request = HTTP::Request.new("GET", "/", headers)
+      response = call_request_on_app(request)
+
+      response.status_code.should eq(206)
+      response.headers["Content-Range"].should eq("bytes 0-17/18")
+      response.body.should eq(File.read("#{__DIR__}/asset/hello.ecr"))
+    end
+
+    it "responds with 416 when no range is satisfiable" do
+      get "/" do |env|
+        send_file env, "#{__DIR__}/asset/hello.ecr"
+      end
+
+      # A first-pos at or beyond the end, and a zero suffix-length, are unsatisfiable
+      ["bytes=100-200", "bytes=18-", "bytes=-0", "bytes=100-200,300-"].each do |range|
+        headers = HTTP::Headers{"Range" => range}
+        request = HTTP::Request.new("GET", "/", headers)
+        response = call_request_on_app(request)
+
+        response.status_code.should eq(416)
+        response.headers["Content-Range"].should eq("bytes */18")
+        response.body.should eq("")
+      end
+    end
+
+    it "drops unsatisfiable ranges when at least one range is satisfiable" do
+      get "/" do |env|
+        send_file env, "#{__DIR__}/asset/hello.ecr"
+      end
+
+      headers = HTTP::Headers{"Range" => "bytes=100-200,0-4"}
+      request = HTTP::Request.new("GET", "/", headers)
+      response = call_request_on_app(request)
+
+      response.status_code.should eq(206)
+      response.headers["Content-Range"].should eq("bytes 0-4/18")
+      response.body.should eq("Hello")
+    end
+
+    it "treats a byte position that overflows Int64 as beyond the end of the file" do
+      get "/" do |env|
+        send_file env, "#{__DIR__}/asset/hello.ecr"
+      end
+
+      # Used to be parsed as 0 and served the whole file as a 206
+      headers = HTTP::Headers{"Range" => "bytes=99999999999999999999-"}
+      request = HTTP::Request.new("GET", "/", headers)
+      response = call_request_on_app(request)
+
+      response.status_code.should eq(416)
+      response.headers["Content-Range"].should eq("bytes */18")
+
+      headers = HTTP::Headers{"Range" => "bytes=0-99999999999999999999"}
+      request = HTTP::Request.new("GET", "/", headers)
+      response = call_request_on_app(request)
+
+      response.status_code.should eq(206)
+      response.headers["Content-Range"].should eq("bytes 0-17/18")
+      response.body.should eq(File.read("#{__DIR__}/asset/hello.ecr"))
+    end
+
+    it "serves every range of a multi-range request" do
+      get "/" do |env|
+        send_file env, "#{__DIR__}/asset/hello.ecr"
+      end
+
+      # The second range used to be dropped silently, leaving a single-range 206
+      headers = HTTP::Headers{"Range" => "bytes=0-4, 7-7"}
+      request = HTTP::Request.new("GET", "/", headers)
+      response = call_request_on_app(request)
+
+      response.status_code.should eq(206)
+      boundary = response.headers["Content-Type"].split("boundary=")[1]
+      parts = response.body.split("--#{boundary}")
+      parts.size.should eq(4)
+
+      parts[1].should contain("Content-Range: bytes 0-4/18")
+      parts[1].split("\r\n\r\n")[1].strip.should eq("Hello")
+
+      parts[2].should contain("Content-Range: bytes 7-7/18")
+      parts[2].split("\r\n\r\n")[1].strip.should eq("%")
+    end
+
+    it "accepts the bytes range unit case-insensitively" do
+      get "/" do |env|
+        send_file env, "#{__DIR__}/asset/hello.ecr"
+      end
+
+      headers = HTTP::Headers{"Range" => "Bytes=0-4"}
+      request = HTTP::Request.new("GET", "/", headers)
+      response = call_request_on_app(request)
+
+      response.status_code.should eq(206)
+      response.headers["Content-Range"].should eq("bytes 0-4/18")
+    end
+
+    it "ignores Range on HEAD requests" do
+      get "/" do |env|
+        send_file env, "#{__DIR__}/asset/hello.ecr"
+      end
+
+      headers = HTTP::Headers{"Range" => "bytes=100-200"}
+      request = HTTP::Request.new("HEAD", "/", headers)
+      response = call_request_on_app(request)
+
+      response.status_code.should eq(200)
+      response.headers.has_key?("Content-Range").should be_false
+      response.headers["Content-Length"].should eq("18")
     end
 
     it "handles empty range requests" do
