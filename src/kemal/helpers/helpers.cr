@@ -167,7 +167,7 @@ def send_file(env : HTTP::Server::Context, path : String, mime_type : String? = 
     # same URL would, compression included, instead of a bespoke uncompressed copy that a
     # client could ask for with a two-range header.
     if ranges
-      File.open(file_path) { |file| multipart(file, env, ranges) }
+      File.open(file_path) { |file| multipart(file, env, ranges, filesize) }
       return
     end
   end
@@ -222,10 +222,9 @@ def send_file(env : HTTP::Server::Context, data : Slice(UInt8), mime_type : Stri
   env.response.write data
 end
 
-private def multipart(file, env : HTTP::Server::Context, ranges : Array({Int64, Int64}))
+private def multipart(file, env : HTTP::Server::Context, ranges : Array({Int64, Int64}), fileb : Int64)
   # See https://www.rfc-editor.org/rfc/rfc9110#section-14.4 and
   # https://www.rfc-editor.org/rfc/rfc9110#section-15.3.7
-  fileb = file.size
 
   if ranges.size == 1
     # Single range - send as regular partial content
