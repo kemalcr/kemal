@@ -26,8 +26,11 @@ module Kemal
         end
       end
 
-      # NOTE: This override opts out of some behaviour from HTTP::StaticFileHandler,
-      # such as serving content ranges.
+      # NOTE: This override routes static files through `send_file` instead of the
+      # stdlib's `serve_file`, so that `Kemal.config.max_ranges`, the `gzip` option of
+      # `serve_static`, `static_headers` and `X-Content-Type-Options` apply to them.
+      # `send_file` serves byte ranges itself, following RFC 9110 like the stdlib does, but
+      # ignores a malformed `Range` header where the stdlib answers 400.
       private def serve_file(context : HTTP::Server::Context, file_info, file_path : Path, original_file_path : Path, last_modified : Time)
         send_file(context, file_path.to_s)
       end

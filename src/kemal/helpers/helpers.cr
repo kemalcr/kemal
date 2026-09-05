@@ -149,16 +149,30 @@ def send_file(env : HTTP::Server::Context, path : String, mime_type : String? = 
 
   Kemal.config.static_headers.try(&.call(env, file_path, filestat))
 
-  File.open(file_path) do |file|
-    if env.request.method == "GET" && env.request.headers.has_key?("Range")
-      ranges = parse_ranges(env.request.headers["Range"]?, file.size)
-      # An empty set means the header was unsatisfiable, or was refused as abusive. Falling
-      # through serves the full representation exactly as a plain GET of the same URL would,
-      # compression included, instead of a bespoke uncompressed copy that a client could ask
-      # for with a two-range header.
-      next multipart(file, env, ranges) unless ranges.empty?
+  # RFC 9110 §14.2 defines range handling for GET only, so a `Range` on HEAD is ignored.
+  if env.request.method == "GET" && (range_header = env.request.headers["Range"]?)
+    ranges = parse_ranges(range_header, filesize)
+
+    # A valid range set none of whose ranges can be satisfied is answered with 416 and the
+    # current length, so the client can retry with a range that fits (RFC 9110 §15.5.17).
+    if ranges && ranges.empty?
+      env.response.status_code = 416
+      env.response.headers["Content-Range"] = "bytes */#{filesize}"
+      env.response.content_length = 0
+      return
     end
 
+    # `nil` means the header was malformed, used a unit other than bytes, or was refused as
+    # abusive. Falling through serves the full representation exactly as a plain GET of the
+    # same URL would, compression included, instead of a bespoke uncompressed copy that a
+    # client could ask for with a two-range header.
+    if ranges
+      File.open(file_path) { |file| multipart(file, env, ranges, filesize) }
+      return
+    end
+  end
+
+  File.open(file_path) do |file|
     {% if flag?(:without_zlib) %}
       env.response.content_length = filesize
       IO.copy(file, env.response)
@@ -208,9 +222,9 @@ def send_file(env : HTTP::Server::Context, data : Slice(UInt8), mime_type : Stri
   env.response.write data
 end
 
-private def multipart(file, env : HTTP::Server::Context, ranges : Array({Int64, Int64}))
-  # See http://httpwg.org/specs/rfc7233.html
-  fileb = file.size
+private def multipart(file, env : HTTP::Server::Context, ranges : Array({Int64, Int64}), fileb : Int64)
+  # See https://www.rfc-editor.org/rfc/rfc9110#section-14.4 and
+  # https://www.rfc-editor.org/rfc/rfc9110#section-15.3.7
 
   if ranges.size == 1
     # Single range - send as regular partial content
@@ -224,63 +238,112 @@ private def multipart(file, env : HTTP::Server::Context, ranges : Array({Int64, 
     file.seek(startb)
     IO.copy(file, env.response, content_length)
   else
-    # Multiple ranges - send as multipart/byteranges
+    # Multiple ranges - send as multipart/byteranges. Each body part carries the media type
+    # of the selected representation, not the multipart type of the enclosing response.
+    content_type = env.response.headers["Content-Type"]
     boundary = "kemal-#{Random::Secure.hex(16)}"
     env.response.content_type = "multipart/byteranges; boundary=#{boundary}"
     env.response.status_code = 206
     env.response.headers["Accept-Ranges"] = "bytes"
 
     ranges.each do |start_byte, end_byte|
+      part_length = 1_i64 + end_byte - start_byte
       env.response.print "--#{boundary}\r\n"
-      env.response.print "Content-Type: #{env.response.headers["Content-Type"]}\r\n"
+      env.response.print "Content-Type: #{content_type}\r\n"
       env.response.print "Content-Range: bytes #{start_byte}-#{end_byte}/#{fileb}\r\n"
       env.response.print "\r\n"
 
       file.seek(start_byte)
-      IO.copy(file, env.response, 1_i64 + end_byte - start_byte)
+      IO.copy(file, env.response, part_length)
       env.response.print "\r\n"
     end
     env.response.print "--#{boundary}--\r\n"
   end
 end
 
-private def parse_ranges(range_header : String?, file_size : Int64) : Array({Int64, Int64})
-  return [] of {Int64, Int64} unless range_header
+# Parses a `Range` request header per RFC 9110 §14.1.2 into inclusive `{first, last}` byte
+# positions, clamped to the file and with unsatisfiable ranges dropped.
+#
+# Returns `nil` when the header must be ignored and the full representation served: a unit
+# other than `bytes`, a malformed or invalid range-spec, or a range set refused as abusive.
+# Returns an empty array when the set is valid but none of its ranges is satisfiable, which
+# calls for a `416` (§15.5.17).
+private def parse_ranges(range_header : String, file_size : Int64) : Array({Int64, Int64})?
+  # Range unit names are case-insensitive (RFC 9110 §16.5.1).
+  return unless range_header.size > 6 && range_header[0, 6].compare("bytes=", case_insensitive: true) == 0
 
-  ranges = [] of {Int64, Int64}
-  return ranges unless range_header.starts_with?("bytes=")
-
-  # A range set is only served if it stays within both limits below. Returning an empty set
-  # makes `send_file` ignore the header and serve the full representation, which RFC 9110
-  # §14.2 allows for range sets that indicate "either a broken client or a deliberate
+  # A range set is only served if it stays within both limits below. Returning `nil` makes
+  # `send_file` ignore the header and serve the full representation, which RFC 9110 §14.2
+  # allows for range sets that indicate "either a broken client or a deliberate
   # denial-of-service attack".
   max_ranges = Kemal.config.max_ranges
   requested_bytes = 0_i64
   parts = 0
+  ranges = [] of {Int64, Int64}
 
-  range_header[6..].split(",") do |range|
+  range_header[6..].split(',') do |spec|
     # Each range costs a seek plus a copy, so an unbounded count lets one request do an
     # unbounded amount of work.
     parts += 1
-    return [] of {Int64, Int64} if parts > max_ranges
+    return if parts > max_ranges
 
-    if match = range.match /(\d{1,})-(\d{0,})/
-      startb = match[1].to_i64 { 0_i64 }
-      endb = match[2].to_i64 { 0_i64 }
-      endb = file_size - 1 if endb == 0
+    # Empty list elements are ignored (RFC 9110 §5.6.1.2).
+    next if spec.blank?
 
-      if startb < endb && endb < file_size
-        # Overlapping or repeated ranges can ask for many times the file's own size, so a
-        # small request would otherwise be amplified into an arbitrarily large response.
-        requested_bytes += 1_i64 + endb - startb
-        return [] of {Int64, Int64} if requested_bytes > file_size
+    startb, endb = parse_range_spec(spec, file_size) || return
 
-        ranges << {startb, endb}
-      end
-    end
+    # A range that selects no bytes is unsatisfiable and dropped; if every range is, the
+    # empty result becomes a 416.
+    next if endb < startb
+
+    # Overlapping or repeated ranges can ask for many times the file's own size, so a small
+    # request would otherwise be amplified into an arbitrarily large response.
+    requested_bytes += 1_i64 + endb - startb
+    return if requested_bytes > file_size
+
+    ranges << {startb, endb}
   end
 
   ranges
+end
+
+# Parses one range-spec of a `bytes` range set into inclusive `{first, last}` positions
+# clamped to *file_size*. Returns `nil` for a malformed or invalid spec, which invalidates
+# the whole header (RFC 9110 §14.1.1). An unsatisfiable spec — a first-pos at or beyond the
+# end of the file, or a zero suffix-length — comes back with `last < first`.
+private def parse_range_spec(spec : String, file_size : Int64) : {Int64, Int64}?
+  first, dash, last = spec.strip.partition('-')
+  return if dash.empty?
+
+  if first.empty?
+    # suffix-range: the last `suffix-length` bytes, or the whole file when it is shorter.
+    suffix_length = parse_range_pos(last) || return
+    startb = {file_size - suffix_length, 0_i64}.max
+    endb = file_size - 1
+  else
+    # int-range: `first-last`, or `first-` for everything from `first` to the end. A
+    # last-pos beyond the end is clamped to it (§14.1.2), whereas a last-pos below the
+    # first-pos is invalid.
+    startb = parse_range_pos(first) || return
+    if last.empty?
+      endb = file_size - 1
+    else
+      endb = parse_range_pos(last) || return
+      return if endb < startb
+      endb = {endb, file_size - 1}.min
+    end
+  end
+
+  {startb, endb}
+end
+
+# Parses a decimal byte position. Returns `nil` unless *digits* is one or more ASCII digits.
+# A value too large for `Int64` lies beyond the end of any file, so it is treated as
+# `Int64::MAX` rather than as a parse error: a first-pos that overflows is unsatisfiable,
+# and a last-pos or suffix-length that overflows selects up to the end of the file.
+private def parse_range_pos(digits : String) : Int64?
+  return if digits.empty? || !digits.each_char.all?(&.ascii_number?)
+  digits.to_i64? || Int64::MAX
 end
 
 # Set the Content-Disposition to "attachment" with the specified filename,
