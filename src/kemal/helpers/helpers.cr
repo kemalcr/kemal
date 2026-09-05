@@ -252,7 +252,6 @@ private def multipart(file, env : HTTP::Server::Context, ranges : Array({Int64, 
       env.response.print "--#{boundary}\r\n"
       env.response.print "Content-Type: #{content_type}\r\n"
       env.response.print "Content-Range: bytes #{start_byte}-#{end_byte}/#{fileb}\r\n"
-      env.response.print "Content-Length: #{part_length}\r\n"
       env.response.print "\r\n"
 
       file.seek(start_byte)

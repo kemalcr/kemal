@@ -232,14 +232,12 @@ describe "Macros" do
       first_part = parts[1]
       first_part.should contain("Content-Type: application/octet-stream")
       first_part.should contain("Content-Range: bytes 0-4/18")
-      first_part.should contain("Content-Length: 5")
       first_part.split("\r\n\r\n")[1].strip.should eq("Hello")
 
       # Second part (7-11)
       second_part = parts[2]
       second_part.should contain("Content-Type: application/octet-stream")
       second_part.should contain("Content-Range: bytes 7-11/18")
-      second_part.should contain("Content-Length: 5")
       second_part.split("\r\n\r\n")[1].strip.should eq("%= na")
     end
 
@@ -420,7 +418,6 @@ describe "Macros" do
       parts[1].split("\r\n\r\n")[1].strip.should eq("Hello")
 
       parts[2].should contain("Content-Range: bytes 7-7/18")
-      parts[2].should contain("Content-Length: 1")
       parts[2].split("\r\n\r\n")[1].strip.should eq("%")
     end
 
