@@ -289,6 +289,9 @@ private def parse_ranges(range_header : String, file_size : Int64) : Array({Int6
     parts += 1
     return if parts > max_ranges
 
+    # Empty list elements are ignored (RFC 9110 §5.6.1.2).
+    next if spec.blank?
+
     startb, endb = parse_range_spec(spec, file_size) || return
 
     # A range that selects no bytes is unsatisfiable and dropped; if every range is, the

@@ -424,6 +424,33 @@ describe "Macros" do
       parts[2].split("\r\n\r\n")[1].strip.should eq("%")
     end
 
+    it "ignores empty list elements" do
+      get "/" do |env|
+        send_file env, "#{__DIR__}/asset/hello.ecr"
+      end
+
+      # RFC 9110 §5.6.1.2: a recipient must ignore empty list elements
+      ["bytes=0-4,", "bytes=,0-4", "bytes=0-4,,7-7"].each do |range|
+        headers = HTTP::Headers{"Range" => range}
+        request = HTTP::Request.new("GET", "/", headers)
+        response = call_request_on_app(request)
+
+        response.status_code.should eq(206)
+      end
+
+      headers = HTTP::Headers{"Range" => "bytes=0-4,"}
+      request = HTTP::Request.new("GET", "/", headers)
+      response = call_request_on_app(request)
+      response.headers["Content-Range"].should eq("bytes 0-4/18")
+      response.body.should eq("Hello")
+
+      headers = HTTP::Headers{"Range" => "bytes=0-4,,7-7"}
+      request = HTTP::Request.new("GET", "/", headers)
+      response = call_request_on_app(request)
+      boundary = response.headers["Content-Type"].split("boundary=")[1]
+      response.body.split("--#{boundary}").size.should eq(4)
+    end
+
     it "accepts the bytes range unit case-insensitively" do
       get "/" do |env|
         send_file env, "#{__DIR__}/asset/hello.ecr"
