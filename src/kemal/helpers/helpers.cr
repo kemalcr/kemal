@@ -239,20 +239,24 @@ private def multipart(file, env : HTTP::Server::Context, ranges : Array({Int64, 
     file.seek(startb)
     IO.copy(file, env.response, content_length)
   else
-    # Multiple ranges - send as multipart/byteranges
+    # Multiple ranges - send as multipart/byteranges. Each body part carries the media type
+    # of the selected representation, not the multipart type of the enclosing response.
+    content_type = env.response.headers["Content-Type"]
     boundary = "kemal-#{Random::Secure.hex(16)}"
     env.response.content_type = "multipart/byteranges; boundary=#{boundary}"
     env.response.status_code = 206
     env.response.headers["Accept-Ranges"] = "bytes"
 
     ranges.each do |start_byte, end_byte|
+      part_length = 1_i64 + end_byte - start_byte
       env.response.print "--#{boundary}\r\n"
-      env.response.print "Content-Type: #{env.response.headers["Content-Type"]}\r\n"
+      env.response.print "Content-Type: #{content_type}\r\n"
       env.response.print "Content-Range: bytes #{start_byte}-#{end_byte}/#{fileb}\r\n"
+      env.response.print "Content-Length: #{part_length}\r\n"
       env.response.print "\r\n"
 
       file.seek(start_byte)
-      IO.copy(file, env.response, 1_i64 + end_byte - start_byte)
+      IO.copy(file, env.response, part_length)
       env.response.print "\r\n"
     end
     env.response.print "--#{boundary}--\r\n"
