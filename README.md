@@ -181,6 +181,8 @@ end
 
 NOTE: `Kemal::InitHandler` presets `Content-Type: text/html` on every response, so an error handler returning anything else has to set the content type itself.
 
+NOTE: Put authentication in `before_all` or in middleware rather than in a path-scoped filter like `before_get "/admin/*"`. Path-scoped filters do not run when no route matches, so a wrong-method request answers `405` with `Allow` — confirming the path exists — without ever reaching the guard.
+
 **Does Kemal work with any ORM?**
 
 Yes. You can use any Crystal ORM or database library. No forced dependencies.
