@@ -1,6 +1,22 @@
 require "./spec_helper"
 require "./handler_spec"
 
+# Yields the path of a file `send_file` compresses: an extension in `Kemal::Utils::ZIP_TYPES`
+# and a size above the 860 byte floor, served with the `gzip` option of `serve_static` on.
+private def with_compressible_file(&)
+  path = File.tempname("kemal-spec", ".js")
+  File.write(path, "var x = 1;\n" * 1000)
+  previous_serve_static = Kemal.config.serve_static
+
+  begin
+    serve_static({"gzip" => true})
+    yield path
+  ensure
+    Kemal.config.serve_static = previous_serve_static
+    File.delete(path)
+  end
+end
+
 describe "Macros" do
   describe "#public_folder" do
     it "sets public folder" do
@@ -660,6 +676,210 @@ describe "Macros" do
       response.status_code.should eq(200)
       response.headers["Accept-Ranges"].should eq("none")
       response.body.should eq(File.read("#{__DIR__}/asset/hello.ecr"))
+    end
+
+    describe "content coding" do
+      it "sends the zlib format for the `deflate` coding" do
+        # HTTP's `deflate` is the zlib format of RFC 1950, which opens with a CMF byte of
+        # 0x78 for the 32K window; the bare RFC 1951 stream Kemal used to send opens with
+        # the first deflate block instead, which is not the coding §8.4.1.2 defines.
+        with_compressible_file do |path|
+          get "/" do |env|
+            send_file env, path
+          end
+
+          headers = HTTP::Headers{"Accept-Encoding" => "deflate"}
+          response = call_request_on_app(HTTP::Request.new("GET", "/", headers))
+
+          response.headers["Content-Encoding"].should eq("deflate")
+          response.body.byte_at(0).should eq(0x78)
+          body = IO::Memory.new(response.body)
+          Compress::Zlib::Reader.open(body, &.gets_to_end).should eq(File.read(path))
+        end
+      end
+
+      it "does not use a coding the request refused with q=0" do
+        with_compressible_file do |path|
+          get "/" do |env|
+            send_file env, path
+          end
+
+          headers = HTTP::Headers{"Accept-Encoding" => "gzip;q=0"}
+          response = call_request_on_app(HTTP::Request.new("GET", "/", headers))
+
+          response.headers["Content-Encoding"]?.should be_nil
+          response.body.should eq(File.read(path))
+        end
+      end
+
+      it "falls back to a coding the request still accepts" do
+        with_compressible_file do |path|
+          get "/" do |env|
+            send_file env, path
+          end
+
+          headers = HTTP::Headers{"Accept-Encoding" => "gzip;q=0, deflate"}
+          response = call_request_on_app(HTTP::Request.new("GET", "/", headers))
+
+          response.headers["Content-Encoding"].should eq("deflate")
+        end
+      end
+
+      it "follows the qvalue order of the request" do
+        with_compressible_file do |path|
+          get "/" do |env|
+            send_file env, path
+          end
+
+          headers = HTTP::Headers{"Accept-Encoding" => "gzip;q=0.5, deflate;q=1.0"}
+          response = call_request_on_app(HTTP::Request.new("GET", "/", headers))
+
+          response.headers["Content-Encoding"].should eq("deflate")
+        end
+      end
+
+      it "adds `Vary: Accept-Encoding` to a response it compressed" do
+        with_compressible_file do |path|
+          get "/" do |env|
+            send_file env, path
+          end
+
+          headers = HTTP::Headers{"Accept-Encoding" => "gzip"}
+          response = call_request_on_app(HTTP::Request.new("GET", "/", headers))
+
+          response.headers["Content-Encoding"].should eq("gzip")
+          response.headers["Vary"].should eq("Accept-Encoding")
+        end
+      end
+
+      it "adds `Vary: Accept-Encoding` to a negotiable response it did not compress" do
+        # The header describes the URL, not this one response: without it a cache stores the
+        # identity body under the URL and hands it to the next client whatever it accepts.
+        with_compressible_file do |path|
+          get "/" do |env|
+            send_file env, path
+          end
+
+          response = call_request_on_app(HTTP::Request.new("GET", "/"))
+
+          response.headers["Content-Encoding"]?.should be_nil
+          response.headers["Vary"].should eq("Accept-Encoding")
+        end
+      end
+
+      it "keeps the `Vary` fields the application already set" do
+        previous_static_headers = Kemal.config.static_headers
+
+        with_compressible_file do |path|
+          Kemal.config.static_headers = ->(env : HTTP::Server::Context, _p : String, _s : File::Info) do
+            env.response.headers["Vary"] = "Accept-Language"
+          end
+
+          get "/" do |env|
+            send_file env, path
+          end
+
+          headers = HTTP::Headers{"Accept-Encoding" => "gzip"}
+          response = call_request_on_app(HTTP::Request.new("GET", "/", headers))
+
+          response.headers["Vary"].should eq("Accept-Language, Accept-Encoding")
+        ensure
+          Kemal.config.static_headers = previous_static_headers
+        end
+      end
+
+      it "does not add `Vary` to a response that is never negotiated" do
+        get "/" do |env|
+          send_file env, "#{__DIR__}/asset/hello.ecr"
+        end
+
+        headers = HTTP::Headers{"Accept-Encoding" => "gzip"}
+        response = call_request_on_app(HTTP::Request.new("GET", "/", headers))
+
+        response.headers["Vary"]?.should be_nil
+      end
+
+      it "leaves a body that already carries a content coding alone" do
+        with_compressible_file do |path|
+          get "/" do |env|
+            env.response.headers["Content-Encoding"] = "gzip"
+            send_file env, path
+          end
+
+          headers = HTTP::Headers{"Accept-Encoding" => "gzip"}
+          response = call_request_on_app(HTTP::Request.new("GET", "/", headers))
+
+          response.headers["Content-Encoding"].should eq("gzip")
+          response.headers["Vary"].should eq("Accept-Encoding")
+          # Encoded once by the caller; a second pass would leave a gzip stream inside a
+          # gzip stream that no client can read.
+          response.body.should eq(File.read(path))
+        end
+      end
+
+      it "leaves an entity tag the caller set with the encoded body alone" do
+        with_compressible_file do |path|
+          get "/" do |env|
+            env.response.headers["Etag"] = %("app-gzip")
+            env.response.headers["Content-Encoding"] = "gzip"
+            send_file env, path
+          end
+
+          headers = HTTP::Headers{"Accept-Encoding" => "gzip"}
+          response = call_request_on_app(HTTP::Request.new("GET", "/", headers))
+
+          # The caller's validator already names the representation the caller encoded.
+          response.headers["Etag"].should eq(%("app-gzip"))
+        end
+      end
+
+      it "declines a multi-range request for a body that carries a content coding" do
+        with_compressible_file do |path|
+          get "/" do |env|
+            env.response.headers["Content-Encoding"] = "gzip"
+            send_file env, path
+          end
+
+          headers = HTTP::Headers{"Range" => "bytes=0-9,20-29", "Accept-Encoding" => "gzip"}
+          response = call_request_on_app(HTTP::Request.new("GET", "/", headers))
+
+          response.status_code.should eq(200)
+          response.headers.has_key?("Content-Range").should be_false
+          response.body.should eq(File.read(path))
+        end
+      end
+
+      it "drops the content coding from a 416" do
+        with_compressible_file do |path|
+          get "/" do |env|
+            env.response.headers["Content-Encoding"] = "gzip"
+            send_file env, path
+          end
+
+          headers = HTTP::Headers{"Range" => "bytes=99999-", "Accept-Encoding" => "gzip"}
+          response = call_request_on_app(HTTP::Request.new("GET", "/", headers))
+
+          response.status_code.should eq(416)
+          # An empty body is not a valid stream in any coding.
+          response.headers["Content-Encoding"]?.should be_nil
+          response.headers["Content-Range"].should eq("bytes */#{File.size(path)}")
+        end
+      end
+
+      it "leaves a range response uncompressed" do
+        with_compressible_file do |path|
+          get "/" do |env|
+            send_file env, path
+          end
+
+          headers = HTTP::Headers{"Range" => "bytes=0-9", "Accept-Encoding" => "gzip"}
+          response = call_request_on_app(HTTP::Request.new("GET", "/", headers))
+
+          response.status_code.should eq(206)
+          response.headers["Content-Encoding"]?.should be_nil
+          response.body.should eq(File.read(path)[0, 10])
+        end
+      end
     end
   end
 
