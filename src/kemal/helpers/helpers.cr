@@ -1,6 +1,6 @@
 {% if !flag?(:without_zlib) %}
-  require "compress/deflate"
   require "compress/gzip"
+  require "compress/zlib"
 {% end %}
 require "mime"
 
@@ -140,14 +140,28 @@ def send_file(env : HTTP::Server::Context, path : String, mime_type : String? = 
   env.response.content_type = mime_type
   env.response.headers["Accept-Ranges"] = Kemal.config.max_ranges > 0 ? "bytes" : "none"
   env.response.headers["X-Content-Type-Options"] = "nosniff"
-  minsize = 860 # http://webmasters.stackexchange.com/questions/31750/what-is-recommended-minimum-object-size-for-gzip-performance-benefits ??
-  request_headers = env.request.headers
-  config = Kemal.config.serve_static
-  filesize = File.size(file_path)
   filestat = File.info(file_path)
+  filesize = filestat.size
   attachment(env, filename, disposition)
 
   Kemal.config.static_headers.try(&.call(env, file_path, filestat))
+
+  # The content coding to apply below, or `nil` to send the stored bytes as they are.
+  coding = nil
+  if env.response.headers.has_key?("Content-Encoding")
+    # The caller already encoded the body — `Kemal::StaticFileHandler` does that when it
+    # serves a pre-compressed `.gz` neighbour of *path* — so it goes out untouched, entity
+    # tag included: a validator that arrived with an encoded body already describes it.
+    # This runs whether or not Kemal was built with a compressor of its own.
+    Kemal::Utils.append_vary(env.response.headers, "Accept-Encoding")
+  elsif Kemal::Utils.compressible?(file_path, filesize)
+    # `Accept-Encoding` selects between the encoded and identity forms of this URL, so the
+    # response has to say so even when this request ends up unencoded (RFC 9110 §12.5.5).
+    # Without it a cache hands one client the variant it stored for another.
+    Kemal::Utils.append_vary(env.response.headers, "Accept-Encoding")
+
+    coding = Kemal::Utils.content_coding_for(env.request.headers, file_path, filesize)
+  end
 
   # RFC 9110 §14.2 defines range handling for GET only, so a `Range` on HEAD is ignored.
   if env.request.method == "GET" && (range_header = env.request.headers["Range"]?)
@@ -158,6 +172,8 @@ def send_file(env : HTTP::Server::Context, path : String, mime_type : String? = 
     if ranges && ranges.empty?
       env.response.status_code = 416
       env.response.headers["Content-Range"] = "bytes */#{filesize}"
+      # There is no body to decode, and an empty one is not a valid stream in any coding.
+      env.response.headers.delete("Content-Encoding")
       env.response.content_length = 0
       return
     end
@@ -166,7 +182,11 @@ def send_file(env : HTTP::Server::Context, path : String, mime_type : String? = 
     # abusive. Falling through serves the full representation exactly as a plain GET of the
     # same URL would, compression included, instead of a bespoke uncompressed copy that a
     # client could ask for with a two-range header.
-    if ranges
+    #
+    # A range set of several parts is declined the same way when the representation carries
+    # a content coding: the `multipart/byteranges` envelope holding the parts is not itself
+    # encoded, so it cannot go out under the `Content-Encoding` those parts came from.
+    if ranges && !(ranges.size > 1 && env.response.headers.has_key?("Content-Encoding"))
       File.open(file_path) { |file| multipart(file, env, ranges, filesize) }
       return
     end
@@ -177,16 +197,18 @@ def send_file(env : HTTP::Server::Context, path : String, mime_type : String? = 
       env.response.content_length = filesize
       IO.copy(file, env.response)
     {% else %}
-      condition = config.is_a?(Hash) && config["gzip"]? == true && filesize > minsize && Kemal::Utils.zip_types(file_path)
-      if condition && request_headers.includes_word?("Accept-Encoding", "gzip")
-        env.response.headers["Content-Encoding"] = "gzip"
-        Compress::Gzip::Writer.open(env.response) do |deflate|
-          IO.copy(file, deflate)
+      case coding
+      when "gzip"
+        Kemal::Utils.set_content_coding(env.response.headers, "gzip")
+        Compress::Gzip::Writer.open(env.response) do |gzip|
+          IO.copy(file, gzip)
         end
-      elsif condition && request_headers.includes_word?("Accept-Encoding", "deflate")
-        env.response.headers["Content-Encoding"] = "deflate"
-        Compress::Deflate::Writer.open(env.response) do |deflate|
-          IO.copy(file, deflate)
+      when "deflate"
+        # HTTP's `deflate` coding is the zlib format of RFC 1950, not the bare RFC 1951
+        # stream `Compress::Deflate::Writer` writes (RFC 9110 §8.4.1.2).
+        Kemal::Utils.set_content_coding(env.response.headers, "deflate")
+        Compress::Zlib::Writer.open(env.response) do |zlib|
+          IO.copy(file, zlib)
         end
       else
         env.response.content_length = filesize
@@ -359,6 +381,14 @@ end
 # output, either using gzip or deflate, depending on the `Accept-Encoding` request header.
 #
 # Disabled by default.
+#
+# NOTE: This installs the standard library's `HTTP::CompressHandler`, which does not follow
+# RFC 9110 as closely as `send_file` does: it matches `Accept-Encoding` by word and so
+# ignores qvalues (`gzip;q=0` still gets a gzip body), it writes a bare RFC 1951 stream for
+# the `deflate` coding where HTTP asks for the zlib format of RFC 1950, and it adds no
+# `Vary: Accept-Encoding`, which leaves a shared cache free to serve the wrong variant.
+# For static assets prefer `serve_static({"gzip" => true})`, which handles all three; a
+# `Vary: Accept-Encoding` header set by the application is the workaround for the rest.
 def gzip(status : Bool = false)
   use HTTP::CompressHandler.new if status
 end
