@@ -157,6 +157,30 @@ end
 
 `before_query` / `after_query` filters and `Kemal::Router#query` work like every other verb. A QUERY request that has a body but no `Content-Type` header is rejected with `400` per the RFC.
 
+**What happens when a path exists but the request method doesn't match?**
+
+Kemal answers `405 Method Not Allowed` with an `Allow` header listing the methods that path does accept, per [RFC 9110 §15.5.6](https://www.rfc-editor.org/rfc/rfc9110#section-15.5.6). A path that isn't routed at all is still a `404`.
+
+```crystal
+get "/posts" do
+  "posts"
+end
+
+# POST /posts  -> 405, Allow: GET, HEAD
+# GET  /nope   -> 404
+```
+
+`HEAD` is included in `Allow` wherever a `GET` route exists, since Kemal serves `HEAD` from the `GET` route. Register `error 405` to customize the body — the `Allow` header is set before your handler runs, so the handler owns the body but cannot drop the header the RFC requires.
+
+```crystal
+error 405 do |env|
+  env.response.content_type = "application/json"
+  {error: "Method not allowed", allow: env.response.headers["Allow"]}.to_json
+end
+```
+
+NOTE: `Kemal::InitHandler` presets `Content-Type: text/html` on every response, so an error handler returning anything else has to set the content type itself.
+
 **Does Kemal work with any ORM?**
 
 Yes. You can use any Crystal ORM or database library. No forced dependencies.

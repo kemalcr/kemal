@@ -1,5 +1,5 @@
 module Kemal
-  # Handles all the exceptions, including 404, custom errors and 500.
+  # Handles all the exceptions, including 404, 405, custom errors and 500.
   class ExceptionHandler
     include HTTP::Handler
     INSTANCE = new
@@ -8,6 +8,8 @@ module Kemal
       call_next(context)
     rescue ex : Kemal::Exceptions::RouteNotFound
       call_exception_with_status_code(context, ex, 404)
+    rescue ex : Kemal::Exceptions::MethodNotAllowed
+      call_method_not_allowed(context, ex)
     rescue ex : Kemal::Exceptions::CustomException
       call_exception_with_status_code(context, ex, context.response.status_code)
     rescue ex : Kemal::Exceptions::PayloadTooLarge
@@ -63,6 +65,22 @@ module Kemal
         context.response.print Kemal.config.error_handlers[status_code].call(context, exception)
         context
       end
+    end
+
+    # Answers a 405 with the `Allow` header RFC 9110 §15.5.6 makes mandatory.
+    # The header is set before dispatching, so a custom `error 405` handler owns
+    # the response body but can never drop the header.
+    private def call_method_not_allowed(context : HTTP::Server::Context, exception : Kemal::Exceptions::MethodNotAllowed)
+      allowed = exception.allowed_methods
+
+      # An empty `Allow` means "this resource allows no methods" (RFC 9110
+      # §10.2.1), which contradicts the 405 it would accompany. `process_request`
+      # never raises with an empty list, but the exception is public.
+      unless allowed.empty? || context.response.closed? || context.response.headers_sent?
+        context.response.headers["Allow"] = allowed.join(", ")
+      end
+
+      call_fixed_status(context, exception, 405)
     end
 
     # Dispatches a framework-raised exception with a fixed status code: a custom

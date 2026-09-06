@@ -185,10 +185,61 @@ module Kemal
       route
     end
 
-    # Processes the route if it's a match. Otherwise renders 404.
+    # Returns every HTTP method registered for *path*, in `Allow` header order,
+    # or an empty array when nothing is routed there.
+    #
+    # The radix tree is keyed by `/METHOD/path`, so there is no way to ask it
+    # which methods a path carries - each routable verb has to be looked up in
+    # turn. `HEAD` is reported wherever `GET` is, matching the `HEAD` -> `GET`
+    # fallback in `lookup_route`.
+    #
+    # Deliberately bypasses the route cache: this only runs for a request that
+    # already failed to match, and priming the LRU with one entry per verb would
+    # let mismatched requests evict the routes actually being served.
+    #
+    # Every verb is probed rather than only the ones the application registered.
+    # An index of registered verbs would be faster, but `routes` is a public
+    # setter and getter, so routes can enter the tree without passing through
+    # `add_route` - the same reason `Kemal::FilterHandler#path_filters_empty?`
+    # asks its tree instead of tracking a flag. The tree is the only thing that
+    # cannot go stale, and this runs on a request that already missed.
+    def allowed_methods(path : String) : Array(String)
+      methods = [] of String
+
+      {% for method in HTTP_METHODS %}
+        if @routes.find(radix_path({{ method.upcase }}, path)).found?
+          methods << {{ method.upcase }}
+          {% if method == "get" %}
+            methods << "HEAD"
+          {% end %}
+        end
+      {% end %}
+
+      # There is no `head` route DSL verb, but `add_route` accepts one, so a
+      # `HEAD` route standing on its own still has to be advertised.
+      if !methods.includes?("HEAD") && @routes.find(radix_path("HEAD", path)).found?
+        methods << "HEAD"
+      end
+
+      methods
+    end
+
+    # Processes the route if it's a match. Otherwise renders 405 when the path
+    # is routed for another method, and 404 when it is not routed at all.
     private def process_request(context)
-      raise Kemal::Exceptions::RouteNotFound.new(context) unless context.route_found?
+      # A filter that already answered - `halt` - leaves nothing to route and
+      # nothing to advertise, so this comes before the miss handling below and
+      # spares it the per-verb probe.
       return if context.response.closed?
+
+      unless context.route_found?
+        # RFC 9110 §15.5.6: an existing resource that does not support the
+        # request method is a 405, not a 404.
+        allowed = allowed_methods(context.request.path)
+        raise Kemal::Exceptions::MethodNotAllowed.new(context, allowed) unless allowed.empty?
+        raise Kemal::Exceptions::RouteNotFound.new(context)
+      end
+
       validate_query_request!(context.request)
       content = context.route.handler.call(context)
 

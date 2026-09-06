@@ -165,7 +165,8 @@ describe "Kemal::RouteHandler" do
     Kemal::RouteHandler::INSTANCE.lookup_route("QUERY", "/only_get").found?.should be_false
     request = HTTP::Request.new("QUERY", "/only_get")
     client_response = call_request_on_app(request)
-    client_response.status_code.should eq(404)
+    client_response.status_code.should eq(405)
+    client_response.headers["Allow"].should eq("GET, HEAD")
   end
 
   it "does not serve GET or HEAD requests from a QUERY route" do
@@ -177,8 +178,8 @@ describe "Kemal::RouteHandler" do
     end
     Kemal::RouteHandler::INSTANCE.lookup_route("GET", "/only_query").found?.should be_false
     Kemal::RouteHandler::INSTANCE.lookup_route("HEAD", "/only_query").found?.should be_false
-    call_request_on_app(HTTP::Request.new("GET", "/only_query")).status_code.should eq(404)
-    call_request_on_app(HTTP::Request.new("HEAD", "/only_query")).status_code.should eq(404)
+    call_request_on_app(HTTP::Request.new("GET", "/only_query")).status_code.should eq(405)
+    call_request_on_app(HTTP::Request.new("HEAD", "/only_query")).status_code.should eq(405)
   end
 
   context "QUERY Content-Type enforcement (RFC 10008)" do
@@ -524,6 +525,211 @@ describe "Kemal::RouteHandler" do
 
       response = call_request_on_app(HTTP::Request.new("HEAD", "/late"))
       response.headers["Content-Length"].should eq("9")
+    end
+  end
+  context "405 Method Not Allowed (RFC 9110 §15.5.6)" do
+    it "answers a request whose path is routed for another method with 405" do
+      get "/only_get" do
+        "get"
+      end
+
+      response = call_request_on_app(HTTP::Request.new("POST", "/only_get"))
+      response.status_code.should eq(405)
+      response.headers["Allow"].should eq("GET, HEAD")
+      response.body.should eq("Method Not Allowed")
+      # `Kemal::InitHandler` presets `Content-Type: text/html` on every
+      # response, so the plain-text default body inherits it - the same as the
+      # framework defaults for 400 and 413.
+      response.headers["Content-Type"].should eq("text/html")
+    end
+
+    it "answers PUT and OPTIONS on a GET only path with 405" do
+      get "/only_get" do
+        "get"
+      end
+
+      %w[PUT OPTIONS DELETE PATCH].each do |method|
+        response = call_request_on_app(HTTP::Request.new(method, "/only_get"))
+        response.status_code.should eq(405)
+        response.headers["Allow"].should eq("GET, HEAD")
+      end
+    end
+
+    it "lists every method registered for the path in Allow" do
+      get "/resource" do
+        "get"
+      end
+      post "/resource" do
+        "post"
+      end
+      delete "/resource" do
+        "delete"
+      end
+      query "/resource" do
+        "query"
+      end
+
+      response = call_request_on_app(HTTP::Request.new("PUT", "/resource"))
+      response.status_code.should eq(405)
+      response.headers["Allow"].should eq("GET, HEAD, POST, DELETE, QUERY")
+    end
+
+    it "omits HEAD from Allow when the path has no GET route" do
+      post "/only_post" do
+        "post"
+      end
+
+      response = call_request_on_app(HTTP::Request.new("GET", "/only_post"))
+      response.status_code.should eq(405)
+      response.headers["Allow"].should eq("POST")
+    end
+
+    it "advertises a HEAD route registered on its own" do
+      Kemal::RouteHandler::INSTANCE.add_route("HEAD", "/head_only") { "" }
+
+      response = call_request_on_app(HTTP::Request.new("POST", "/head_only"))
+      response.status_code.should eq(405)
+      response.headers["Allow"].should eq("HEAD")
+    end
+
+    it "matches path parameters when collecting the allowed methods" do
+      get "/users/:id" do |env|
+        env.params.url["id"]
+      end
+
+      response = call_request_on_app(HTTP::Request.new("DELETE", "/users/42"))
+      response.status_code.should eq(405)
+      response.headers["Allow"].should eq("GET, HEAD")
+    end
+
+    it "runs a custom error 405 handler and still sends Allow" do
+      error 405 do |env|
+        "no #{env.request.method} here"
+      end
+      get "/only_get" do
+        "get"
+      end
+
+      response = call_request_on_app(HTTP::Request.new("POST", "/only_get"))
+      response.status_code.should eq(405)
+      response.headers["Allow"].should eq("GET, HEAD")
+      response.body.should eq("no POST here")
+    end
+
+    it "runs before_all filters for a custom error 405 handler" do
+      Kemal::FilterHandler::INSTANCE._add_route_filter("ALL", "*", :before) do |env|
+        env.set "filtered", "yes"
+      end
+      error 405 do |env|
+        env.get?("filtered").to_s
+      end
+      get "/only_get" do
+        "get"
+      end
+
+      response = call_request_on_app(HTTP::Request.new("POST", "/only_get"))
+      response.status_code.should eq(405)
+      response.body.should eq("yes")
+    end
+
+    it "still answers 404 for a path that is not routed at all" do
+      error 404 do
+        "not found"
+      end
+      get "/only_get" do
+        "get"
+      end
+
+      response = call_request_on_app(HTTP::Request.new("POST", "/nowhere"))
+      response.status_code.should eq(404)
+      response.headers["Allow"]?.should be_nil
+      response.body.should eq("not found")
+    end
+
+    it "leaves a path served only by a WebSocket route as a 404" do
+      error 404 do
+        "not found"
+      end
+      ws "/chat" do |socket|
+        socket.send("hello")
+      end
+
+      response = call_request_on_app(HTTP::Request.new("GET", "/chat"))
+      response.status_code.should eq(404)
+      response.headers["Allow"]?.should be_nil
+    end
+
+    it "does not put the probed methods into the route cache" do
+      get "/only_get" do
+        "get"
+      end
+
+      call_request_on_app(HTTP::Request.new("POST", "/only_get")).status_code.should eq(405)
+      Kemal::RouteHandler::INSTANCE.cached_routes.size.should eq(0)
+    end
+
+    it "does not send an empty Allow header when the allowed list is empty" do
+      get "/boom" do |env|
+        raise Kemal::Exceptions::MethodNotAllowed.new(env, [] of String)
+      end
+
+      response = call_request_on_app(HTTP::Request.new("GET", "/boom"))
+      response.status_code.should eq(405)
+      response.headers["Allow"]?.should be_nil
+    end
+
+    it "leaves a request a filter already answered alone" do
+      error 405 do
+        "405"
+      end
+      Kemal::FilterHandler::INSTANCE._add_route_filter("ALL", "*", :before) do |env|
+        halt env, status_code: 401, response: "Unauthorized"
+      end
+      get "/guarded" do
+        "get"
+      end
+
+      response = call_request_on_app(HTTP::Request.new("POST", "/guarded"))
+      response.status_code.should eq(401)
+      response.headers["Allow"]?.should be_nil
+    end
+
+    describe "#allowed_methods" do
+      # `routes` is a public getter and setter, so routes reach the tree without
+      # passing through `add_route`. An index of registered verbs would go stale
+      # for both of these; asking the tree cannot.
+      it "sees routes added straight to the tree" do
+        Kemal::RouteHandler::INSTANCE.routes.add("/PUT/direct", Kemal::Route.new("PUT", "/direct") { "d" })
+
+        Kemal::RouteHandler::INSTANCE.allowed_methods("/direct").should eq(["PUT"])
+      end
+
+      it "sees routes in a tree assigned wholesale" do
+        tree = Radix::Tree(Kemal::Route).new
+        tree.add("/GET/preloaded", Kemal::Route.new("GET", "/preloaded") { "p" })
+        Kemal::RouteHandler::INSTANCE.routes = tree
+
+        Kemal::RouteHandler::INSTANCE.allowed_methods("/preloaded").should eq(["GET", "HEAD"])
+      end
+
+      it "returns the methods routed for a path" do
+        get "/thing" do
+          "get"
+        end
+        patch "/thing" do
+          "patch"
+        end
+
+        Kemal::RouteHandler::INSTANCE.allowed_methods("/thing").should eq(["GET", "HEAD", "PATCH"])
+      end
+
+      it "returns an empty array for an unrouted path" do
+        get "/thing" do
+          "get"
+        end
+
+        Kemal::RouteHandler::INSTANCE.allowed_methods("/other").should be_empty
+      end
     end
   end
 end

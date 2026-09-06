@@ -40,7 +40,10 @@ module Kemal
     # The call order of the filters is `before_all -> before_x -> X -> after_x -> after_all`.
     def call(context : HTTP::Server::Context)
       if !context.route_found?
-        if Kemal.config.error_handlers.has_key?(404)
+        # A request that matched no route can still reach a custom `error`
+        # handler - 404, or 405 when the path is routed for another method - and
+        # that handler expects the same `before_all` setup a route gets.
+        if Kemal.config.error_handlers.has_key?(404) || Kemal.config.error_handlers.has_key?(405)
           call_block_for_path_type("ALL", context.request.path, :before, context)
         end
         return call_next(context)

@@ -18,7 +18,7 @@ describe "Kemal::FilterHandler" do
     client_response.body.should eq("1")
   end
 
-  it "handles with downcased 'post'" do
+  it "treats a downcased 'post' as unrouted" do
     filter_handler = Kemal::FilterHandler.new
     filter_handler._add_route_filter("POST", "*", :before) do |env|
       env.set "sensitive", "1"
@@ -31,8 +31,12 @@ describe "Kemal::FilterHandler" do
 
     request = HTTP::Request.new("post", "/sensitive_post")
     client_response = call_request_on_app(request)
-    client_response.status_code.should eq(200)
-    client_response.body.should eq("")
+    # HTTP methods are case sensitive (RFC 9110 §9.1), so `post` matches no
+    # route. The path is routed for `POST`, which makes this a 405 rather than
+    # a 404.
+    client_response.status_code.should eq(405)
+    client_response.headers["Allow"].should eq("POST")
+    client_response.body.should eq("Method Not Allowed")
   end
 
   context "HEAD requests served by the GET route" do
