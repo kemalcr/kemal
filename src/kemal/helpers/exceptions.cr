@@ -20,13 +20,14 @@ module Kemal::Exceptions
   # `Kemal::ExceptionHandler` renders it into the mandatory `Allow` response
   # header.
   class MethodNotAllowed < Exception
+    getter context : HTTP::Server::Context
     getter allowed_methods : Array(String)
 
-    # *context* mirrors `RouteNotFound` so both routing failures are raised the
-    # same way. The message is the bare status reason because it doubles as the
-    # default response body, and reflecting the request back into it would put
-    # client-controlled text on the page.
-    def initialize(context : HTTP::Server::Context, @allowed_methods : Array(String))
+    # The message is the bare status reason because it doubles as the default
+    # response body, and reflecting the request back into it would put
+    # client-controlled text on the page. The request itself stays reachable
+    # through `context`.
+    def initialize(@context : HTTP::Server::Context, @allowed_methods : Array(String))
       super "Method Not Allowed"
     end
   end

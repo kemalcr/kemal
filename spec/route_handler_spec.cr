@@ -695,21 +695,23 @@ describe "Kemal::RouteHandler" do
     end
 
     describe "#allowed_methods" do
-      # `routes` is a public getter and setter, so routes reach the tree without
-      # passing through `add_route`. An index of registered verbs would go stale
-      # for both of these; asking the tree cannot.
-      it "sees routes added straight to the tree" do
-        Kemal::RouteHandler::INSTANCE.routes.add("/PUT/direct", Kemal::Route.new("PUT", "/direct") { "d" })
-
-        Kemal::RouteHandler::INSTANCE.allowed_methods("/direct").should eq(["PUT"])
-      end
-
       it "sees routes in a tree assigned wholesale" do
         tree = Radix::Tree(Kemal::Route).new
         tree.add("/GET/preloaded", Kemal::Route.new("GET", "/preloaded") { "p" })
         Kemal::RouteHandler::INSTANCE.routes = tree
 
         Kemal::RouteHandler::INSTANCE.allowed_methods("/preloaded").should eq(["GET", "HEAD"])
+      end
+
+      # The verb index is fed by `add_route` and rebuilt by `routes=`. Pushing a
+      # route through the `routes` getter skips both, so the path reports no
+      # allowed methods and answers 404 - the pre-405 behavior - rather than an
+      # `Allow` header that is missing a verb the app really serves.
+      it "degrades to 404 for a route pushed straight through the getter" do
+        Kemal::RouteHandler::INSTANCE.routes.add("/PUT/direct", Kemal::Route.new("PUT", "/direct") { "d" })
+
+        Kemal::RouteHandler::INSTANCE.allowed_methods("/direct").should be_empty
+        call_request_on_app(HTTP::Request.new("PUT", "/direct")).body.should eq("d")
       end
 
       it "returns the methods routed for a path" do

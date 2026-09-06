@@ -124,7 +124,8 @@ module Kemal
     include HTTP::Handler
 
     INSTANCE = new
-    property routes
+
+    getter routes
 
     getter cached_routes
 
@@ -133,10 +134,26 @@ module Kemal
       @cache_mutex.synchronize { @cached_routes = cache }
     end
 
+    # Rebuilds the verb index `allowed_methods` probes with, so a tree handed
+    # over wholesale advertises the routes it already carries instead of none.
+    def routes=(routes : Radix::Tree(Route))
+      @registered_methods = collect_methods(routes.root)
+      @routes = routes
+    end
+
     def initialize
       @routes = Radix::Tree(Route).new
+      @registered_methods = Set(String).new
       @cached_routes = LRUCache(String, Radix::Result(Route)).new(Kemal.config.max_route_cache_size)
       @cache_mutex = Mutex.new
+    end
+
+    private def collect_methods(node : Radix::Node(Route), methods = Set(String).new) : Set(String)
+      if payload = node.payload?
+        methods << payload.method
+      end
+      node.children.each { |child| collect_methods(child, methods) }
+      methods
     end
 
     def call(context : HTTP::Server::Context)
@@ -197,17 +214,19 @@ module Kemal
     # already failed to match, and priming the LRU with one entry per verb would
     # let mismatched requests evict the routes actually being served.
     #
-    # Every verb is probed rather than only the ones the application registered.
-    # An index of registered verbs would be faster, but `routes` is a public
-    # setter and getter, so routes can enter the tree without passing through
-    # `add_route` - the same reason `Kemal::FilterHandler#path_filters_empty?`
-    # asks its tree instead of tracking a flag. The tree is the only thing that
-    # cannot go stale, and this runs on a request that already missed.
+    # Only verbs the application actually registered are probed, so an app
+    # serving `GET` and `POST` pays two tree lookups here rather than one per
+    # routable verb - this is the path scanner traffic takes. The index is
+    # maintained by `add_route` and rebuilt from the tree by `routes=`, which
+    # are the two supported ways routes get in. A route pushed straight into the
+    # tree through the `routes` getter bypasses both; that path degrades to the
+    # pre-405 answer of `404` rather than reporting a wrong `Allow`.
     def allowed_methods(path : String) : Array(String)
       methods = [] of String
+      return methods if @registered_methods.empty?
 
       {% for method in HTTP_METHODS %}
-        if @routes.find(radix_path({{ method.upcase }}, path)).found?
+        if @registered_methods.includes?({{ method.upcase }}) && @routes.find(radix_path({{ method.upcase }}, path)).found?
           methods << {{ method.upcase }}
           {% if method == "get" %}
             methods << "HEAD"
@@ -217,7 +236,8 @@ module Kemal
 
       # There is no `head` route DSL verb, but `add_route` accepts one, so a
       # `HEAD` route standing on its own still has to be advertised.
-      if !methods.includes?("HEAD") && @routes.find(radix_path("HEAD", path)).found?
+      if !methods.includes?("HEAD") && @registered_methods.includes?("HEAD") &&
+         @routes.find(radix_path("HEAD", path)).found?
         methods << "HEAD"
       end
 
@@ -279,6 +299,7 @@ module Kemal
 
     private def add_to_radix_tree(method, path, route)
       node = radix_path method, path
+      @registered_methods << method
       @routes.add node, route
     end
   end
