@@ -1,5 +1,22 @@
 # Unreleased
 
+- ***(BREAKING)*** Answer a request whose path is routed for another HTTP method with `405 Method Not Allowed` and the `Allow` header instead of `404`, per [RFC 9110 §15.5.6](https://www.rfc-editor.org/rfc/rfc9110#section-15.5.6). With only `get "/posts"` registered, `POST /posts` and `OPTIONS /posts` returned `404` and reached the `error 404` handler; they now return `405` with `Allow: GET, HEAD` and reach `error 405`. Anything asserting `404` for a wrong-method request — tests, client retry logic, monitoring rules — has to be updated. A path that is not routed at all is still a `404`, and a path served only by a `ws` route is unchanged. `HEAD` appears in `Allow` wherever a `GET` route exists, matching the `HEAD` -> `GET` fallback. The `Allow` header is set before the error handler runs, so a custom `error 405` owns the body but cannot drop the header the RFC makes mandatory; without one, the body is the plain `Method Not Allowed`. Registering `error 405` also makes `before_all` filters run for *every* unmatched request, plain 404s included - the same over-approximation the existing `error 404` branch already had, now reachable through a second status code. Automatic `OPTIONS` responses are not part of this change.
+
+```crystal
+get "/posts" do
+  "posts"
+end
+
+# POST /posts -> 405, Allow: GET, HEAD
+# GET /nope   -> 404
+
+error 405 do |env|
+  # `Kemal::InitHandler` presets `Content-Type: text/html` for every response
+  env.response.content_type = "application/json"
+  {error: "Method not allowed", allow: env.response.headers["Allow"]}.to_json
+end
+```
+
 - Fix `Range` handling in `send_file` per [RFC 9110 §14](https://www.rfc-editor.org/rfc/rfc9110#section-14) and [§15.5.17](https://www.rfc-editor.org/rfc/rfc9110#section-15.5.17). The parser could not tell an omitted last-pos from `0`, required the last-pos to be strictly greater than the first-pos, and dropped ranges that reached the end of the file: `bytes=0-0` served the whole file as a `206`, `bytes=5-5` and `bytes=17-` fell back to a `200`, and `bytes=0-4,7-7` silently lost its second part. A last-pos beyond the end is now clamped (`bytes=0-99999` → `0-17/18`), suffix ranges are supported (`bytes=-5` → `13-17/18`), a valid range set none of whose ranges is satisfiable is answered with `416` and `Content-Range: bytes */<length>` instead of `200`, and a byte position that overflows `Int64` counts as beyond the end of the file instead of `0`. Each part of a `multipart/byteranges` response now carries the media type of the file rather than `multipart/byteranges; boundary=...`. A malformed `Range` header, a unit other than `bytes`, `Range` on `HEAD`, and range sets refused as abusive (see `Kemal.config.max_ranges`) are still served as a plain `200`.
 
 - Fix content coding negotiation in `send_file` and static file serving, per [RFC 9110 §8.4](https://www.rfc-editor.org/rfc/rfc9110#section-8.4), [§12.5.3](https://www.rfc-editor.org/rfc/rfc9110#section-12.5.3) and [§12.5.5](https://www.rfc-editor.org/rfc/rfc9110#section-12.5.5):

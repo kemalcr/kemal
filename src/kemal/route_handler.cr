@@ -124,7 +124,8 @@ module Kemal
     include HTTP::Handler
 
     INSTANCE = new
-    property routes
+
+    getter routes
 
     getter cached_routes
 
@@ -133,10 +134,26 @@ module Kemal
       @cache_mutex.synchronize { @cached_routes = cache }
     end
 
+    # Rebuilds the verb index `allowed_methods` probes with, so a tree handed
+    # over wholesale advertises the routes it already carries instead of none.
+    def routes=(routes : Radix::Tree(Route))
+      @registered_methods = collect_methods(routes.root)
+      @routes = routes
+    end
+
     def initialize
       @routes = Radix::Tree(Route).new
+      @registered_methods = Set(String).new
       @cached_routes = LRUCache(String, Radix::Result(Route)).new(Kemal.config.max_route_cache_size)
       @cache_mutex = Mutex.new
+    end
+
+    private def collect_methods(node : Radix::Node(Route), methods = Set(String).new) : Set(String)
+      if payload = node.payload?
+        methods << payload.method
+      end
+      node.children.each { |child| collect_methods(child, methods) }
+      methods
     end
 
     def call(context : HTTP::Server::Context)
@@ -185,10 +202,64 @@ module Kemal
       route
     end
 
-    # Processes the route if it's a match. Otherwise renders 404.
+    # Returns every HTTP method registered for *path*, in `Allow` header order,
+    # or an empty array when nothing is routed there.
+    #
+    # The radix tree is keyed by `/METHOD/path`, so there is no way to ask it
+    # which methods a path carries - each routable verb has to be looked up in
+    # turn. `HEAD` is reported wherever `GET` is, matching the `HEAD` -> `GET`
+    # fallback in `lookup_route`.
+    #
+    # Deliberately bypasses the route cache: this only runs for a request that
+    # already failed to match, and priming the LRU with one entry per verb would
+    # let mismatched requests evict the routes actually being served.
+    #
+    # Only verbs the application actually registered are probed, so an app
+    # serving `GET` and `POST` pays two tree lookups here rather than one per
+    # routable verb - this is the path scanner traffic takes. The index is
+    # maintained by `add_route` and rebuilt from the tree by `routes=`, which
+    # are the two supported ways routes get in. A route pushed straight into the
+    # tree through the `routes` getter bypasses both; that path degrades to the
+    # pre-405 answer of `404` rather than reporting a wrong `Allow`.
+    def allowed_methods(path : String) : Array(String)
+      methods = [] of String
+      return methods if @registered_methods.empty?
+
+      {% for method in HTTP_METHODS %}
+        if @registered_methods.includes?({{ method.upcase }}) && @routes.find(radix_path({{ method.upcase }}, path)).found?
+          methods << {{ method.upcase }}
+          {% if method == "get" %}
+            methods << "HEAD"
+          {% end %}
+        end
+      {% end %}
+
+      # There is no `head` route DSL verb, but `add_route` accepts one, so a
+      # `HEAD` route standing on its own still has to be advertised.
+      if !methods.includes?("HEAD") && @registered_methods.includes?("HEAD") &&
+         @routes.find(radix_path("HEAD", path)).found?
+        methods << "HEAD"
+      end
+
+      methods
+    end
+
+    # Processes the route if it's a match. Otherwise renders 405 when the path
+    # is routed for another method, and 404 when it is not routed at all.
     private def process_request(context)
-      raise Kemal::Exceptions::RouteNotFound.new(context) unless context.route_found?
+      # A filter that already answered - `halt` - leaves nothing to route and
+      # nothing to advertise, so this comes before the miss handling below and
+      # spares it the per-verb probe.
       return if context.response.closed?
+
+      unless context.route_found?
+        # RFC 9110 §15.5.6: an existing resource that does not support the
+        # request method is a 405, not a 404.
+        allowed = allowed_methods(context.request.path)
+        raise Kemal::Exceptions::MethodNotAllowed.new(context, allowed) unless allowed.empty?
+        raise Kemal::Exceptions::RouteNotFound.new(context)
+      end
+
       validate_query_request!(context.request)
       content = context.route.handler.call(context)
 
@@ -228,6 +299,7 @@ module Kemal
 
     private def add_to_radix_tree(method, path, route)
       node = radix_path method, path
+      @registered_methods << method
       @routes.add node, route
     end
   end
