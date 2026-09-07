@@ -1,6 +1,6 @@
 # Unreleased
 
-- ***(BREAKING)*** Answer a request whose path is routed for another HTTP method with `405 Method Not Allowed` and the `Allow` header instead of `404`, per [RFC 9110 §15.5.6](https://www.rfc-editor.org/rfc/rfc9110#section-15.5.6). With only `get "/posts"` registered, `POST /posts` and `OPTIONS /posts` returned `404` and reached the `error 404` handler; they now return `405` with `Allow: GET, HEAD` and reach `error 405`. Anything asserting `404` for a wrong-method request — tests, client retry logic, monitoring rules — has to be updated. A path that is not routed at all is still a `404`, and a path served only by a `ws` route is unchanged. `HEAD` appears in `Allow` wherever a `GET` route exists, matching the `HEAD` -> `GET` fallback. The `Allow` header is set before the error handler runs, so a custom `error 405` owns the body but cannot drop the header the RFC makes mandatory; without one, the body is the plain `Method Not Allowed`. Registering `error 405` also makes `before_all` filters run for *every* unmatched request, plain 404s included - the same over-approximation the existing `error 404` branch already had, now reachable through a second status code. Automatic `OPTIONS` responses are not part of this change.
+- ***(BREAKING)*** Answer a request whose path is routed for another HTTP method with `405 Method Not Allowed` and the `Allow` header instead of `404`, per [RFC 9110 §15.5.6](https://www.rfc-editor.org/rfc/rfc9110#section-15.5.6). With only `get "/posts"` registered, `POST /posts` and `OPTIONS /posts` returned `404` and reached the `error 404` handler; they now return `405` with `Allow: GET, HEAD` and reach `error 405`. Anything asserting `404` for a wrong-method request — tests, client retry logic, monitoring rules — has to be updated. A path that is not routed at all is still a `404`; `ws` routes are covered by the entry below. `HEAD` appears in `Allow` wherever a `GET` route exists, matching the `HEAD` -> `GET` fallback. The `Allow` header is set before the error handler runs, so a custom `error 405` owns the body but cannot drop the header the RFC makes mandatory; without one, the body is the plain `Method Not Allowed`. Registering `error 405` also makes `before_all` filters run for *every* unmatched request, plain 404s included - the same over-approximation the existing `error 404` branch already had, now reachable through a second status code. Automatic `OPTIONS` responses are not part of this change.
 
 ```crystal
 get "/posts" do
@@ -16,6 +16,31 @@ error 405 do |env|
   {error: "Method not allowed", allow: env.response.headers["Allow"]}.to_json
 end
 ```
+
+- Count a `ws` route as `GET` when collecting the `Allow` header, since the WebSocket handshake is a `GET` request ([RFC 6455 §4.1](https://www.rfc-editor.org/rfc/rfc6455#section-4.1)). Two fixes:
+
+  - A path served only by `ws` now answers wrong-method requests with `405` and `Allow: GET`. Previously `Kemal::WebSocketHandler` passed a non-handshake request straight through and the route lookup missed, so `POST /chat` ended as a `404` — or, with no `error 404` handler registered, an empty `200`.
+  - A path carrying both `ws` and HTTP routes no longer reports an `Allow` that omits the handshake: with `ws "/chat"` and `post "/chat"`, `PUT /chat` answers `Allow: GET, POST` rather than `Allow: POST`.
+
+  - `Kemal::WebSocketHandler` no longer hardcodes `Allow: GET` when it rejects a non-GET upgrade attempt. `Allow` describes the methods the *resource* supports ([RFC 9110 §10.2.1](https://www.rfc-editor.org/rfc/rfc9110#section-10.2.1)), so with `ws "/chat"` and `post "/chat"` a `POST` carrying `Upgrade: websocket` now answers `Allow: GET, POST` instead of sending the client away from a verb the path really serves. A path with only a `ws` route still answers `Allow: GET`.
+
+  `HEAD` is not advertised for a `ws` route — the handshake is the only thing served there. And a request whose own method is already in the `Allow` list is not a `405`: a plain `GET` on a `ws` path is a handshake missing its `Upgrade` header, so it stays a `404` instead of being told `405, Allow: GET`. `426 Upgrade Required` ([RFC 9110 §15.5.22](https://www.rfc-editor.org/rfc/rfc9110#section-15.5.22)) was considered for that case and deliberately not adopted: a plain `GET` there is a client bug, and `404` versus `426` does not change what the client has to do.
+
+```crystal
+ws "/chat" do |socket, env|
+  socket.send("hi")
+end
+
+post "/chat" do
+  "post"
+end
+
+# PUT  /chat -> 405, Allow: GET, POST
+# GET  /chat -> 404 (no `Upgrade` header, so not a handshake)
+```
+
+
+
 
 - Report a static file that exists but cannot be opened as `404`, as the standard library's `HTTP::StaticFileHandler` does. Kemal's override served files through `send_file` without the stdlib's `File::Error` rescue, so a file under `public/` without read permission answered `500` — with the absolute path on the development error page, and the file's `ETag` and `Last-Modified` on the response, confirming to the client that the file was there. The response is now the plain `404` the stdlib sends, with no header derived from the file.
 - ***(SECURITY)*** Cap the number of file parts in a `multipart/form-data` request [#793](https://github.com/kemalcr/kemal/issues/793). `max_request_body_size` bounds the bytes but said nothing about the parts, and every file part is spooled to its own temporary file whose handle stays open until the request is over: an 8 MB body of one-byte parts held some 100,000 open file descriptors and temporary files for the length of one request, enough to take a process with the default `ulimit -n 1024` past `accept()` from a single unauthenticated request. `Kemal.config.max_file_uploads` (default `128`) now bounds the file parts; a request carrying more is answered with `413` and the body `Too many file parts (max N)` before the next part is written to disk, and the parts already spooled are cleaned up with the request. Form fields without a filename are not counted. `Kemal::Exceptions::PayloadTooLarge.new` now takes an optional message for this. Two related leaks are closed as well: a file part whose field name repeats an earlier one used to replace that upload in `params.files` without removing its temporary file, leaving it on disk for good; and `params.all_files` did not parse the body on its own, so it was always empty unless `params.files` had been read first.

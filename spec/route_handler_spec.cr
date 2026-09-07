@@ -646,6 +646,13 @@ describe "Kemal::RouteHandler" do
       response.body.should eq("not found")
     end
 
+    # `GET` is what a WebSocket path serves, so a `GET` that missed cannot be a
+    # 405 - it is a handshake without the `Upgrade` header. Answering
+    # "405, Allow: GET" to a `GET` would be nonsense, so it stays a 404.
+    #
+    # `426 Upgrade Required` (RFC 9110 §15.5.22) was considered and rejected: a
+    # plain `GET` here is a client bug, and 404 vs 426 does not change what the
+    # client has to do.
     it "leaves a path served only by a WebSocket route as a 404" do
       error 404 do
         "not found"
@@ -657,6 +664,89 @@ describe "Kemal::RouteHandler" do
       response = call_request_on_app(HTTP::Request.new("GET", "/chat"))
       response.status_code.should eq(404)
       response.headers["Allow"]?.should be_nil
+    end
+
+    it "answers a non-GET request to a WebSocket only path with 405" do
+      ws "/chat" do |socket|
+        socket.send("hello")
+      end
+
+      response = call_request_on_app(HTTP::Request.new("POST", "/chat"))
+      response.status_code.should eq(405)
+      response.headers["Allow"].should eq("GET")
+    end
+
+    # The handshake is the only thing served on a WebSocket path, so `HEAD` is
+    # not offered there the way it is for a `GET` route.
+    it "does not advertise HEAD for a WebSocket only path" do
+      ws "/chat" do |socket|
+        socket.send("hello")
+      end
+
+      response = call_request_on_app(HTTP::Request.new("HEAD", "/chat"))
+      response.status_code.should eq(405)
+      response.headers["Allow"].should eq("GET")
+    end
+
+    it "matches path parameters when probing WebSocket routes" do
+      ws "/chat/:room" do |socket|
+        socket.send("hello")
+      end
+
+      response = call_request_on_app(HTTP::Request.new("DELETE", "/chat/general"))
+      response.status_code.should eq(405)
+      response.headers["Allow"].should eq("GET")
+    end
+
+    it "advertises the WebSocket handshake alongside the HTTP methods on the path" do
+      ws "/chat" do |socket|
+        socket.send("hello")
+      end
+      post "/chat" do
+        "post"
+      end
+
+      response = call_request_on_app(HTTP::Request.new("PUT", "/chat"))
+      response.status_code.should eq(405)
+      response.headers["Allow"].should eq("GET, POST")
+    end
+
+    it "leaves a plain GET on a path with a WebSocket and an HTTP route as a 404" do
+      error 404 do
+        "not found"
+      end
+      ws "/chat" do |socket|
+        socket.send("hello")
+      end
+      post "/chat" do
+        "post"
+      end
+
+      response = call_request_on_app(HTTP::Request.new("GET", "/chat"))
+      response.status_code.should eq(404)
+      response.headers["Allow"]?.should be_nil
+      response.body.should eq("not found")
+    end
+
+    it "still upgrades a WebSocket handshake on a path that also serves HTTP" do
+      ws "/chat" do |socket|
+        socket.send("hello")
+      end
+      post "/chat" do
+        "post"
+      end
+
+      headers = HTTP::Headers{
+        "Upgrade"               => "websocket",
+        "Connection"            => "Upgrade",
+        "Sec-WebSocket-Key"     => "dGhlIHNhbXBsZSBub25jZQ==",
+        "Sec-WebSocket-Version" => "13",
+        "Host"                  => "localhost",
+        "Origin"                => "http://localhost",
+      }
+      request = HTTP::Request.new("GET", "/chat", headers)
+      io, _ = create_ws_request_and_return_io_and_context(build_main_handler, request)
+      io.to_s.should contain("101 Switching Protocols")
     end
 
     it "does not put the probed methods into the route cache" do
@@ -731,6 +821,28 @@ describe "Kemal::RouteHandler" do
         end
 
         Kemal::RouteHandler::INSTANCE.allowed_methods("/other").should be_empty
+      end
+
+      # The verb index only tracks HTTP routes, so a WebSocket-only app leaves
+      # it empty. The probe has to sit outside that shortcut or such an app
+      # reports nothing at all.
+      it "reports GET for a WebSocket route in an app with no HTTP routes" do
+        ws "/chat" do |socket|
+          socket.send("hello")
+        end
+
+        Kemal::RouteHandler::INSTANCE.allowed_methods("/chat").should eq(["GET"])
+      end
+
+      it "reports GET once for a path carrying both a WebSocket and a GET route" do
+        ws "/chat" do |socket|
+          socket.send("hello")
+        end
+        get "/chat" do
+          "get"
+        end
+
+        Kemal::RouteHandler::INSTANCE.allowed_methods("/chat").should eq(["GET", "HEAD"])
       end
     end
   end
