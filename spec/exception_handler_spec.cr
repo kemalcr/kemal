@@ -439,4 +439,71 @@ describe "Kemal::ExceptionHandler" do
     response.body.should_not contain "<script>"
     response.body.should contain "Kemal has encountered an error. (500)"
   end
+
+  it "serves the production error page in every environment but development" do
+    # `staging` is internet-facing in most deployments and `prod` is a typo of the one
+    # value that used to be safe. Neither may get the message or the backtrace.
+    get "/" do
+      raise "secret db password is hunter2"
+    end
+
+    {"staging", "prod", "Production", "test"}.each do |env_name|
+      Kemal.config.env = env_name
+
+      request = HTTP::Request.new("GET", "/")
+      io = IO::Memory.new
+      response = HTTP::Server::Response.new(io)
+      context = HTTP::Server::Context.new(request, response)
+      Kemal::ExceptionHandler::INSTANCE.next = Kemal::RouteHandler::INSTANCE
+      Kemal::ExceptionHandler::INSTANCE.call(context)
+      response.close
+      io.rewind
+      response = HTTP::Client::Response.from_io(io, decompress: false)
+      response.status_code.should eq 500
+      response.body.should_not contain "hunter2"
+      response.body.should_not contain "exception_handler_spec.cr"
+      response.body.should contain "Kemal has encountered an error. (500)"
+    end
+  end
+
+  it "shows the development error page where show_exceptions asks for it" do
+    Kemal.config.env = "staging"
+    Kemal.config.show_exceptions = true
+    get "/" do
+      raise "secret db password is hunter2"
+    end
+
+    request = HTTP::Request.new("GET", "/")
+    io = IO::Memory.new
+    response = HTTP::Server::Response.new(io)
+    context = HTTP::Server::Context.new(request, response)
+    Kemal::ExceptionHandler::INSTANCE.next = Kemal::RouteHandler::INSTANCE
+    Kemal::ExceptionHandler::INSTANCE.call(context)
+    response.close
+    io.rewind
+    response = HTTP::Client::Response.from_io(io, decompress: false)
+    response.status_code.should eq 500
+    response.body.should contain "hunter2"
+  end
+
+  it "hides the development error page where show_exceptions refuses it" do
+    Kemal.config.env = "development"
+    Kemal.config.show_exceptions = false
+    get "/" do
+      raise "secret db password is hunter2"
+    end
+
+    request = HTTP::Request.new("GET", "/")
+    io = IO::Memory.new
+    response = HTTP::Server::Response.new(io)
+    context = HTTP::Server::Context.new(request, response)
+    Kemal::ExceptionHandler::INSTANCE.next = Kemal::RouteHandler::INSTANCE
+    Kemal::ExceptionHandler::INSTANCE.call(context)
+    response.close
+    io.rewind
+    response = HTTP::Client::Response.from_io(io, decompress: false)
+    response.status_code.should eq 500
+    response.body.should_not contain "hunter2"
+    response.body.should contain "Kemal has encountered an error. (500)"
+  end
 end

@@ -183,6 +183,18 @@ NOTE: `Kemal::InitHandler` presets `Content-Type: text/html` on every response, 
 
 NOTE: Put authentication in `before_all` or in middleware rather than in a path-scoped filter like `before_get "/admin/*"`. Path-scoped filters do not run when no route matches, so a wrong-method request answers `405` with `Allow` — confirming the path exists — without ever reaching the guard.
 
+**What does a user see when a route raises?**
+
+In the `development` environment, a page with the exception, its backtrace and source, the response headers and cookies. In every other environment — `production`, `staging`, `test`, or a value Kemal has never heard of — a static "Kemal has encountered an error" page that says nothing about the failure. The environment comes from `KEMAL_ENV` and defaults to `development`.
+
+```crystal
+# Show the development page in another environment, or never show it.
+Kemal.config.show_exceptions = true
+Kemal.config.show_exceptions = false
+```
+
+Register `error 500` to render your own page instead; the setting only decides between Kemal's two built-in ones.
+
 **Does Kemal work with any ORM?**
 
 Yes. You can use any Crystal ORM or database library. No forced dependencies.
