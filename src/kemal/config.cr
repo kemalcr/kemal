@@ -57,6 +57,16 @@ module Kemal
     # Entries use the serialized origin form, e.g. `"https://example.com"` or
     # `"http://localhost:3000"`.
     property websocket_allowed_origins : Array(String)
+    # Whether an unhandled exception is answered with the development error page —
+    # exception message, backtrace with source, response headers, cookies — or the static
+    # production page that says nothing about the failure.
+    #
+    # Unset (`nil`, the default) means "only in the `development` environment". Every other
+    # environment name, including one that is misspelt or unknown, gets the production page:
+    # the development page exists to debug locally, not to serve as the fallback for a
+    # `KEMAL_ENV` that failed to say `production`. Set it to `true` to show the page in
+    # another environment, or to `false` to never show it.
+    setter show_exceptions : Bool?
 
     def initialize
       @app_name = "Kemal"
@@ -80,6 +90,7 @@ module Kemal
       @max_multipart_form_field_size = 8 * 1024 * 1024 # 8MB
       @max_ranges = 16
       @websocket_allowed_origins = [] of String
+      @show_exceptions = nil
     end
 
     @[Deprecated("Use standard library Log")]
@@ -101,6 +112,11 @@ module Kemal
       ssl ? "https" : "http"
     end
 
+    def show_exceptions? : Bool
+      show = @show_exceptions
+      show.nil? ? @env == "development" : show
+    end
+
     def clear
       @powered_by_header = false
       @router_included = false
@@ -111,6 +127,7 @@ module Kemal
       @max_multipart_form_field_size = 8 * 1024 * 1024
       @max_ranges = 16
       @websocket_allowed_origins = [] of String
+      @show_exceptions = nil
       HANDLERS.clear
       CUSTOM_HANDLERS.clear
       FILTER_HANDLERS.clear
