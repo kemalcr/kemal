@@ -531,4 +531,41 @@ describe "ParamParser" do
       parser.try &.cleanup_temporary_files
     end
   end
+
+  context "FileUpload" do
+    it "hands out the spooled file open for reading from its start" do
+      boundary = "AaB03x"
+      body = <<-MULTIPART
+        --#{boundary}\r
+        Content-Disposition: form-data; name="file"; filename="upload.txt"\r
+        \r
+        kemal is fast\r
+        --#{boundary}--\r
+        MULTIPART
+      parser = Kemal::ParamParser.new(multipart_request(body, boundary))
+
+      upload = parser.files["file"]
+      upload.tempfile.closed?.should be_false
+      upload.tempfile.pos.should eq(0)
+      upload.tempfile.gets_to_end.should eq("kemal is fast")
+    ensure
+      parser.try &.cleanup_temporary_files
+    end
+
+    it "reports the size it wrote, not the size the part claimed" do
+      boundary = "AaB03x"
+      body = <<-MULTIPART
+        --#{boundary}\r
+        Content-Disposition: form-data; name="file"; filename="upload.txt"; size=999\r
+        \r
+        kemal is fast\r
+        --#{boundary}--\r
+        MULTIPART
+      parser = Kemal::ParamParser.new(multipart_request(body, boundary))
+
+      parser.files["file"].size.should eq(13)
+    ensure
+      parser.try &.cleanup_temporary_files
+    end
+  end
 end
