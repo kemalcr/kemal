@@ -15,6 +15,22 @@ describe "Config" do
     config.env.should eq "production"
   end
 
+  it "shows exceptions only in development unless told otherwise" do
+    config = Kemal.config
+    config.env = "development"
+    config.show_exceptions?.should be_true
+
+    config.env = "staging"
+    config.show_exceptions?.should be_false
+
+    config.show_exceptions = true
+    config.show_exceptions?.should be_true
+
+    config.env = "development"
+    config.show_exceptions = false
+    config.show_exceptions?.should be_false
+  end
+
   it "sets default powered_by_header to false" do
     Kemal::Config.new.powered_by_header?.should be_false
   end

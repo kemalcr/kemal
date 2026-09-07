@@ -35,8 +35,7 @@ module Kemal
       Log.error(exception: ex) { ex.message }
       # Else use generic 500 handler if defined
       return call_exception_with_status_code(context, ex, 500) if Kemal.config.error_handlers.has_key?(500)
-      verbosity = Kemal.config.env == "production" ? false : true
-      render_500(context, ex, verbosity)
+      render_500(context, ex, Kemal.config.show_exceptions?)
     end
 
     # Calls the given error handler with the current exception

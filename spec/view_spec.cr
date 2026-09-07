@@ -69,4 +69,25 @@ describe "Views" do
     client_response = call_request_on_app(request)
     client_response.body.should_not contain("<h1>Hello from otherside</h1>")
   end
+
+  it "keeps content_for blocks private to the render that captured them" do
+    # The view captures its block, then switches fibers before the layout
+    # yields it. With a shared registry the second render overwrote the first,
+    # and the first layout ran a block that wrote into the other render's
+    # buffer, so one page lost its title and could pick up the other's.
+    results = Channel(Tuple(String, String)).new
+
+    {"alice", "bob"}.each do |name|
+      spawn do
+        page = render "#{__DIR__}/asset/hello_with_content_for_and_fiber_switch.ecr", "#{__DIR__}/asset/layout_with_yield.ecr"
+        results.send({name, page})
+      end
+    end
+
+    2.times do
+      name, page = results.receive
+      page.should contain("<title>Page of #{name}</title>")
+      page.should contain("Hello #{name}")
+    end
+  end
 end
