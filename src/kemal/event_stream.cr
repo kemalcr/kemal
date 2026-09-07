@@ -11,8 +11,16 @@ module Kemal
     end
 
     # Runs an SSE handler with headers configured and yields an `EventStream`.
+    #
+    # A `HEAD` request gets the headers of the stream and no stream. The handler is
+    # typically an endless loop that only stops when a write fails because the
+    # client is gone, and on `HEAD` nothing it writes goes anywhere - the body is
+    # discarded and counted - so the loop would never see the client leave and the
+    # fiber would run for the life of the process.
     def self.serve(context : HTTP::Server::Context, & : EventStream, HTTP::Server::Context ->)
       stream = new(context.response)
+      return stream if context.request.method == "HEAD"
+
       yield stream, context
       stream
     end

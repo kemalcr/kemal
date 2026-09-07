@@ -8,6 +8,18 @@ def record_uploads(env)
   UPLOADED_TEMPFILE_PATHS << env.params.files["file"].tempfile.path
 end
 
+# Every temporary file the parser spooled, recorded as it is created, so a spec
+# can check on files a handler never got to see - a request refused mid-parse,
+# or an upload a later part with the same name replaced.
+SPOOLED_TEMPFILE_PATHS = [] of String
+
+struct Kemal::FileUpload
+  def initialize(upload)
+    previous_def
+    SPOOLED_TEMPFILE_PATHS << @tempfile.path
+  end
+end
+
 class UploadBlockingHandler < Kemal::Handler
   only ["/blocked"], "POST"
 
@@ -41,17 +53,37 @@ private def upload_request(path : String)
   HTTP::Request.new("POST", path, headers, IO::Memory.new(body))
 end
 
+private def uploads_request(path : String, names : Enumerable(String))
+  boundary = "AaB03x"
+  body = String.build do |io|
+    names.each_with_index do |name, i|
+      io << "--" << boundary << "\r\n"
+      io << %(Content-Disposition: form-data; name="#{name}"; filename="f#{i}.txt"\r\n\r\n)
+      io << "x\r\n"
+    end
+    io << "--" << boundary << "--\r\n"
+  end
+
+  headers = HTTP::Headers{"Content-Type" => "multipart/form-data; boundary=#{boundary}"}
+  HTTP::Request.new("POST", path, headers, IO::Memory.new(body))
+end
+
 private def uploaded_tempfiles_left_on_disk
   UPLOADED_TEMPFILE_PATHS.select { |path| File.exists?(path) }
+end
+
+private def spooled_tempfiles_left_on_disk
+  SPOOLED_TEMPFILE_PATHS.select { |path| File.exists?(path) }
 end
 
 describe "uploaded temporary file cleanup" do
   before_each do
     UPLOADED_TEMPFILE_PATHS.clear
+    SPOOLED_TEMPFILE_PATHS.clear
   end
 
   after_each do
-    UPLOADED_TEMPFILE_PATHS.each { |path| File.delete(path) if File.exists?(path) }
+    (UPLOADED_TEMPFILE_PATHS + SPOOLED_TEMPFILE_PATHS).each { |path| File.delete(path) if File.exists?(path) }
   end
 
   it "removes the temporary files of a served request" do
@@ -145,5 +177,39 @@ describe "uploaded temporary file cleanup" do
     response.close
 
     context.params?.should be_nil
+  end
+
+  it "removes the temporary files already spooled when the request exceeds max_file_uploads" do
+    Kemal.config.max_file_uploads = 2
+
+    handler_ran = false
+    post "/upload" do |env|
+      handler_ran = true
+      env.params.files
+      "Uploaded"
+    end
+
+    response = call_request_on_app(uploads_request("/upload", %w[a b c d]))
+    response.status_code.should eq(413)
+    # Says which limit fired, so the 413 can be told apart from a byte-limit one.
+    response.body.should eq("Too many file parts (max 2)")
+
+    handler_ran.should be_true
+    # The third part is refused before it is written; the first two are unwound.
+    SPOOLED_TEMPFILE_PATHS.size.should eq(2)
+    spooled_tempfiles_left_on_disk.should be_empty
+  end
+
+  it "removes the temporary file of an upload a later part with the same name replaced" do
+    post "/upload" do |env|
+      env.params.files["file"].filename.to_s
+    end
+
+    response = call_request_on_app(uploads_request("/upload", %w[file file file]))
+    response.status_code.should eq(200)
+    response.body.should eq("f2.txt")
+
+    SPOOLED_TEMPFILE_PATHS.size.should eq(3)
+    spooled_tempfiles_left_on_disk.should be_empty
   end
 end

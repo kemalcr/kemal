@@ -6,9 +6,17 @@ module Kemal::Exceptions
     end
   end
 
+  # Raised when no route matches the request.
+  #
+  # The message is the bare status reason, as with `MethodNotAllowed`: an
+  # `error 404` handler commonly returns `ex.message`, and the response is
+  # `text/html`, so anything from the request in it would be reflected markup.
+  # The request itself is reachable through `context`.
   class RouteNotFound < Exception
-    def initialize(context : HTTP::Server::Context)
-      super "Requested path: '#{context.request.method}:#{context.request.path}' was not found."
+    getter context : HTTP::Server::Context
+
+    def initialize(@context : HTTP::Server::Context)
+      super "Not Found"
     end
   end
 
@@ -39,9 +47,11 @@ module Kemal::Exceptions
     end
   end
 
+  # Rendered as 413. The message is the response body, so it says which limit
+  # fired but never what the request contained.
   class PayloadTooLarge < Exception
-    def initialize
-      super "Payload Too Large"
+    def initialize(message : String = "Payload Too Large")
+      super message
     end
   end
 
