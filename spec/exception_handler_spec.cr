@@ -17,6 +17,46 @@ describe "Kemal::ExceptionHandler" do
     response.status_code.should eq 404
   end
 
+  it "does not reflect the request in the message a 404 handler receives" do
+    # Echoing `ex.message` is the obvious thing to write in an `error 404`
+    # handler, and the response is `text/html`, so the message must not carry
+    # anything the client chose.
+    error 404 do |_env, ex|
+      ex.message.to_s
+    end
+
+    request = HTTP::Request.new("BREW", "/<script>alert(1)</script>")
+    io = IO::Memory.new
+    response = HTTP::Server::Response.new(io)
+    context = HTTP::Server::Context.new(request, response)
+    Kemal::ExceptionHandler::INSTANCE.next = Kemal::RouteHandler::INSTANCE
+    Kemal::ExceptionHandler::INSTANCE.call(context)
+    response.close
+    io.rewind
+    response = HTTP::Client::Response.from_io(io, decompress: false)
+    response.status_code.should eq 404
+    response.body.should_not contain "<script>"
+    response.body.should_not contain "BREW"
+    response.body.should eq "Not Found"
+  end
+
+  it "keeps the request reachable on the 404 exception" do
+    error 404 do |_env, ex|
+      ex.as(Kemal::Exceptions::RouteNotFound).context.request.path
+    end
+
+    request = HTTP::Request.new("GET", "/missing")
+    io = IO::Memory.new
+    response = HTTP::Server::Response.new(io)
+    context = HTTP::Server::Context.new(request, response)
+    Kemal::ExceptionHandler::INSTANCE.next = Kemal::RouteHandler::INSTANCE
+    Kemal::ExceptionHandler::INSTANCE.call(context)
+    response.close
+    io.rewind
+    response = HTTP::Client::Response.from_io(io, decompress: false)
+    response.body.should eq "/missing"
+  end
+
   it "renders custom error" do
     error 403 do
       "403 error"
