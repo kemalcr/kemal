@@ -39,9 +39,11 @@ module Kemal::Exceptions
     end
   end
 
+  # Rendered as 413. The message is the response body, so it says which limit
+  # fired but never what the request contained.
   class PayloadTooLarge < Exception
-    def initialize
-      super "Payload Too Large"
+    def initialize(message : String = "Payload Too Large")
+      super message
     end
   end
 

@@ -448,7 +448,7 @@ describe "ParamParser" do
       Kemal.config.max_file_uploads = 2
       parser = Kemal::ParamParser.new(multipart_request(multipart_files_body(%w[a b c])))
 
-      expect_raises(Kemal::Exceptions::PayloadTooLarge) do
+      expect_raises(Kemal::Exceptions::PayloadTooLarge, "Too many file parts (max 2)") do
         parser.files
       end
     ensure

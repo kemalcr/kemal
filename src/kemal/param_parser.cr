@@ -183,7 +183,9 @@ module Kemal
           # has already cost, not one temporary file more. Those are cleaned up with the
           # request like any other upload.
           uploads += 1
-          raise Exceptions::PayloadTooLarge.new if uploads > Kemal.config.max_file_uploads
+          if uploads > (limit = Kemal.config.max_file_uploads)
+            raise Exceptions::PayloadTooLarge.new("Too many file parts (max #{limit})")
+          end
 
           if name.ends_with?("[]")
             @all_files[name] ||= [] of FileUpload

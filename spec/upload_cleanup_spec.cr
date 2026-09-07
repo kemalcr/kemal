@@ -189,7 +189,10 @@ describe "uploaded temporary file cleanup" do
       "Uploaded"
     end
 
-    call_request_on_app(uploads_request("/upload", %w[a b c d])).status_code.should eq(413)
+    response = call_request_on_app(uploads_request("/upload", %w[a b c d]))
+    response.status_code.should eq(413)
+    # Says which limit fired, so the 413 can be told apart from a byte-limit one.
+    response.body.should eq("Too many file parts (max 2)")
 
     handler_ran.should be_true
     # The third part is refused before it is written; the first two are unwound.
