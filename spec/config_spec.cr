@@ -56,8 +56,8 @@ describe "Config" do
     config.shutdown_message.should be_true
   end
 
-  it "sets default shutdown timeout to zero" do
-    Kemal::Config.new.shutdown_timeout.should eq 0.seconds
+  it "waits up to 30 seconds for in-flight requests on shutdown by default" do
+    Kemal::Config.new.shutdown_timeout.should eq 30.seconds
   end
 
   it "adds custom options" do
