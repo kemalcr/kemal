@@ -111,8 +111,22 @@ module Kemal
     end
 
     # RFC 6455 §4.1 requires the opening handshake to be a GET request.
+    #
+    # `Allow` lists what the *resource* supports (RFC 9110 §10.2.1), not what
+    # would have satisfied this particular request, so it has to name the HTTP
+    # routes on the path too. Hardcoding `GET` here dropped them: with
+    # `ws "/chat"` and `post "/chat"`, a `POST` upgrade attempt was answered
+    # `Allow: GET` even though `POST` is served there. `allowed_methods` already
+    # probes both trees and reports the `ws` route as `GET`, so it is the one
+    # place that knows the full set.
     private def reject_websocket_method_not_allowed!(context : HTTP::Server::Context)
-      context.response.headers["Allow"] = "GET"
+      allowed = Kemal::RouteHandler::INSTANCE.allowed_methods(context.request.path)
+      # Unreachable while this is only called behind `ws_route_found?` - the same
+      # lookup `allowed_methods` makes - but an empty `Allow` would contradict
+      # the 405 it accompanies, so fall back to the handshake verb rather than
+      # send one. Mirrors the guard in `Kemal::ExceptionHandler`.
+      allowed = ["GET"] if allowed.empty?
+      context.response.headers["Allow"] = allowed.join(", ")
       reject_websocket!(context, :method_not_allowed)
     end
 

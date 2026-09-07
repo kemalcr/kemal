@@ -179,6 +179,21 @@ error 405 do |env|
 end
 ```
 
+A `ws` route counts as `GET`, because the WebSocket handshake is a `GET` request. It is listed without `HEAD`, and a plain `GET` on such a path — a handshake missing its `Upgrade` header — stays a `404` rather than being answered with a nonsensical `Allow: GET`.
+
+```crystal
+ws "/chat" do |socket, env|
+  socket.send("hi")
+end
+
+post "/chat" do
+  "post"
+end
+
+# PUT  /chat -> 405, Allow: GET, POST
+# GET  /chat -> 404 (no `Upgrade` header, so not a handshake)
+```
+
 NOTE: `Kemal::InitHandler` presets `Content-Type: text/html` on every response, so an error handler returning anything else has to set the content type itself.
 
 NOTE: Put authentication in `before_all` or in middleware rather than in a path-scoped filter like `before_get "/admin/*"`. Path-scoped filters do not run when no route matches, so a wrong-method request answers `405` with `Allow` — confirming the path exists — without ever reaching the guard.
