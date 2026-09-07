@@ -159,6 +159,33 @@ describe Kemal::EventStream do
     Kemal::RouteHandler::INSTANCE.lookup_route("GET", "/events").found?.should be_true
     Kemal::RouteHandler::INSTANCE.lookup_route("POST", "/events").found?.should be_false
   end
+
+  it "answers HEAD with the stream's headers and without running the handler" do
+    # The handler is the usual endless loop. On HEAD its writes go nowhere, so it
+    # would never notice the client leaving and never return.
+    handler_ran = false
+    sse "/events" do |stream, _|
+      handler_ran = true
+      loop do
+        stream.send("tick")
+        sleep 1.millisecond
+      end
+    end
+
+    done = Channel(HTTP::Client::Response).new
+    spawn { done.send(call_request_on_app(HTTP::Request.new("HEAD", "/events"))) }
+
+    select
+    when response = done.receive
+      response.status_code.should eq(200)
+      response.headers["Content-Type"].should eq("text/event-stream; charset=utf-8")
+      response.headers["Cache-Control"].should eq("no-cache")
+      response.body.should eq("")
+      handler_ran.should be_false
+    when timeout(2.seconds)
+      fail("HEAD on an SSE route did not return")
+    end
+  end
 end
 
 describe "Kemal::Router SSE" do
