@@ -257,7 +257,10 @@ describe Kemal::StaticFileHandler do
         response.status_code.should eq(206)
         response.headers["Content-Encoding"].should eq "gzip"
         response.headers["Content-Range"].should eq "bytes 0-9/#{gz_size}"
-        response.body.should eq full.body[0, 10]
+        # Bytes, not characters: the gzip header carries a timestamp that differs per
+        # run, and when those bytes happen to form multibyte sequences a `String`
+        # slice of ten characters is not ten bytes.
+        response.body.to_slice.should eq full.body.to_slice[0, 10]
         response.headers["Etag"].should end_with %(-gzip")
       end
     end
