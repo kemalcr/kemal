@@ -22,7 +22,17 @@ module Kemal
     {% end %}
 
     property app_name, host_binding, ssl, port, env, public_folder, logging, running
-    property always_rescue, server : HTTP::Server?, extra_options, shutdown_message, shutdown_timeout
+    property always_rescue, server : HTTP::Server?, extra_options, shutdown_message
+    # How long `Kemal.run` waits, once the server has been stopped, for the requests
+    # that were being served at that moment to finish. Nothing in flight: it returns at
+    # once. Still something in flight when the time is up: it logs a warning and returns
+    # anyway, so a stuck handler cannot hold a deploy hostage.
+    #
+    # A WebSocket or SSE connection counts as in flight for as long as it stays open, so
+    # an application holding such connections waits the full time on every shutdown
+    # unless it closes them itself from the `Kemal.run` block or a `Kemal.stop` caller.
+    # A second termination signal during the wait exits immediately.
+    property shutdown_timeout : Time::Span
     property serve_static : (Bool | Hash(String, Bool))
     property static_headers : (HTTP::Server::Context, String, File::Info ->)?
     property? powered_by_header : Bool = false
@@ -93,7 +103,7 @@ module Kemal
       @default_handlers_setup = false
       @running = false
       @shutdown_message = true
-      @shutdown_timeout = 0.seconds
+      @shutdown_timeout = 30.seconds
       @handler_position = 0
       @max_route_cache_size = 1024
       @max_request_body_size = 8 * 1024 * 1024         # 8MB

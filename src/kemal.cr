@@ -9,6 +9,9 @@ require "./kemal/helpers/*"
 module Kemal
   Log = ::Log.for(self)
 
+  # How often the shutdown drain re-checks the in-flight request count.
+  private DRAIN_POLL_INTERVAL = 10.milliseconds
+
   # Overload of `self.run` with the default startup logging.
   def self.run(port : Int32?, args = ARGV, trap_signal : Bool = true)
     run(port, args, trap_signal) { }
@@ -30,6 +33,9 @@ module Kemal
   #
   # To use custom command line arguments, set args to nil
   #
+  # Returns once the server has been stopped - by `Kemal.stop` or by a termination
+  # signal - and the requests that were being served at that moment have finished,
+  # or `Kemal::Config#shutdown_timeout` has elapsed, whichever comes first.
   def self.run(port : Int32? = nil, args = ARGV, trap_signal : Bool = true, &)
     Kemal::CLI.new args
     config = Kemal.config
@@ -68,6 +74,12 @@ module Kemal
     display_startup_message(config, server)
 
     server.listen if config.env != "test"
+
+    # `HTTP::Server#listen` returns as soon as the listeners are closed, while the
+    # requests they accepted are still being served on their own fibers. Falling off
+    # the end of the program here would cut those off mid-response, so stay until
+    # they are done - or give up on them after `shutdown_timeout`.
+    wait_for_in_flight_requests(config)
   end
 
   def self.display_startup_message(config, server)
@@ -79,16 +91,32 @@ module Kemal
     end
   end
 
+  # Stops accepting connections. Requests already being served are left to finish;
+  # `Kemal.run` waits for them before it returns (see `Kemal::Config#shutdown_timeout`).
   def self.stop
     raise "#{Kemal.config.app_name} is already stopped. Cannot stop an already stopped server." if !config.running
     if server = config.server
-      server.close unless server.closed?
+      # Flag first: a health check that reads `Kemal.config.running` can start
+      # reporting the drain before the listener is gone.
       config.running = false
-      if config.shutdown_timeout.positive?
-        sleep(config.shutdown_timeout)
-      end
+      server.close unless server.closed?
     else
       raise "Cannot stop #{Kemal.config.app_name}: server instance is not set. Please ensure Kemal.run has been called before calling Kemal.stop."
+    end
+  end
+
+  # Blocks until no request is in flight, or *config*.shutdown_timeout has passed.
+  private def self.wait_for_in_flight_requests(config)
+    remaining = config.shutdown_timeout
+
+    until (in_flight = InitHandler::INSTANCE.in_flight).zero?
+      if remaining <= Time::Span.zero
+        Log.warn { "#{in_flight} request(s) still in flight after #{config.shutdown_timeout}; shutting down anyway" }
+        return
+      end
+
+      sleep DRAIN_POLL_INTERVAL
+      remaining -= DRAIN_POLL_INTERVAL
     end
   end
 
@@ -102,9 +130,16 @@ module Kemal
 
   private def self.setup_trap_signal
     Process.on_terminate do
-      Log.info { "#{Kemal.config.app_name} is going to take a rest!" } if Kemal.config.shutdown_message
-      Kemal.stop
-      exit
+      if Kemal.config.running
+        Log.info { "#{Kemal.config.app_name} is going to take a rest!" } if Kemal.config.shutdown_message
+        # Only closes the listeners; `Kemal.run` is what waits for the requests still
+        # being served, then returns. Nothing to `exit` here.
+        Kemal.stop
+      else
+        # A second signal during the drain means "now": stop waiting for whatever is
+        # still in flight.
+        exit
+      end
     end
   end
 end

@@ -24,12 +24,26 @@ module Kemal
 
     @cached_date = Atomic(CachedDate).new(CachedDate.new(Int64::MIN, ""))
 
+    # Requests that have entered the chain and not yet left it. `Kemal.run` waits for
+    # this to reach zero after the listeners close, so that a shutdown does not cut off
+    # the responses that were being written when the signal arrived. Atomic for the
+    # same reason as the date cache: the counter is touched from every connection fiber.
+    @in_flight = Atomic(Int32).new(0)
+
+    # The number of requests currently being served. A WebSocket or SSE connection
+    # counts for as long as it stays open.
+    def in_flight : Int32
+      @in_flight.get
+    end
+
     def call(context : HTTP::Server::Context)
+      @in_flight.add(1)
       context.response.headers.add "X-Powered-By", "Kemal" if Kemal.config.powered_by_header?
       context.response.content_type = "text/html" unless context.response.headers.has_key?("Content-Type")
       context.response.headers.add "Date", date_header
       call_next context
     ensure
+      @in_flight.sub(1)
       # Uploads are spooled to disk by `Kemal::ParamParser` the moment anything
       # touches `params` - including `params.body` on a multipart request, which
       # writes every file part out just to read one form field. That can happen

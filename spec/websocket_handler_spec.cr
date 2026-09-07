@@ -33,9 +33,9 @@ def assert_websocket_forbidden_closed(response : HTTP::Client::Response)
   response.headers["Connection"]?.try(&.downcase).should eq("close")
 end
 
-def assert_websocket_method_not_allowed(response : HTTP::Client::Response)
+def assert_websocket_method_not_allowed(response : HTTP::Client::Response, allow : String = "GET")
   response.status_code.should eq(405)
-  response.headers["Allow"]?.should eq("GET")
+  response.headers["Allow"]?.should eq(allow)
   response.headers["Connection"]?.try(&.downcase).should eq("close")
   response.headers["Content-Type"]?.should eq("text/plain; charset=UTF-8")
   response.body.should eq("Method Not Allowed")
@@ -132,6 +132,39 @@ describe "Kemal::WebSocketHandler" do
         request = HTTP::Request.new(method, "/chat", headers)
         assert_websocket_method_not_allowed(call_ws_handler_response(handler, request))
       end
+    end
+
+    # `Allow` describes the resource, not this request, so the HTTP routes on the
+    # path belong in it too - hardcoding `GET` sent clients away from a verb the
+    # path really serves.
+    it "lists the HTTP methods on the path alongside the handshake verb" do
+      handler = Kemal::WebSocketHandler::INSTANCE
+      handler.next = Kemal::RouteHandler::INSTANCE
+      ws "/chat" { }
+      post "/chat" { "post" }
+      headers = ws_upgrade_headers_for_origin("http://localhost")
+      request = HTTP::Request.new("POST", "/chat", headers)
+      assert_websocket_method_not_allowed(call_ws_handler_response(handler, request), allow: "GET, POST")
+    end
+
+    it "lists them for a verb the path does not serve either" do
+      handler = Kemal::WebSocketHandler::INSTANCE
+      handler.next = Kemal::RouteHandler::INSTANCE
+      ws "/chat" { }
+      post "/chat" { "post" }
+      headers = ws_upgrade_headers_for_origin("http://localhost")
+      request = HTTP::Request.new("PUT", "/chat", headers)
+      assert_websocket_method_not_allowed(call_ws_handler_response(handler, request), allow: "GET, POST")
+    end
+
+    it "includes HEAD when the path also has a GET route" do
+      handler = Kemal::WebSocketHandler::INSTANCE
+      handler.next = Kemal::RouteHandler::INSTANCE
+      ws "/chat" { }
+      get "/chat" { "get" }
+      headers = ws_upgrade_headers_for_origin("http://localhost")
+      request = HTTP::Request.new("POST", "/chat", headers)
+      assert_websocket_method_not_allowed(call_ws_handler_response(handler, request), allow: "GET, HEAD")
     end
 
     it "rejects a non-GET upgrade with 405 before the Origin check" do
