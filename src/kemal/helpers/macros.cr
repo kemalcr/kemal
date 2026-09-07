@@ -1,5 +1,3 @@
-CONTENT_FOR_BLOCKS = Hash(String, Tuple(String, Proc(Nil))).new
-
 # `content_for` is a set of helpers that allows you to capture
 # blocks inside views to be rendered later during the request. The most
 # common use is to populate different parts of your layout from your view.
@@ -33,24 +31,29 @@ CONTENT_FOR_BLOCKS = Hash(String, Tuple(String, Proc(Nil))).new
 # Then you can put `<%= yield_content :scripts_and_styles %>` on your
 # layout, inside the <head> tag, and each view can call `content_for`
 # setting the appropriate set of tags that should be added to the layout.
-macro content_for(key, file = __FILE__)
-  CONTENT_FOR_BLOCKS[{{ key }}] = Tuple.new {{ file }}, ->() { {{ yield }} }
+#
+# Captured blocks live in `__content_for_blocks__`, a local that
+# `render(view, layout)` declares, so they belong to the one render call that
+# captured them: two requests rendering the same view concurrently cannot see
+# each other's blocks. Both macros are therefore only usable inside a
+# `render(view, layout)` call, directly in the view or in a partial it renders.
+macro content_for(key)
+  __content_for_blocks__[{{ key }}] = ->() { {{ yield }}; nil }
   nil
 end
 
 # Yields content for the given key if a `content_for` block exists for that key.
+#
+# The captured block was compiled to write into `content_io`, the view's output,
+# so it is pointed at a fresh buffer for the duration of the call and put back
+# afterwards; the buffer is what the layout receives.
 macro yield_content(key)
-  if CONTENT_FOR_BLOCKS.has_key?({{ key }})
-    __caller_filename__ = CONTENT_FOR_BLOCKS[{{ key }}][0]
-    %proc = CONTENT_FOR_BLOCKS[{{ key }}][1]
-
-    if __content_filename__ == __caller_filename__
-      %old_content_io, content_io = content_io, IO::Memory.new
-      %proc.call
-      %result = content_io.to_s
-      content_io = %old_content_io
-      %result
-    end
+  if %proc = __content_for_blocks__[{{ key }}]?
+    %old_content_io, content_io = content_io, IO::Memory.new
+    %proc.call
+    %result = content_io.to_s
+    content_io = %old_content_io
+    %result
   end
 end
 
@@ -60,7 +63,7 @@ end
 # render "src/views/index.ecr", "src/views/layout.ecr"
 # ```
 macro render(filename, layout)
-  __content_filename__ = {{ filename }}
+  __content_for_blocks__ = {} of String => Proc(Nil)
   content_io = IO::Memory.new
   ECR.embed {{ filename }}, content_io
   content = content_io.to_s
