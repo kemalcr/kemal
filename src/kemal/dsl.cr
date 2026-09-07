@@ -108,9 +108,14 @@ end
 #
 # ```
 # error MyCustomException do |env, ex|
-#   "Error: #{ex.message}"
+#   "Error: #{HTML.escape(ex.message.to_s)}"
 # end
 # ```
+#
+# The response is `text/html` unless the handler sets another content type, so a
+# message built from request data - `raise "User #{name} not found"` - has to be
+# escaped before it goes into the page. Kemal's own exceptions carry no request
+# data in their messages; the request is on `ex.context` where there is one.
 def error(exception : Exception.class, &block : HTTP::Server::Context, Exception -> _)
   Kemal.config.add_exception_handler exception, &block
 end
