@@ -9,6 +9,18 @@ def multipart_request(body : String, boundary = "AaB03x")
   HTTP::Request.new("POST", "/", headers, IO::Memory.new(body))
 end
 
+# A multipart body of one one-byte file part per name, in order.
+def multipart_files_body(names : Enumerable(String), boundary = "AaB03x")
+  String.build do |body|
+    names.each_with_index do |name, i|
+      body << "--" << boundary << "\r\n"
+      body << %(Content-Disposition: form-data; name="#{name}"; filename="f#{i}.txt"\r\n\r\n)
+      body << "x\r\n"
+    end
+    body << "--" << boundary << "--\r\n"
+  end
+end
+
 describe "ParamParser" do
   it "parses query params" do
     Route.new "POST", "/" do |env|
@@ -426,6 +438,97 @@ describe "ParamParser" do
       request = multipart_request(body, boundary)
 
       Kemal::ParamParser.new(request).body["field"].should eq("hello")
+    end
+  end
+
+  context "file part limit" do
+    # These drive the parser directly, without the handler chain that would
+    # unwind its temporary files, so each spec cleans up after the parser itself.
+    it "raises PayloadTooLarge when a request carries more file parts than max_file_uploads" do
+      Kemal.config.max_file_uploads = 2
+      parser = Kemal::ParamParser.new(multipart_request(multipart_files_body(%w[a b c])))
+
+      expect_raises(Kemal::Exceptions::PayloadTooLarge) do
+        parser.files
+      end
+    ensure
+      parser.try &.cleanup_temporary_files
+    end
+
+    it "accepts exactly max_file_uploads file parts" do
+      Kemal.config.max_file_uploads = 2
+      parser = Kemal::ParamParser.new(multipart_request(multipart_files_body(%w[a b])))
+
+      parser.files.keys.should eq(%w[a b])
+    ensure
+      parser.try &.cleanup_temporary_files
+    end
+
+    it "counts array file parts against the limit" do
+      Kemal.config.max_file_uploads = 2
+      parser = Kemal::ParamParser.new(multipart_request(multipart_files_body(%w[a[] a[] a[]])))
+
+      expect_raises(Kemal::Exceptions::PayloadTooLarge) do
+        parser.files
+      end
+    ensure
+      parser.try &.cleanup_temporary_files
+    end
+
+    it "does not count form fields without a filename" do
+      Kemal.config.max_file_uploads = 1
+      boundary = "AaB03x"
+      body = <<-MULTIPART
+        --#{boundary}\r
+        Content-Disposition: form-data; name="one"\r
+        \r
+        1\r
+        --#{boundary}\r
+        Content-Disposition: form-data; name="two"\r
+        \r
+        2\r
+        --#{boundary}\r
+        Content-Disposition: form-data; name="file"; filename="f.txt"\r
+        \r
+        x\r
+        --#{boundary}--\r
+        MULTIPART
+      parser = Kemal::ParamParser.new(multipart_request(body, boundary))
+      parser.files.keys.should eq(["file"])
+      parser.body["two"].should eq("2")
+    ensure
+      parser.try &.cleanup_temporary_files
+    end
+
+    it "refuses every file part when max_file_uploads is 0" do
+      Kemal.config.max_file_uploads = 0
+      request = multipart_request(multipart_files_body(%w[a]))
+
+      expect_raises(Kemal::Exceptions::PayloadTooLarge) do
+        Kemal::ParamParser.new(request).files
+      end
+    end
+  end
+
+  context "all_files" do
+    it "parses the body on first access" do
+      boundary = "AaB03x"
+      body = <<-MULTIPART
+        --#{boundary}\r
+        Content-Disposition: form-data; name="files[]"; filename="a.txt"\r
+        \r
+        a\r
+        --#{boundary}\r
+        Content-Disposition: form-data; name="files[]"; filename="b.txt"\r
+        \r
+        b\r
+        --#{boundary}--\r
+        MULTIPART
+      parser = Kemal::ParamParser.new(multipart_request(body, boundary))
+
+      parser.all_files["files[]"].map(&.filename).should eq(["a.txt", "b.txt"])
+    ensure
+      parser.try &.cleanup_temporary_files
     end
   end
 end

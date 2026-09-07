@@ -61,7 +61,13 @@ module Kemal
     PARTS            = %w[url query body json files]
     # :nodoc:
     alias AllParamTypes = String | Int64 | Float64 | Bool | Hash(String, JSON::Any) | Array(JSON::Any)?
-    getter files, all_files
+
+    # Files uploaded under a `name[]` field, every part of each. Parses the request body
+    # on first access, like `files`.
+    def all_files
+      files
+      @all_files
+    end
 
     def initialize(@request : HTTP::Request, url : Hash(String, String) = {} of String => String)
       # Own a copy so in-place URI decode cannot mutate a shared/cached Radix params hash.
@@ -165,6 +171,7 @@ module Kemal
 
       validate_content_length!
 
+      uploads = 0
       HTTP::FormData.parse(multipart_body_with_limit, multipart_boundary) do |upload|
         next unless upload
 
@@ -172,10 +179,20 @@ module Kemal
         name = upload.name
 
         if !filename.nil?
+          # Checked before the part is spooled, so the request is refused with what it
+          # has already cost, not one temporary file more. Those are cleaned up with the
+          # request like any other upload.
+          uploads += 1
+          raise Exceptions::PayloadTooLarge.new if uploads > Kemal.config.max_file_uploads
+
           if name.ends_with?("[]")
             @all_files[name] ||= [] of FileUpload
             @all_files[name] << FileUpload.new(upload)
           else
+            # A later part with the same name replaces the earlier one. The replaced
+            # upload leaves the parser here and is no longer reachable by cleanup, so it
+            # is unwound now rather than left on disk.
+            @files[name]?.try &.cleanup
             @files[name] = FileUpload.new(upload)
           end
         else
