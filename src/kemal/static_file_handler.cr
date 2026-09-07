@@ -89,7 +89,7 @@ module Kemal
       # `application/octet-stream` because `app.js.gz` has no media type of its own.
       # `send_file` leaves a body that already carries a `Content-Encoding` alone.
       private def serve_file(context : HTTP::Server::Context, file_info, file_path : Path, original_file_path : Path, last_modified : Time)
-        send_file(context, file_path.to_s, MIME.from_filename(original_file_path.to_s, "application/octet-stream"))
+        send_static_file(context, file_path.to_s, MIME.from_filename(original_file_path.to_s, "application/octet-stream"))
       end
     {% else %}
       def call(context : HTTP::Server::Context)
@@ -153,7 +153,7 @@ module Kemal
               context.response.status_code = 304
               return
             end
-            send_file(context, file_path)
+            send_static_file(context, file_path)
           elsif config.is_a?(Hash) && config.fetch("dir_listing", false)
             context.response.content_type = "text/html; charset=utf-8"
             directory_listing(context.response, request_path, file_path)
@@ -170,7 +170,7 @@ module Kemal
             context.response.status_code = 304
             return
           end
-          send_file(context, file_path.to_s)
+          send_static_file(context, file_path.to_s)
         else # Not a normal file (FIFO/device/socket)
           call_next(context)
         end
@@ -180,6 +180,17 @@ module Kemal
         File.info(file_path).modification_time
       end
     {% end %}
+
+    # Serves the file through `send_file`. A file that exists but cannot be opened -
+    # permissions, a race with its removal - is reported as not found, as the stdlib
+    # does: a `500` would put the absolute path on the development error page and
+    # confirm to the client that the file is there. `respond_with_status` drops the
+    # cache and negotiation headers already derived from the file for the same reason.
+    private def send_static_file(context : HTTP::Server::Context, path : String, mime_type : String? = nil) : Nil
+      send_file(context, path, mime_type)
+    rescue File::Error
+      context.response.respond_with_status(:not_found)
+    end
 
     # Says that the response body depends on `Accept-Encoding` whenever this URL has more
     # than one representation to offer — a pre-compressed neighbour, or a file `send_file`

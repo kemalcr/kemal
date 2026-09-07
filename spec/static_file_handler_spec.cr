@@ -353,6 +353,33 @@ describe Kemal::StaticFileHandler do
     response.status_code.should eq(404)
   end
 
+  it "should report a file it cannot read as not found" do
+    dir = File.tempname("kemal-spec-unreadable")
+    Dir.mkdir_p(dir)
+    path = File.join(dir, "private.txt")
+    File.write(path, "secret")
+    File.chmod(path, 0o000)
+
+    begin
+      # Root, and Windows, read a mode-000 file regardless; there is nothing to
+      # test on such a box.
+      pending!("this process can read a file with no permission bits") if File.readable?(path)
+
+      response = handle HTTP::Request.new("GET", "/private.txt"), public_dir: dir
+
+      # The same answer a missing file gets: nothing about the file - not its
+      # path, not its validators - reaches the client.
+      response.status_code.should eq(404)
+      response.body.should_not contain("secret")
+      response.body.should_not contain(path)
+      response.headers["Etag"]?.should be_nil
+      response.headers["Last-Modified"]?.should be_nil
+    ensure
+      File.chmod(path, 0o600)
+      FileUtils.rm_rf(dir)
+    end
+  end
+
   it "should not serve a not found directory" do
     response = handle HTTP::Request.new("GET", "/not_found_dir/")
     response.status_code.should eq(404)
