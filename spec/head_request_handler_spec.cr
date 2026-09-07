@@ -34,4 +34,18 @@ describe "Kemal::HeadRequestHandler" do
     client_response.headers["Content-Encoding"].should eq("gzip")
     client_response.headers["Content-Length"].should eq("25")
   end
+
+  it "counts a body larger than Int32::MAX" do
+    get "/" do |env|
+      # 2048 MiB = Int32::MAX + 1. `NullIO` only counts, so nothing is allocated
+      # per write and no file is needed.
+      chunk = Bytes.new(1024 * 1024)
+      2048.times { env.response.write(chunk) }
+      ""
+    end
+    request = HTTP::Request.new("HEAD", "/")
+    client_response = call_request_on_app(request)
+    client_response.body.should eq("")
+    client_response.headers["Content-Length"].should eq("2147483648")
+  end
 end

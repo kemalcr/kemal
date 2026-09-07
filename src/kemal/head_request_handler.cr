@@ -8,13 +8,13 @@ module Kemal
 
     private class NullIO < IO
       @original_output : IO
-      @out_count : Int32
+      @out_count : Int64
       @response : HTTP::Server::Response
 
       def initialize(@response)
         @closed = false
         @original_output = @response.output
-        @out_count = 0
+        @out_count = 0_i64
       end
 
       def read(slice : Bytes)
