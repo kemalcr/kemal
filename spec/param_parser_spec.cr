@@ -593,7 +593,7 @@ describe "ParamParser" do
   end
 
   context "FileUpload" do
-    it "hands out the spooled file open for reading from its start" do
+    it "reads the spooled upload through path and open" do
       boundary = "AaB03x"
       body = <<-MULTIPART
         --#{boundary}\r
@@ -605,11 +605,40 @@ describe "ParamParser" do
       parser = Kemal::ParamParser.new(multipart_request(body, boundary))
 
       upload = parser.files["file"]
-      upload.tempfile.closed?.should be_false
-      upload.tempfile.pos.should eq(0)
-      upload.tempfile.gets_to_end.should eq("kemal is fast")
+      File.read(upload.path).should eq("kemal is fast")
+      upload.open(&.gets_to_end).should eq("kemal is fast")
+      # Reading twice starts from the top both times: `open` hands out a fresh handle.
+      upload.open(&.gets_to_end).should eq("kemal is fast")
     ensure
       parser.try &.cleanup_temporary_files
+    end
+
+    {% if flag?(:linux) %}
+      it "holds no file descriptor for a spooled upload" do
+        # Counted through /proc/self/fd. A descriptor per upload is what the
+        # default ulimit runs out of a few concurrent requests in.
+        parser = Kemal::ParamParser.new(multipart_request(multipart_files_body(%w[a b c])))
+        before = Dir.children("/proc/self/fd").size
+
+        parser.files.size.should eq(3)
+
+        (Dir.children("/proc/self/fd").size - before).should eq(0)
+      ensure
+        parser.try &.cleanup_temporary_files
+      end
+    {% end %}
+
+    it "still serves the deprecated tempfile as an open handle at the start" do
+      parser = Kemal::ParamParser.new(multipart_request(multipart_files_body(%w[a])))
+      upload = parser.files["a"]
+
+      handle = upload.tempfile
+      handle.gets_to_end.should eq("x")
+      # The same handle again, as before; `cleanup` closes it.
+      upload.tempfile.should be(handle)
+      parser.cleanup_temporary_files
+      handle.closed?.should be_true
+      File.exists?(upload.path).should be_false
     end
 
     it "reports the size it wrote, not the size the part claimed" do

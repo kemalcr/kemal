@@ -5,7 +5,7 @@ require "./spec_helper"
 UPLOADED_TEMPFILE_PATHS = [] of String
 
 def record_uploads(env)
-  UPLOADED_TEMPFILE_PATHS << env.params.files["file"].tempfile.path
+  UPLOADED_TEMPFILE_PATHS << env.params.files["file"].path
 end
 
 # Every temporary file the parser spooled, recorded as it is created, so a spec
@@ -13,10 +13,10 @@ end
 # or an upload a later part with the same name replaced.
 SPOOLED_TEMPFILE_PATHS = [] of String
 
-struct Kemal::FileUpload
+class Kemal::FileUpload
   def initialize(upload)
     previous_def
-    SPOOLED_TEMPFILE_PATHS << @tempfile.path
+    SPOOLED_TEMPFILE_PATHS << @path
   end
 end
 
