@@ -9,6 +9,10 @@ def multipart_request(body : String, boundary = "AaB03x")
   HTTP::Request.new("POST", "/", headers, IO::Memory.new(body))
 end
 
+def json_request(content_type : String)
+  HTTP::Request.new("POST", "/", body: %({"id": 7}), headers: HTTP::Headers{"Content-Type" => content_type})
+end
+
 # A multipart body of one one-byte file part per name, in order.
 def multipart_files_body(names : Enumerable(String), boundary = "AaB03x")
   String.build do |body|
@@ -299,7 +303,9 @@ describe "ParamParser" do
       parser.raw_body.should eq("foo=bar&baz=qux")
     end
 
-    it "returns empty string for unsupported content types" do
+    it "returns the body whatever its content type" do
+      # It used to come back empty for anything but a form or JSON body, so a
+      # `text/plain` or XML request looked like it had none.
       request = HTTP::Request.new(
         "POST",
         "/",
@@ -307,15 +313,58 @@ describe "ParamParser" do
         headers: HTTP::Headers{"Content-Type" => "text/plain"},
       )
 
-      parser = Kemal::ParamParser.new(request)
-      parser.raw_body.should eq("")
+      Kemal::ParamParser.new(request).raw_body.should eq("some body")
     end
 
-    it "returns empty string when content-type is missing" do
+    it "returns the body when content-type is missing" do
       request = HTTP::Request.new("POST", "/", body: "some body")
 
-      parser = Kemal::ParamParser.new(request)
+      Kemal::ParamParser.new(request).raw_body.should eq("some body")
+    end
+
+    it "applies the body limit to any content type" do
+      Kemal.config.max_request_body_size = 4
+      request = HTTP::Request.new(
+        "POST",
+        "/",
+        body: "some body",
+        headers: HTTP::Headers{"Content-Type" => "text/plain"},
+      )
+
+      expect_raises(Kemal::Exceptions::PayloadTooLarge) do
+        Kemal::ParamParser.new(request).raw_body
+      end
+    end
+
+    it "does not read a multipart body, which parse_files streams" do
+      boundary = "AaB03x"
+      body = <<-MULTIPART
+        --#{boundary}\r
+        Content-Disposition: form-data; name="field"\r
+        \r
+        hello\r
+        --#{boundary}--\r
+        MULTIPART
+      parser = Kemal::ParamParser.new(multipart_request(body, boundary))
+
       parser.raw_body.should eq("")
+      parser.body["field"].should eq("hello")
+    end
+  end
+
+  context "JSON media types" do
+    it "parses a structured-syntax +json type" do
+      # RFC 6839: `application/vnd.api+json`, `application/ld+json`, ... are JSON.
+      Kemal::ParamParser.new(json_request("application/vnd.api+json")).json["id"].should eq(7)
+      Kemal::ParamParser.new(json_request("application/ld+json; charset=utf-8")).json["id"].should eq(7)
+    end
+
+    it "matches the media type case-insensitively" do
+      Kemal::ParamParser.new(json_request("Application/JSON")).json["id"].should eq(7)
+    end
+
+    it "does not take a type that merely starts with application/json for JSON" do
+      Kemal::ParamParser.new(json_request("application/jsonp")).json.should be_empty
     end
   end
 
