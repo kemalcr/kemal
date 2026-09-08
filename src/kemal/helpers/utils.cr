@@ -207,5 +207,57 @@ module Kemal
         headers["Etag"] = etag_with_coding(etag, coding)
       end
     end
+
+    # Builds a `Content-Disposition` field value for *filename*
+    # ([RFC 6266 §4.3](https://www.rfc-editor.org/rfc/rfc6266#section-4.3)).
+    #
+    # The `filename` parameter is a quoted-string and has to stay in ASCII, so `"` and
+    # `\\` are escaped as quoted-pairs and every other character outside printable ASCII
+    # becomes `_`. When that loses something, the original name follows as
+    # `filename*=UTF-8''...` percent-encoded per
+    # [RFC 8187](https://www.rfc-editor.org/rfc/rfc8187), which user agents that
+    # understand it prefer. A name that is plain ASCII to begin with gets only the
+    # first form, unchanged.
+    #
+    # ```
+    # Kemal::Utils.content_disposition("attachment", "report.pdf")  # => %(attachment; filename="report.pdf")
+    # Kemal::Utils.content_disposition("attachment", "rapor ü.pdf") # => %(attachment; filename="rapor _.pdf"; filename*=UTF-8''rapor%20%C3%BC.pdf)
+    # ```
+    def self.content_disposition(disposition : String, filename : String) : String
+      String.build do |header|
+        header << disposition << %(; filename=")
+        lossy = false
+        filename.each_char do |char|
+          case char
+          when '"', '\\'
+            header << '\\' << char
+          when ' '..'~'
+            header << char
+          else
+            lossy = true
+            header << '_'
+          end
+        end
+        header << '"'
+
+        if lossy
+          header << "; filename*=UTF-8''"
+          percent_encode_attr_chars(filename, header)
+        end
+      end
+    end
+
+    # Percent-encodes everything in *value* that is not an RFC 8187 `attr-char`.
+    private def self.percent_encode_attr_chars(value : String, io : IO) : Nil
+      value.each_byte do |byte|
+        char = byte.unsafe_chr
+        if char.ascii_alphanumeric? || "!#$&+-.^_`|~".includes?(char)
+          io << char
+        else
+          io << '%'
+          io << byte.to_s(16, upcase: true).rjust(2, '0')
+        end
+      end
+    end
   end
 end

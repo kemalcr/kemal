@@ -194,4 +194,28 @@ describe Kemal::Utils do
       end
     end
   {% end %}
+
+  describe ".content_disposition" do
+    it "quotes a plain ASCII name as it is" do
+      Kemal::Utils.content_disposition("attachment", "report.pdf").should eq(%(attachment; filename="report.pdf"))
+      Kemal::Utils.content_disposition("inline", "a b.txt").should eq(%(inline; filename="a b.txt"))
+    end
+
+    it "escapes the quote and the backslash inside the quoted-string" do
+      # An unescaped `"` ended the parameter early: `filename="report "final".pdf"`.
+      Kemal::Utils.content_disposition("attachment", %(report "final".pdf)).should eq(%q(attachment; filename="report \"final\".pdf"))
+      Kemal::Utils.content_disposition("attachment", %q(back\slash.txt)).should eq(%q(attachment; filename="back\\slash.txt"))
+    end
+
+    it "adds an RFC 8187 filename* for a name outside ASCII" do
+      Kemal::Utils.content_disposition("attachment", "rapor ünlü.pdf")
+        .should eq(%(attachment; filename="rapor _nl_.pdf"; filename*=UTF-8''rapor%20%C3%BCnl%C3%BC.pdf))
+    end
+
+    it "keeps control characters out of the header" do
+      # A CR/LF in the name used to make the stdlib reject the header, a 500.
+      Kemal::Utils.content_disposition("attachment", "line\r\nX: 1.txt")
+        .should eq(%(attachment; filename="line__X: 1.txt"; filename*=UTF-8''line%0D%0AX%3A%201.txt))
+    end
+  end
 end
