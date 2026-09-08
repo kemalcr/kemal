@@ -98,7 +98,11 @@ module Kemal
     private def call_default_exception(context : HTTP::Server::Context, exception : Exception, status_code : Int32)
       return if context.response.closed? || context.response.headers_sent?
 
-      context.response.content_type = "text/plain" unless context.response.headers.has_key?("Content-Type")
+      # The body is Kemal's own, a bare status reason, so the content type is too.
+      # `Kemal::InitHandler` has already stamped `text/html` on every response by
+      # the time this runs, and a route may have set its own before raising; neither
+      # describes the text below.
+      context.response.content_type = "text/plain"
       context.response.status_code = status_code
       context.response.print exception.message if exception.message
       context
