@@ -85,27 +85,43 @@ module Kemal
       @cached_body = nil
     end
 
-    # Returns the raw request body, read and cached on first access.
-    # Allows multiple handlers to access the body without consuming the IO.
-    # Only caches for `application/x-www-form-urlencoded` and `application/json`.
+    # Returns the raw request body, read and cached on first access, so several
+    # handlers can look at it without consuming the IO. Subject to
+    # `Kemal.config.max_request_body_size` like every other read of the body.
+    #
+    # A `multipart/form-data` body is the one exception: `parse_files` streams it
+    # part by part, and reading it whole here would consume the stream those parts
+    # come from. It returns `""` for such a request; use `files` and `body` instead.
     def raw_body : String
       if cached = @cached_body
         return cached
       end
 
-      content_type = @request.headers["Content-Type"]?
-      return @cached_body = "" if content_type.nil?
+      return @cached_body = "" if media_type == MULTIPART_FORM
 
-      if content_type.try(&.starts_with?(URL_ENCODED_FORM)) || content_type.try(&.starts_with?(APPLICATION_JSON))
-        validate_content_length!
-        @cached_body = if body_io = @request.body
-                         read_body_with_limit(body_io)
-                       else
-                         ""
-                       end
-      else
-        @cached_body = ""
-      end
+      validate_content_length!
+      @cached_body = if body_io = @request.body
+                       read_body_with_limit(body_io)
+                     else
+                       ""
+                     end
+    end
+
+    # The media type of the request's `Content-Type` - lowercased, without its
+    # parameters - or `nil` when the request has none.
+    private def media_type : String?
+      return unless value = @request.headers["Content-Type"]?
+
+      value.split(';', 2)[0].strip.downcase
+    end
+
+    # `application/json`, or a structured-syntax suffix type such as
+    # `application/vnd.api+json` or `application/ld+json` (RFC 6839).
+    private def json_body? : Bool
+      type = media_type
+      return false unless type
+
+      type == APPLICATION_JSON || (type.starts_with?("application/") && type.ends_with?("+json"))
     end
 
     def cleanup_temporary_files
@@ -143,18 +159,10 @@ module Kemal
     {% end %}
 
     private def parse_body
-      content_type = @request.headers["Content-Type"]?
-
-      return unless content_type
-
-      validate_content_length!
-
-      if content_type.try(&.starts_with?(URL_ENCODED_FORM))
+      case media_type
+      when URL_ENCODED_FORM
         @body = parse_part(raw_body)
-        return
-      end
-
-      if content_type.try(&.starts_with?(MULTIPART_FORM))
+      when MULTIPART_FORM
         parse_files
       end
     end
@@ -213,7 +221,7 @@ module Kemal
     # - If request body is a JSON `Hash` then all the params are parsed and added into `params`.
     # - If request body is a JSON `Array` it's added into `params` as `_json` and can be accessed like `params["_json"]`.
     private def parse_json
-      return unless @request.headers["Content-Type"]?.try(&.starts_with?(APPLICATION_JSON))
+      return unless json_body?
 
       body_str = raw_body
       return if body_str.empty?
