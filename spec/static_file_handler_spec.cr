@@ -16,27 +16,29 @@ end
 # which is what `HTTP::StaticFileHandler` looks for when the client accepts gzip. Both files
 # clear the 860 byte floor `send_file` compresses above, so a response that gets encoded
 # twice shows up as one.
-private def with_precompressed_asset(&)
-  dir = File.tempname("kemal-spec-static")
-  Dir.mkdir_p(dir)
-  source = Array.new(500) { |i| %(console.log("entry #{i}");) }.join("\n")
-  previous_serve_static = Kemal.config.serve_static
+{% unless flag?(:without_zlib) %}
+  private def with_precompressed_asset(&)
+    dir = File.tempname("kemal-spec-static")
+    Dir.mkdir_p(dir)
+    source = Array.new(500) { |i| %(console.log("entry #{i}");) }.join("\n")
+    previous_serve_static = Kemal.config.serve_static
 
-  begin
-    File.write(File.join(dir, "app.js"), source)
-    File.open(File.join(dir, "app.js.gz"), "w") do |file|
-      Compress::Gzip::Writer.open(file, &.print(source))
+    begin
+      File.write(File.join(dir, "app.js"), source)
+      File.open(File.join(dir, "app.js.gz"), "w") do |file|
+        Compress::Gzip::Writer.open(file, &.print(source))
+      end
+      File.touch(File.join(dir, "app.js.gz"), Time.utc + 1.second)
+      File.size(File.join(dir, "app.js.gz")).should be > 860
+
+      serve_static({"gzip" => true, "dir_listing" => false})
+      yield dir, source
+    ensure
+      Kemal.config.serve_static = previous_serve_static
+      FileUtils.rm_rf(dir)
     end
-    File.touch(File.join(dir, "app.js.gz"), Time.utc + 1.second)
-    File.size(File.join(dir, "app.js.gz")).should be > 860
-
-    serve_static({"gzip" => true, "dir_listing" => false})
-    yield dir, source
-  ensure
-    Kemal.config.serve_static = previous_serve_static
-    FileUtils.rm_rf(dir)
   end
-end
+{% end %}
 
 describe Kemal::StaticFileHandler do
   file = File.open "#{__DIR__}/static/dir/test.txt"
@@ -85,13 +87,15 @@ describe Kemal::StaticFileHandler do
     response.body.should match(/test.txt/)
   end
 
-  it "should gzip a file if config is true, headers accept gzip and file is > 880 bytes" do
-    serve_static({"gzip" => true, "dir_listing" => true})
-    headers = HTTP::Headers{"Accept-Encoding" => "gzip, deflate, sdch, br"}
-    response = handle HTTP::Request.new("GET", "/dir/bigger.txt", headers), decompress: false
-    response.status_code.should eq(200)
-    response.headers["Content-Encoding"].should eq "gzip"
-  end
+  {% unless flag?(:without_zlib) %}
+    it "should gzip a file if config is true, headers accept gzip and file is > 880 bytes" do
+      serve_static({"gzip" => true, "dir_listing" => true})
+      headers = HTTP::Headers{"Accept-Encoding" => "gzip, deflate, sdch, br"}
+      response = handle HTTP::Request.new("GET", "/dir/bigger.txt", headers), decompress: false
+      response.status_code.should eq(200)
+      response.headers["Content-Encoding"].should eq "gzip"
+    end
+  {% end %}
 
   it "should not gzip a file if config is true, headers accept gzip and file is < 880 bytes" do
     serve_static({"gzip" => true, "dir_listing" => true})
@@ -109,82 +113,84 @@ describe Kemal::StaticFileHandler do
     response.headers["Content-Encoding"]?.should be_nil
   end
 
-  it "should advertise that the response was negotiated on Accept-Encoding" do
-    serve_static({"gzip" => true, "dir_listing" => true})
+  {% unless flag?(:without_zlib) %}
+    it "should advertise that the response was negotiated on Accept-Encoding" do
+      serve_static({"gzip" => true, "dir_listing" => true})
 
-    headers = HTTP::Headers{"Accept-Encoding" => "gzip"}
-    response = handle HTTP::Request.new("GET", "/dir/bigger.txt", headers), decompress: false
-    response.headers["Vary"].should eq "Accept-Encoding"
+      headers = HTTP::Headers{"Accept-Encoding" => "gzip"}
+      response = handle HTTP::Request.new("GET", "/dir/bigger.txt", headers), decompress: false
+      response.headers["Vary"].should eq "Accept-Encoding"
 
-    # Also when this request happens to get the identity representation.
-    response = handle HTTP::Request.new("GET", "/dir/bigger.txt")
-    response.headers["Content-Encoding"]?.should be_nil
-    response.headers["Vary"].should eq "Accept-Encoding"
-  end
+      # Also when this request happens to get the identity representation.
+      response = handle HTTP::Request.new("GET", "/dir/bigger.txt")
+      response.headers["Content-Encoding"]?.should be_nil
+      response.headers["Vary"].should eq "Accept-Encoding"
+    end
 
-  it "should give the encoded variant an entity tag of its own" do
-    serve_static({"gzip" => true, "dir_listing" => true})
+    it "should give the encoded variant an entity tag of its own" do
+      serve_static({"gzip" => true, "dir_listing" => true})
 
-    headers = HTTP::Headers{"Accept-Encoding" => "gzip"}
-    encoded = handle HTTP::Request.new("GET", "/dir/bigger.txt", headers), decompress: false
-    encoded.headers["Content-Encoding"].should eq "gzip"
-    encoded.headers["Etag"].should end_with %(-gzip")
+      headers = HTTP::Headers{"Accept-Encoding" => "gzip"}
+      encoded = handle HTTP::Request.new("GET", "/dir/bigger.txt", headers), decompress: false
+      encoded.headers["Content-Encoding"].should eq "gzip"
+      encoded.headers["Etag"].should end_with %(-gzip")
 
-    identity = handle HTTP::Request.new("GET", "/dir/bigger.txt")
-    identity.headers["Etag"].should_not eq encoded.headers["Etag"]
-    encoded.headers["Etag"].should eq Kemal::Utils.etag_with_coding(identity.headers["Etag"], "gzip")
-  end
+      identity = handle HTTP::Request.new("GET", "/dir/bigger.txt")
+      identity.headers["Etag"].should_not eq encoded.headers["Etag"]
+      encoded.headers["Etag"].should eq Kemal::Utils.etag_with_coding(identity.headers["Etag"], "gzip")
+    end
 
-  it "should respond with 304 to the entity tag of the encoded variant" do
-    serve_static({"gzip" => true, "dir_listing" => true})
+    it "should respond with 304 to the entity tag of the encoded variant" do
+      serve_static({"gzip" => true, "dir_listing" => true})
 
-    headers = HTTP::Headers{"Accept-Encoding" => "gzip"}
-    etag = (handle HTTP::Request.new("GET", "/dir/bigger.txt", headers), decompress: false).headers["Etag"]
+      headers = HTTP::Headers{"Accept-Encoding" => "gzip"}
+      etag = (handle HTTP::Request.new("GET", "/dir/bigger.txt", headers), decompress: false).headers["Etag"]
 
-    headers = HTTP::Headers{"Accept-Encoding" => "gzip", "If-None-Match" => etag}
-    response = handle HTTP::Request.new("GET", "/dir/bigger.txt", headers), decompress: false
-    response.status_code.should eq(304)
-    response.headers["Etag"].should eq etag
-    response.body.should eq ""
+      headers = HTTP::Headers{"Accept-Encoding" => "gzip", "If-None-Match" => etag}
+      response = handle HTTP::Request.new("GET", "/dir/bigger.txt", headers), decompress: false
+      response.status_code.should eq(304)
+      response.headers["Etag"].should eq etag
+      response.body.should eq ""
 
-    headers = HTTP::Headers{"Accept-Encoding" => "gzip", "If-None-Match" => %(W/"1-gzip")}
-    response = handle HTTP::Request.new("GET", "/dir/bigger.txt", headers), decompress: false
-    response.status_code.should eq(200)
-  end
+      headers = HTTP::Headers{"Accept-Encoding" => "gzip", "If-None-Match" => %(W/"1-gzip")}
+      response = handle HTTP::Request.new("GET", "/dir/bigger.txt", headers), decompress: false
+      response.status_code.should eq(200)
+    end
 
-  it "should not answer 304 with a variant the request would not have got" do
-    serve_static({"gzip" => true, "dir_listing" => true})
+    it "should not answer 304 with a variant the request would not have got" do
+      serve_static({"gzip" => true, "dir_listing" => true})
 
-    headers = HTTP::Headers{"Accept-Encoding" => "gzip"}
-    etag = (handle HTTP::Request.new("GET", "/dir/bigger.txt", headers), decompress: false).headers["Etag"]
+      headers = HTTP::Headers{"Accept-Encoding" => "gzip"}
+      etag = (handle HTTP::Request.new("GET", "/dir/bigger.txt", headers), decompress: false).headers["Etag"]
 
-    # The client holds the gzip variant but is now asking for the stored file, whose entity
-    # tag is a different one. Answering 304 would pass its gzip copy off as this response.
-    headers = HTTP::Headers{"Accept-Encoding" => "identity", "If-None-Match" => etag}
-    response = handle HTTP::Request.new("GET", "/dir/bigger.txt", headers), decompress: false
-    response.status_code.should eq(200)
-    response.headers["Content-Encoding"]?.should be_nil
+      # The client holds the gzip variant but is now asking for the stored file, whose entity
+      # tag is a different one. Answering 304 would pass its gzip copy off as this response.
+      headers = HTTP::Headers{"Accept-Encoding" => "identity", "If-None-Match" => etag}
+      response = handle HTTP::Request.new("GET", "/dir/bigger.txt", headers), decompress: false
+      response.status_code.should eq(200)
+      response.headers["Content-Encoding"]?.should be_nil
 
-    headers = HTTP::Headers{"Accept-Encoding" => "gzip", "If-None-Match" => etag.sub("-gzip", "-deflate")}
-    response = handle HTTP::Request.new("GET", "/dir/bigger.txt", headers), decompress: false
-    response.status_code.should eq(200)
-  end
+      headers = HTTP::Headers{"Accept-Encoding" => "gzip", "If-None-Match" => etag.sub("-gzip", "-deflate")}
+      response = handle HTTP::Request.new("GET", "/dir/bigger.txt", headers), decompress: false
+      response.status_code.should eq(200)
+    end
 
-  it "should tell a 304 apart on Accept-Encoding just like the 200 it stands for" do
-    serve_static({"gzip" => true, "dir_listing" => true})
+    it "should tell a 304 apart on Accept-Encoding just like the 200 it stands for" do
+      serve_static({"gzip" => true, "dir_listing" => true})
 
-    headers = HTTP::Headers{"Accept-Encoding" => "gzip"}
-    response = handle HTTP::Request.new("GET", "/dir/bigger.txt", headers), decompress: false
-    etag = response.headers["Etag"]
+      headers = HTTP::Headers{"Accept-Encoding" => "gzip"}
+      response = handle HTTP::Request.new("GET", "/dir/bigger.txt", headers), decompress: false
+      etag = response.headers["Etag"]
 
-    headers = HTTP::Headers{"Accept-Encoding" => "gzip", "If-None-Match" => etag}
-    response = handle HTTP::Request.new("GET", "/dir/bigger.txt", headers), decompress: false
-    response.status_code.should eq(304)
-    # RFC 9110 §15.4.5: a 304 sends the header fields its 200 would have.
-    response.headers["Vary"].should eq "Accept-Encoding"
-  end
+      headers = HTTP::Headers{"Accept-Encoding" => "gzip", "If-None-Match" => etag}
+      response = handle HTTP::Request.new("GET", "/dir/bigger.txt", headers), decompress: false
+      response.status_code.should eq(304)
+      # RFC 9110 §15.4.5: a 304 sends the header fields its 200 would have.
+      response.headers["Vary"].should eq "Accept-Encoding"
+    end
+  {% end %}
 
-  {% if compare_versions(Crystal::VERSION, "1.17.0") >= 0 %}
+  {% if compare_versions(Crystal::VERSION, "1.17.0") >= 0 && !flag?(:without_zlib) %}
     it "should serve a pre-compressed file with the media type of the file it stands for" do
       with_precompressed_asset do |dir, source|
         headers = HTTP::Headers{"Accept-Encoding" => "gzip"}
@@ -320,23 +326,25 @@ describe Kemal::StaticFileHandler do
     end
   {% end %}
 
-  it "should not confirm the stored file's tag for an encoded response" do
-    serve_static({"gzip" => true, "dir_listing" => true})
+  {% unless flag?(:without_zlib) %}
+    it "should not confirm the stored file's tag for an encoded response" do
+      serve_static({"gzip" => true, "dir_listing" => true})
 
-    # The client holds the identity copy while gzip is what this request is answered with,
-    # so its validator is not the selected representation's (RFC 9110 §13.1.2).
-    identity_etag = (handle HTTP::Request.new("GET", "/dir/bigger.txt")).headers["Etag"]
+      # The client holds the identity copy while gzip is what this request is answered with,
+      # so its validator is not the selected representation's (RFC 9110 §13.1.2).
+      identity_etag = (handle HTTP::Request.new("GET", "/dir/bigger.txt")).headers["Etag"]
 
-    headers = HTTP::Headers{"Accept-Encoding" => "gzip", "If-None-Match" => identity_etag}
-    response = handle HTTP::Request.new("GET", "/dir/bigger.txt", headers), decompress: false
-    response.status_code.should eq(200)
-    response.headers["Content-Encoding"].should eq "gzip"
+      headers = HTTP::Headers{"Accept-Encoding" => "gzip", "If-None-Match" => identity_etag}
+      response = handle HTTP::Request.new("GET", "/dir/bigger.txt", headers), decompress: false
+      response.status_code.should eq(200)
+      response.headers["Content-Encoding"].should eq "gzip"
 
-    # And with no coding in play it still matches.
-    headers = HTTP::Headers{"If-None-Match" => identity_etag}
-    response = handle HTTP::Request.new("GET", "/dir/bigger.txt", headers)
-    response.status_code.should eq(304)
-  end
+      # And with no coding in play it still matches.
+      headers = HTTP::Headers{"If-None-Match" => identity_etag}
+      response = handle HTTP::Request.new("GET", "/dir/bigger.txt", headers)
+      response.status_code.should eq(304)
+    end
+  {% end %}
 
   it "should not confirm an encoded variant of a file it never encodes" do
     serve_static({"gzip" => false, "dir_listing" => true})
@@ -474,6 +482,8 @@ describe Kemal::StaticFileHandler do
   end
 
   it "should handle requests with trailing slashes in nested paths" do
+    # A directory path answers with its listing, which is off by default.
+    serve_static({"gzip" => true, "dir_listing" => true})
     response = handle HTTP::Request.new("GET", "/dir/nested/path/")
     response.status_code.should eq(200)
   end

@@ -22,18 +22,20 @@ describe "Kemal::HeadRequestHandler" do
     client_response.headers["Content-Length"].should eq("5")
   end
 
-  it "gives compressed Content-Length when gzip enabled" do
-    gzip true
-    get "/" do
-      "hello"
+  {% unless flag?(:without_zlib) %}
+    it "gives compressed Content-Length when gzip enabled" do
+      gzip true
+      get "/" do
+        "hello"
+      end
+      headers = HTTP::Headers{"Accept-Encoding" => "gzip"}
+      request = HTTP::Request.new("HEAD", "/", headers)
+      client_response = call_request_on_app(request)
+      client_response.body.should eq("")
+      client_response.headers["Content-Encoding"].should eq("gzip")
+      client_response.headers["Content-Length"].should eq("25")
     end
-    headers = HTTP::Headers{"Accept-Encoding" => "gzip"}
-    request = HTTP::Request.new("HEAD", "/", headers)
-    client_response = call_request_on_app(request)
-    client_response.body.should eq("")
-    client_response.headers["Content-Encoding"].should eq("gzip")
-    client_response.headers["Content-Length"].should eq("25")
-  end
+  {% end %}
 
   it "counts a body larger than Int32::MAX" do
     get "/" do |env|

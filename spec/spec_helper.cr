@@ -12,6 +12,15 @@ class CustomLogHandler < Kemal::BaseLogHandler
   end
 end
 
+# Used by `config_spec` and `handler_spec` alike, so it lives here and each
+# spec file compiles on its own.
+class CustomTestHandler < Kemal::Handler
+  def call(env)
+    env.response << "Kemal"
+    call_next env
+  end
+end
+
 class TestContextStorageType
   property id
   @id = 1
@@ -82,6 +91,16 @@ def build_main_handler
   end
   main_handler
 end
+
+# Crystal 1.21 runs on execution contexts by default, but the default context
+# starts with a parallelism of one. `KEMAL_SPEC_WORKERS=N` widens it so the
+# suite exercises the request path from several threads at once - the setting
+# CI uses to catch shared state the single-threaded run cannot see.
+{% if compare_versions(Crystal::VERSION, "1.21.0") >= 0 %}
+  if workers = ENV["KEMAL_SPEC_WORKERS"]?.try(&.to_i?)
+    Fiber::ExecutionContext.default.resize(workers)
+  end
+{% end %}
 
 Spec.before_each do
   config = Kemal.config

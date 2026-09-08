@@ -1,12 +1,5 @@
 require "./spec_helper"
 
-class CustomTestHandler < Kemal::Handler
-  def call(env)
-    env.response << "Kemal"
-    call_next env
-  end
-end
-
 class OnlyHandler < Kemal::Handler
   only ["/only"]
 

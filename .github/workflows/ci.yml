@@ -6,6 +6,9 @@ on:
   schedule:
     - cron: "0 3 * * 1" # Every monday at 3 AM
 
+permissions:
+  contents: read
+
 jobs:
   test:
     strategy:
@@ -36,3 +39,62 @@ jobs:
       - name: Run specs
         run: |
           crystal spec
+
+  # The paths behind compile-time flags are code the default build never
+  # compiles, and the release build is what users run. One job per variant,
+  # on the current compiler only.
+  variants:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: release
+            flags: --release
+          - name: without_zlib
+            flags: -Dwithout_zlib
+          - name: without_openssl
+            flags: -Dwithout_openssl
+    name: test (${{ matrix.name }})
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Install Crystal
+        uses: crystal-lang/install-crystal@v1
+        with:
+          crystal: latest
+
+      - name: Download source
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: shards install
+
+      - name: Run specs
+        run: |
+          crystal spec ${{ matrix.flags }}
+
+  # Crystal 1.21 runs on execution contexts by default with a parallelism of
+  # one. `KEMAL_SPEC_WORKERS` has the spec helper widen the default context, so
+  # the suite drives the request path from several threads and shared state
+  # that the single-threaded runs cannot see gets a chance to show.
+  parallel:
+    name: test (parallel, 4 workers)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Install Crystal
+        uses: crystal-lang/install-crystal@v1
+        with:
+          crystal: latest
+
+      - name: Download source
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: shards install
+
+      - name: Run specs
+        run: |
+          crystal spec
+        env:
+          KEMAL_SPEC_WORKERS: 4
