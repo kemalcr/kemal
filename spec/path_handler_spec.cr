@@ -261,5 +261,38 @@ describe "PathHandler" do
         response.headers["X-Empty"]?.should eq("all")
       end
     end
+
+    describe "linking" do
+      it "links the wrapped handler to the chain once, when the chain is built" do
+        wrapped = TestHeaderHandler.new("X-Api", "yes")
+        path_handler = Kemal::PathHandler.new("/api", wrapped)
+        tail = Kemal::RouteHandler::INSTANCE
+
+        path_handler.next = tail
+
+        wrapped.next.as(HTTP::Handler).should be(tail)
+      end
+
+      it "does not re-point the wrapped handler while serving requests" do
+        # It used to set `wrapped.next = self.next` on every matching request - a
+        # write to shared state on the hot path that parallel requests raced on.
+        wrapped = TestHeaderHandler.new("X-Api", "yes")
+        use "/api", wrapped
+        get "/api/users" do
+          "users"
+        end
+        get "/other" do
+          "other"
+        end
+
+        call_request_on_app(HTTP::Request.new("GET", "/other"))
+        linked_to = wrapped.next.as(HTTP::Handler)
+
+        response = call_request_on_app(HTTP::Request.new("GET", "/api/users"))
+        response.headers["X-Api"]?.should eq("yes")
+        response.body.should eq("users")
+        wrapped.next.as(HTTP::Handler).should be(linked_to)
+      end
+    end
   end
 end
