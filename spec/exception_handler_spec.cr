@@ -18,6 +18,20 @@ describe "Kemal::ExceptionHandler" do
     response.status_code.should eq 404
   end
 
+  it "answers an unmatched route with 404 through the full chain without a custom handler" do
+    # Without a registered `error 404` this used to fall through as an empty
+    # `200` - which is what every request in the `test` environment got, since
+    # only `Kemal.run` outside it registered the page.
+    get "/" do
+      "Hello"
+    end
+
+    response = call_request_on_app(HTTP::Request.new("GET", "/nope"))
+    response.status_code.should eq 404
+    response.headers["Content-Type"].should eq "text/plain"
+    response.body.should eq "Not Found"
+  end
+
   it "does not reflect the request in the message a 404 handler receives" do
     # Echoing `ex.message` is the obvious thing to write in an `error 404`
     # handler, and the response is `text/html`, so the message must not carry

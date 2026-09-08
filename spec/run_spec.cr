@@ -143,6 +143,13 @@ describe "Run" do
       CR
   end
 
+  it "registers the default 404 page in the test environment too" do
+    run(<<-'CR').should contain("404 handler: true")
+      Kemal.run { }
+      puts "404 handler: #{Kemal.config.error_handlers.has_key?(404)}"
+      CR
+  end
+
   it "runs without a block being specified" do
     run(<<-CR).should contain "[test] Kemal is running in test mode."
       Kemal.run

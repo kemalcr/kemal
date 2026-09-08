@@ -40,12 +40,14 @@ module Kemal
     # The call order of the filters is `before_all -> before_x -> X -> after_x -> after_all`.
     def call(context : HTTP::Server::Context)
       if !context.route_found?
-        # A request that matched no route can still reach a custom `error`
-        # handler - 404, or 405 when the path is routed for another method - and
-        # that handler expects the same `before_all` setup a route gets.
-        if Kemal.config.error_handlers.has_key?(404) || Kemal.config.error_handlers.has_key?(405)
-          call_block_for_path_type("ALL", context.request.path, :before, context)
-        end
+        # A request that matched no route still gets the `before_all` filters: it
+        # ends in a 404 or 405 page, or in a WebSocket upgrade, and the setup those
+        # expect - an authentication check above all - is the same a route gets.
+        # This used to depend on whether a custom `error 404`/`405` handler was
+        # registered, which `Kemal.run` does outside the `test` environment and
+        # nothing does inside it, so a `before_all` guard ran in production and
+        # not under spec.
+        call_block_for_path_type("ALL", context.request.path, :before, context)
         return call_next(context)
       end
 

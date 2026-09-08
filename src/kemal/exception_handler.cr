@@ -7,7 +7,7 @@ module Kemal
     def call(context : HTTP::Server::Context)
       call_next(context)
     rescue ex : Kemal::Exceptions::RouteNotFound
-      call_exception_with_status_code(context, ex, 404)
+      call_fixed_status(context, ex, 404)
     rescue ex : Kemal::Exceptions::MethodNotAllowed
       call_method_not_allowed(context, ex)
     rescue ex : Kemal::Exceptions::CustomException
