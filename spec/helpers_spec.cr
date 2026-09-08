@@ -219,6 +219,15 @@ describe "Macros" do
       response.headers["Content-Disposition"].should eq("attachment; filename=\"image.jpg\"")
     end
 
+    it "sends a non-ASCII filename as an RFC 8187 filename* with an ASCII fallback" do
+      get "/" do |env|
+        send_file env, "#{__DIR__}/asset/hello.ecr", filename: "rapor ünlü.pdf"
+      end
+      response = call_request_on_app(HTTP::Request.new("GET", "/"))
+      response.status_code.should eq(200)
+      response.headers["Content-Disposition"].should eq(%(attachment; filename="rapor _nl_.pdf"; filename*=UTF-8''rapor%20%C3%BCnl%C3%BC.pdf))
+    end
+
     it "handles multiple range requests" do
       get "/" do |env|
         send_file env, "#{__DIR__}/asset/hello.ecr"

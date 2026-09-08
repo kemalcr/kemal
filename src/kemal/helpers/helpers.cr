@@ -373,7 +373,7 @@ end
 private def attachment(env : HTTP::Server::Context, filename : String? = nil, disposition : String? = nil)
   disposition = "attachment" if disposition.nil? && filename
   if disposition && filename
-    env.response.headers["Content-Disposition"] = "#{disposition}; filename=\"#{File.basename(filename)}\""
+    env.response.headers["Content-Disposition"] = Kemal::Utils.content_disposition(disposition, File.basename(filename))
   end
 end
 
