@@ -192,6 +192,19 @@ def send_file(env : HTTP::Server::Context, path : String, mime_type : String? = 
     end
   end
 
+  # A `HEAD` wants the headers a `GET` would send, and `Kemal::HeadRequestHandler`
+  # gets them by producing the body into a counting sink and reading the length off
+  # it. When the stored bytes go out as they are, that length is the file's own, so
+  # there is nothing to produce: a `HEAD` on a 20 GB file should not read 20 GB. The
+  # file is still opened, so that one the `GET` could not serve fails here the same
+  # way. A body Kemal would compress is still produced - its length is only known
+  # once it has been.
+  if coding.nil? && env.request.method == "HEAD"
+    File.open(file_path) { }
+    env.response.content_length = filesize
+    return
+  end
+
   File.open(file_path) do |file|
     {% if flag?(:without_zlib) %}
       env.response.content_length = filesize
