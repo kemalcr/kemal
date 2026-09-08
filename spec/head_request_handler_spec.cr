@@ -1,5 +1,12 @@
 require "./spec_helper"
 
+{% if flag?(:linux) %}
+  # Bytes this process has read, per the kernel.
+  private def process_read_bytes : Int64
+    File.read("/proc/self/io").lines.find!(&.starts_with?("rchar")).split(':')[1].strip.to_i64
+  end
+{% end %}
+
 describe "Kemal::HeadRequestHandler" do
   it "implicitly handles GET endpoints, with Content-Length header" do
     get "/" do
@@ -10,6 +17,46 @@ describe "Kemal::HeadRequestHandler" do
     client_response.body.should eq("")
     client_response.headers["Content-Length"].should eq("5")
   end
+
+  it "answers HEAD on a file from its size without producing the body" do
+    path = File.tempname("kemal-spec-head", ".bin")
+    File.open(path, "w", &.truncate(4 * 1024 * 1024))
+
+    begin
+      get "/file" do |env|
+        send_file env, path
+      end
+      client_response = call_request_on_app(HTTP::Request.new("HEAD", "/file"))
+      client_response.status_code.should eq(200)
+      client_response.body.should eq("")
+      client_response.headers["Content-Length"].should eq((4 * 1024 * 1024).to_s)
+    ensure
+      File.delete(path)
+    end
+  end
+
+  {% if flag?(:linux) %}
+    it "does not read the file to answer HEAD" do
+      # `HeadRequestHandler` learns the length by producing the body into a
+      # counting sink; for stored bytes going out as they are, the length is
+      # the file's and the read is pure waste. Counted through `/proc/self/io`.
+      path = File.tempname("kemal-spec-head", ".bin")
+      File.open(path, "w", &.truncate(4 * 1024 * 1024))
+
+      begin
+        get "/file" do |env|
+          send_file env, path
+        end
+        call_request_on_app(HTTP::Request.new("GET", "/file")) # warm every cache but the file's
+
+        before = process_read_bytes
+        call_request_on_app(HTTP::Request.new("HEAD", "/file")).status_code.should eq(200)
+        (process_read_bytes - before).should be < 1024 * 1024
+      ensure
+        File.delete(path)
+      end
+    end
+  {% end %}
 
   it "prefers explicit HEAD endpoint if specified" do
     Kemal::RouteHandler::INSTANCE.add_route("HEAD", "/") { "hello" }

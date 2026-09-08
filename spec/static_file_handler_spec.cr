@@ -406,6 +406,12 @@ describe Kemal::StaticFileHandler do
       response.body.should_not contain(path)
       response.headers["Etag"]?.should be_nil
       response.headers["Last-Modified"]?.should be_nil
+
+      # `HEAD` answers from the file's size without reading it, but it still has
+      # to fail where the `GET` fails, or it would report the size of a file the
+      # client can never fetch.
+      response = handle HTTP::Request.new("HEAD", "/private.txt"), public_dir: dir
+      response.status_code.should eq(404)
     ensure
       File.chmod(path, 0o600)
       FileUtils.rm_rf(dir)
