@@ -17,6 +17,7 @@ error 405 do |env|
 end
 ```
 
+- Have an error page replace a body written before the error, instead of following it. A route that printed to `env.response` and then set a status with a registered `error` handler, or raised, sent the partial body with the error page appended - `partial body forbidden page` - and a `HEAD` counted both into `Content-Length`. The body is buffered until the headers go out, so up to that point it is discarded before the page is written (`HTTP::Server::Response#discard_unsent_body`); a body that has already reached the client stays, as before, since nothing can replace it.
 - Answer `HEAD` on a file `send_file` would send as it is from the file's size, without producing the body. `Kemal::HeadRequestHandler` learns `Content-Length` by running the `GET` handler into a counting sink, so a `HEAD` on a 20 GB download read 20 GB from disk to throw it away (noted in [#803](https://github.com/kemalcr/kemal/issues/803)). When the stored bytes go out unchanged - no compression, or a pre-compressed neighbour standing in - the length is the file's own and the read is skipped. The file is still opened, so a `HEAD` fails where the `GET` would. A body Kemal compresses on the way out is still produced; its length is only known once it has been.
 - Make the `test` environment behave like every other one, and let `before_all`/`after_all` work in specs [#788](https://github.com/kemalcr/kemal/issues/788). Three things differed between a spec run and production:
 
