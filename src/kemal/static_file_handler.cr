@@ -91,6 +91,20 @@ module Kemal
       private def serve_file(context : HTTP::Server::Context, file_info, file_path : Path, original_file_path : Path, last_modified : Time)
         send_static_file(context, file_path.to_s, MIME.from_filename(original_file_path.to_s, "application/octet-stream"))
       end
+
+      # The stdlib adds the trailing slash to a directory URL whenever its own
+      # `directory_listing` flag is on, and Kemal never passes that flag: it decides
+      # per request from `serve_static`. With neither `dir_listing` nor `dir_index`
+      # on, nothing is ever served for a directory, so the redirect would only tell a
+      # client that the directory is there - `/admin` answered `302` where `/nope`
+      # answered `404`. Now it falls through to the same `404`.
+      private def normalize_request_path(context : HTTP::Server::Context, request_path : Path, expanded_path : Path, file_info) : Path?
+        if directory_paths_served? && file_info.try(&.directory?) && !request_path.ends_with_separator?
+          expanded_path.join("")
+        elsif request_path != expanded_path
+          expanded_path
+        end
+      end
     {% else %}
       def call(context : HTTP::Server::Context)
         return call_next(context) if context.request.path.not_nil! == "/"
@@ -123,7 +137,7 @@ module Kemal
 
         file_path = @public_dir.join(expanded_path.to_kind(Path::Kind.native))
         file_info = File.info? file_path
-        is_dir = @directory_listing && file_info && file_info.directory?
+        is_dir = directory_paths_served? && file_info && file_info.directory?
         is_file = file_info && file_info.file?
 
         if request_path != expanded_path || is_dir && !is_dir_path
@@ -190,6 +204,15 @@ module Kemal
       send_file(context, path, mime_type)
     rescue File::Error
       context.response.respond_with_status(:not_found)
+    end
+
+    # Whether a directory URL can answer with anything at all - a listing, or an
+    # `index.html` - and so deserves its canonical trailing slash.
+    private def directory_paths_served? : Bool
+      config = Kemal.config.serve_static
+      return false unless config.is_a?(Hash)
+
+      config.fetch("dir_listing", false) || config.fetch("dir_index", false)
     end
 
     # Says that the response body depends on `Accept-Encoding` whenever this URL has more
