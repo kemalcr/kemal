@@ -123,10 +123,11 @@ module Kemal
       @url_parsed = false
     end
 
+    # `URI.decode` passes a malformed percent-escape through unchanged rather than
+    # raising, so there is nothing here to rescue; a bare `rescue` would only have
+    # hidden a bug elsewhere as a silently undecoded value.
     private def unescape_url_param(value : String)
       value.empty? ? value : URI.decode(value)
-    rescue
-      value
     end
 
     {% for method in PARTS %}

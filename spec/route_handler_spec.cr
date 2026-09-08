@@ -556,10 +556,7 @@ describe "Kemal::RouteHandler" do
       response.status_code.should eq(405)
       response.headers["Allow"].should eq("GET, HEAD")
       response.body.should eq("Method Not Allowed")
-      # `Kemal::InitHandler` presets `Content-Type: text/html` on every
-      # response, so the plain-text default body inherits it - the same as the
-      # framework defaults for 400 and 413.
-      response.headers["Content-Type"].should eq("text/html")
+      response.headers["Content-Type"].should eq("text/plain")
     end
 
     it "answers PUT and OPTIONS on a GET only path with 405" do
