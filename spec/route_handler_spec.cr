@@ -366,6 +366,25 @@ describe "Kemal::RouteHandler" do
     client_response.headers.has_key?("Location").should be_true
   end
 
+  it "replaces the Location of an earlier redirect instead of adding a second one" do
+    # A filter redirected without closing; the route then redirects elsewhere. The
+    # client must see one `Location`, the last one - not two to choose from.
+    filter_handler = Kemal::FilterHandler.new
+    filter_handler._add_route_filter("GET", "/", :before) do |env|
+      env.redirect "/login", close: false
+    end
+    Kemal.config.add_filter_handler(filter_handler)
+
+    get "/" do |env|
+      env.redirect "/dashboard"
+    end
+
+    request = HTTP::Request.new("GET", "/")
+    client_response = call_request_on_app(request)
+    client_response.status_code.should eq(302)
+    client_response.headers.get("Location").should eq(["/dashboard"])
+  end
+
   context "LRU cache" do
     it "evicts least recently used entries instead of clearing entirely" do
       # Use a small capacity to make the test fast and deterministic

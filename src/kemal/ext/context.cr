@@ -26,8 +26,12 @@ class HTTP::Server
       end
     end
 
+    # Sets `Location` and the status. A redirect issued after an earlier one - a
+    # `before` filter that redirected with `close: false`, then the route deciding
+    # otherwise - replaces it: a response with two `Location` headers is one the
+    # client has to guess about.
     def redirect(url : String | URI, status_code : Int32 = 302, *, body : String? = nil, close : Bool = true)
-      @response.headers.add "Location", url.to_s
+      @response.headers["Location"] = url.to_s
       @response.status_code = status_code
       @response.print(body) if body
       @response.close if close
