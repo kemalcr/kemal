@@ -36,14 +36,13 @@ This skill provides expert guidance on implementing file uploads and storage in 
   uploaded_file = env.params.files["file"]
   ```
 
-- **Pre-Validation:** Check the size of the uploaded tempfile before storage:
+- **Pre-Validation:** Check the size of the upload before storage (`size` is the byte count written to disk):
 
   ```crystal
-  max_size = 50_i64 * 1024 * 1024
-  uploaded_file.tempfile.rewind
-  tempfile_size = uploaded_file.tempfile.size
+  max_size = 50_u64 * 1024 * 1024
+  upload_size = uploaded_file.size || 0_u64
 
-  if tempfile_size > max_size
+  if upload_size > max_size
     env.redirect "/files?error=File+size+must+be+50MB+or+smaller."
     next ""
   end
@@ -65,8 +64,10 @@ This skill provides expert guidance on implementing file uploads and storage in 
   stored_name = "#{Random::Secure.hex(16)}#{extension}"
   destination = ::File.join(Kemal.config.public_folder, "uploads", stored_name)
 
-  ::File.open(destination, "w") do |file|
-    IO.copy(uploaded_file.tempfile, file)
+  uploaded_file.open do |upload|
+    ::File.open(destination, "w") do |file|
+      IO.copy(upload, file)
+    end
   end
   ```
 
@@ -101,13 +102,12 @@ post "/files/upload" do |env|
     next ""
   end
 
-  max_size = 50_i64 * 1024 * 1024
+  max_size = 50_u64 * 1024 * 1024
 
   # Check size before copying:
-  uploaded_file.tempfile.rewind
-  tempfile_size = uploaded_file.tempfile.size
+  upload_size = uploaded_file.size || 0_u64
 
-  if tempfile_size > max_size
+  if upload_size > max_size
     env.redirect "/files?error=File+size+must+be+50MB+or+smaller."
     next ""
   end
@@ -116,12 +116,14 @@ post "/files/upload" do |env|
   stored_name = "#{Random::Secure.hex(16)}#{extension}"
   destination = ::File.join(Kemal.config.public_folder, "uploads", stored_name)
 
-  ::File.open(destination, "w") do |file|
-    IO.copy(uploaded_file.tempfile, file)
+  uploaded_file.open do |upload|
+    ::File.open(destination, "w") do |file|
+      IO.copy(upload, file)
+    end
   end
 
   mime_type = uploaded_file.headers["Content-Type"]? || "application/octet-stream"
-  StoredFile.create(original_name, stored_name, mime_type, tempfile_size)
+  StoredFile.create(original_name, stored_name, mime_type, upload_size)
 
   env.redirect "/files?notice=File+uploaded+successfully."
 end

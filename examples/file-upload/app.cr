@@ -3,8 +3,8 @@ require "kemal"
 # Handle file uploads via POST request to /upload endpoint
 post "/upload" do |env|
   # Get the uploaded file from the "image" field in the form
-  # The file is initially stored in a temporary location
-  uploaded_file = env.params.files["image"].tempfile
+  # It is spooled to a temporary file that is removed when the request is over
+  uploaded_file = env.params.files["image"]
 
   # Construct the destination path where we'll save the file
   # - Kemal.config.public_folder is the configured public directory
@@ -12,9 +12,11 @@ post "/upload" do |env|
   # - File.basename gets just the filename from the temp file path
   uploaded_file_path = ::File.join [Kemal.config.public_folder, "uploads/", File.basename(uploaded_file.path)]
 
-  # Open the destination file for writing and copy the uploaded file to it
-  File.open(uploaded_file_path, "w") do |file|
-    IO.copy(uploaded_file, file)
+  # Copy the upload to its destination; `open` closes the upload when done
+  uploaded_file.open do |upload|
+    File.open(uploaded_file_path, "w") do |file|
+      IO.copy(upload, file)
+    end
   end
 
   # Return a simple success message

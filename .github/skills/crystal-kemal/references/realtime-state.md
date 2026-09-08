@@ -2,7 +2,7 @@
 
 ## File uploads
 
-Uploaded files are available through `env.params.files`; useful properties include `filename`, `tempfile`, `size`, and `headers`.
+Uploaded files are available through `env.params.files`; useful properties include `filename`, `path`, `open(&)`, `size`, and `headers`. `tempfile` is deprecated: it keeps a file descriptor open for the rest of the request.
 
 Before saving:
 
