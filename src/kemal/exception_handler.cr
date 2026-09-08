@@ -22,6 +22,12 @@ module Kemal
       # parsing raises this; a parse error in handler code keeps its 500.
       call_fixed_status(context, ex, 400)
     rescue ex : Exception
+      # Logged before any handler sees it, so an `error MyException` handler - a
+      # catch-all `error Exception` in particular - renders the response without
+      # also taking the failure out of the log. The `error 500` path already
+      # behaved this way.
+      Log.error(exception: ex) { ex.message }
+
       # Matches an error handler for the given exception
       #
       # Matches based on order of declaration rather than inheritance relationship
@@ -32,7 +38,6 @@ module Kemal
         end
       end
 
-      Log.error(exception: ex) { ex.message }
       # Else use generic 500 handler if defined
       return call_exception_with_status_code(context, ex, 500) if Kemal.config.error_handlers.has_key?(500)
       render_500(context, ex, Kemal.config.show_exceptions?)
