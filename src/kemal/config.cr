@@ -138,11 +138,19 @@ module Kemal
       show.nil? ? @env == "development" : show
     end
 
+    # Returns every setting to its default and empties the handler tables. Specs call
+    # this after each example; a setting `clear` forgets is one that leaks from the
+    # example that set it into the next.
     def clear
       @powered_by_header = false
       @router_included = false
       @handler_position = 0
       @default_handlers_setup = false
+      @serve_static = {"dir_listing" => false, "gzip" => true, "dir_index" => false}
+      @public_folder = "./public"
+      @static_headers = nil
+      @shutdown_message = true
+      @shutdown_timeout = 30.seconds
       @max_route_cache_size = 1024
       @max_request_body_size = 8 * 1024 * 1024
       @max_multipart_form_field_size = 8 * 1024 * 1024
