@@ -16,6 +16,12 @@ module Kemal
       # response and raise; the client had its answer, the log got a spurious error.
       return if context.response.closed?
       unless context.request.method == "GET"
+        # A `POST` with upgrade headers is still a `POST`. When an HTTP route serves
+        # that method on this path, it is the route's request, not a handshake gone
+        # wrong; only a method nothing serves here is a 405 - and then `Allow` can
+        # never list the method being refused.
+        return call_next(context) if context.route_found?
+
         reject_websocket_method_not_allowed!(context)
         return
       end
