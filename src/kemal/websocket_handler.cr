@@ -11,6 +11,10 @@ module Kemal
 
     def call(context : HTTP::Server::Context)
       return call_next(context) unless context.ws_route_found? && websocket_upgrade_request?(context)
+      # A `before_all` filter that already answered - a `halt` with 401 - leaves
+      # nothing to upgrade. The stdlib handler would try anyway, hit the closed
+      # response and raise; the client had its answer, the log got a spurious error.
+      return if context.response.closed?
       unless context.request.method == "GET"
         reject_websocket_method_not_allowed!(context)
         return
