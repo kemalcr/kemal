@@ -32,6 +32,85 @@ describe "Kemal::ExceptionHandler" do
     response.body.should eq "Not Found"
   end
 
+  describe "a body written before the error" do
+    it "is replaced by a custom status page" do
+      error 403 do
+        "forbidden page"
+      end
+      get "/" do |env|
+        env.response.print "partial body "
+        env.response.status_code = 403
+        "ignored"
+      end
+
+      response = call_request_on_app(HTTP::Request.new("GET", "/"))
+      response.status_code.should eq 403
+      # Used to be "partial body forbidden page".
+      response.body.should eq "forbidden page"
+    end
+
+    it "is replaced by a custom exception page" do
+      error CustomExceptionType do
+        "exception page"
+      end
+      get "/" do |env|
+        env.response.print "partial body "
+        raise CustomExceptionType.new
+      end
+
+      response = call_request_on_app(HTTP::Request.new("GET", "/"))
+      response.status_code.should eq 500
+      response.body.should eq "exception page"
+    end
+
+    it "is replaced by the built-in 500 page" do
+      Kemal.config.env = "production"
+      get "/" do |env|
+        env.response.print "partial body "
+        raise "boom"
+      end
+
+      response = call_request_on_app(HTTP::Request.new("GET", "/"))
+      response.status_code.should eq 500
+      response.body.should_not contain "partial body"
+      response.body.should contain "Kemal has encountered an error. (500)"
+    end
+
+    it "is not counted into the Content-Length of a HEAD" do
+      error 403 do
+        "forbidden page"
+      end
+      get "/" do |env|
+        env.response.print "partial body "
+        env.response.status_code = 403
+        "ignored"
+      end
+
+      response = call_request_on_app(HTTP::Request.new("HEAD", "/"))
+      response.status_code.should eq 403
+      response.headers["Content-Length"].should eq "forbidden page".bytesize.to_s
+    end
+
+    it "stays when it has already gone out to the client" do
+      # Past the output buffer the headers and body are on the wire; the error
+      # page cannot replace what the client already has, so nothing is appended.
+      error 403 do
+        "forbidden page"
+      end
+      big = "x" * 16_384
+      get "/" do |env|
+        env.response.print big
+        env.response.flush
+        env.response.status_code = 403
+        "ignored"
+      end
+
+      response = call_request_on_app(HTTP::Request.new("GET", "/"))
+      response.status_code.should eq 200
+      response.body.should eq big
+    end
+  end
+
   it "does not reflect the request in the message a 404 handler receives" do
     # Echoing `ex.message` is the obvious thing to write in an `error 404`
     # handler, and the response is `text/html`, so the message must not carry

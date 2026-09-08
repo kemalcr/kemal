@@ -26,6 +26,8 @@ def render_500(context, exception, verbosity)
   # longer be changed and a meaningful error page can't be delivered.
   return context if context.response.headers_sent?
 
+  context.response.discard_unsent_body
+
   context.response.content_type = "text/html"
   context.response.status_code = 500
 

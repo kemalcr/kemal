@@ -6,7 +6,8 @@ module Kemal
 
     INSTANCE = new
 
-    private class NullIO < IO
+    # :nodoc:
+    class NullIO < IO
       @original_output : IO
       @out_count : Int64
       @response : HTTP::Server::Response
@@ -23,6 +24,11 @@ module Kemal
 
       def write(slice : Bytes) : Nil
         @out_count += slice.bytesize
+      end
+
+      # Forgets the bytes counted so far; see `HTTP::Server::Response#discard_unsent_body`.
+      def reset : Nil
+        @out_count = 0_i64
       end
 
       def close : Nil
