@@ -1,4 +1,5 @@
 require "./spec_helper"
+require "log/spec"
 require "socket"
 
 # `Host` is part of a well formed HTTP/1.1 request and Crystal's
@@ -433,5 +434,34 @@ describe "Kemal::WebSocketHandler" do
       raw.should match(/connection:\s*close/i)
       raw.includes?("INTERNAL SECRET").should be_false
     end
+  end
+
+  it "does not attempt the upgrade when a before filter already answered" do
+    # `halt` in a `before_all` closes the response with the filter's status. The
+    # stdlib upgrade would then raise on the closed stream, which the client never
+    # saw but the log did, as an error per rejected handshake.
+    Kemal.config.websocket_allowed_origins = ["*"]
+    error(404) { "not found" }
+    ws("/chat", &.send("hi"))
+
+    filter_handler = Kemal::FilterHandler.new
+    filter_handler._add_route_filter("ALL", "*", :before) do |env|
+      halt env, status_code: 401, response: "auth required"
+    end
+    Kemal.config.add_filter_handler(filter_handler)
+
+    io = IO::Memory.new
+    response = HTTP::Server::Response.new(io)
+    context = HTTP::Server::Context.new(HTTP::Request.new("GET", "/chat", ws_upgrade_headers_for_origin), response)
+
+    Log.capture do |logs|
+      build_main_handler.call(context)
+      logs.empty
+    end
+
+    io.rewind
+    client_response = HTTP::Client::Response.from_io(io, decompress: false)
+    client_response.status_code.should eq(401)
+    client_response.body.should eq("auth required")
   end
 end
