@@ -170,26 +170,28 @@ describe Kemal::Utils do
     end
   end
 
-  describe ".compressible?" do
-    it "follows the gzip option of serve_static" do
-      previous = Kemal.config.serve_static
+  {% unless flag?(:without_zlib) %}
+    describe ".compressible?" do
+      it "follows the gzip option of serve_static" do
+        previous = Kemal.config.serve_static
 
-      begin
-        serve_static({"gzip" => true})
-        Kemal::Utils.compressible?("app.js", 1000).should be_true
+        begin
+          serve_static({"gzip" => true})
+          Kemal::Utils.compressible?("app.js", 1000).should be_true
 
-        # Too small to be worth the framing, and a media type that is already compressed.
-        Kemal::Utils.compressible?("app.js", 100).should be_false
-        Kemal::Utils.compressible?("photo.png", 1000).should be_false
+          # Too small to be worth the framing, and a media type that is already compressed.
+          Kemal::Utils.compressible?("app.js", 100).should be_false
+          Kemal::Utils.compressible?("photo.png", 1000).should be_false
 
-        serve_static({"gzip" => false})
-        Kemal::Utils.compressible?("app.js", 1000).should be_false
+          serve_static({"gzip" => false})
+          Kemal::Utils.compressible?("app.js", 1000).should be_false
 
-        serve_static true
-        Kemal::Utils.compressible?("app.js", 1000).should be_false
-      ensure
-        Kemal.config.serve_static = previous
+          serve_static true
+          Kemal::Utils.compressible?("app.js", 1000).should be_false
+        ensure
+          Kemal.config.serve_static = previous
+        end
       end
     end
-  end
+  {% end %}
 end
