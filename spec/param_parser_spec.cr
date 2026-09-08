@@ -71,6 +71,17 @@ describe "ParamParser" do
     url_params["spanish"].should eq "año"
   end
 
+  it "passes a malformed percent-escape in a url param through unchanged" do
+    kemal = Kemal::RouteHandler::INSTANCE
+    kemal.add_route "GET", "/tag/:name" { "" }
+    request = HTTP::Request.new("GET", "/tag/100%25%zz%C3")
+    context = create_request_and_return_io_and_context(kemal, request)[1]
+    url_params = Kemal::ParamParser.new(request, context.route_lookup.params).url
+    # `%25` decodes; `%zz` is not an escape and stays; `%C3` alone is a lone
+    # UTF-8 lead byte, decoded as-is.
+    url_params["name"].should eq "100%%zz\xC3"
+  end
+
   it "parses url-encoded body of a QUERY request" do
     request = HTTP::Request.new(
       "QUERY",
