@@ -210,6 +210,22 @@ Kemal.config.show_exceptions = false
 
 Register `error 500` to render your own page instead; the setting only decides between Kemal's two built-in ones.
 
+**Can I use `before_all` in my specs?**
+
+Yes. Kemal's `before_all` and `after_all` share their names with the `describe`-level hooks of Crystal's `spec` library, and as top-level definitions they take precedence. Called inside a `describe` block they act as the spec hooks — the block runs once around the group's examples — so a spec file reads the same with or without Kemal loaded. Called anywhere else, including inside an example, they register Kemal's filter.
+
+```crystal
+describe "Users" do
+  before_all { seed_users }   # the spec hook: once, before the examples
+
+  it "lists them" do
+    before_all { |env| env.set "user", "bob" }   # Kemal's filter, for this example's requests
+    get "/users" { |env| env.get("user").to_s }
+    call_request_on_app(HTTP::Request.new("GET", "/users")).body.should eq("bob")
+  end
+end
+```
+
 **Does Kemal work with any ORM?**
 
 Yes. You can use any Crystal ORM or database library. No forced dependencies.
