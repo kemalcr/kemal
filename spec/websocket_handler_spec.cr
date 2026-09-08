@@ -138,17 +138,22 @@ describe "Kemal::WebSocketHandler" do
     # `Allow` describes the resource, not this request, so the HTTP routes on the
     # path belong in it too - hardcoding `GET` sent clients away from a verb the
     # path really serves.
-    it "lists the HTTP methods on the path alongside the handshake verb" do
+    it "hands a non-GET upgrade attempt to the HTTP route that serves the method" do
+      # A `POST` with upgrade headers is a `POST`. It used to be answered
+      # `405, Allow: GET, POST` - a 405 naming the very method it refused.
       handler = Kemal::WebSocketHandler::INSTANCE
       handler.next = Kemal::RouteHandler::INSTANCE
       ws "/chat" { }
       post "/chat" { "post" }
       headers = ws_upgrade_headers_for_origin("http://localhost")
       request = HTTP::Request.new("POST", "/chat", headers)
-      assert_websocket_method_not_allowed(call_ws_handler_response(handler, request), allow: "GET, POST")
+      response = call_ws_handler_response(handler, request)
+      response.status_code.should eq(200)
+      response.body.should eq("post")
+      response.headers["Allow"]?.should be_nil
     end
 
-    it "lists them for a verb the path does not serve either" do
+    it "lists the HTTP methods on the path alongside the handshake verb for a verb none serves" do
       handler = Kemal::WebSocketHandler::INSTANCE
       handler.next = Kemal::RouteHandler::INSTANCE
       ws "/chat" { }
