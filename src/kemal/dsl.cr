@@ -116,6 +116,10 @@ end
 # message built from request data - `raise "User #{name} not found"` - has to be
 # escaped before it goes into the page. Kemal's own exceptions carry no request
 # data in their messages; the request is on `ex.context` where there is one.
+#
+# The exception is logged at `error` level before the handler runs, as it is
+# for a `500` rendered by `error 500`: the handler owns the response, not the
+# record of the failure.
 def error(exception : Exception.class, &block : HTTP::Server::Context, Exception -> _)
   Kemal.config.add_exception_handler exception, &block
 end

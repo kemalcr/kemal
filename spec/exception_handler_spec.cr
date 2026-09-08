@@ -1,4 +1,5 @@
 require "./spec_helper"
+require "log/spec"
 
 describe "Kemal::ExceptionHandler" do
   it "renders 404 on route not found" do
@@ -143,6 +144,27 @@ describe "Kemal::ExceptionHandler" do
     response.status_code.should eq 500
     response.headers["Content-Type"].should eq "text/html"
     response.body.should eq "A custom exception of CustomExceptionType has occurred"
+  end
+
+  it "logs an exception a custom handler renders" do
+    # A handler that renders the page must not also take the failure out of the
+    # log; a catch-all `error Exception` would otherwise hide every crash.
+    error CustomExceptionType do
+      "handled"
+    end
+
+    get "/" do
+      raise CustomExceptionType.new("something broke")
+    end
+
+    Log.capture("kemal") do |logs|
+      response = call_request_on_app(HTTP::Request.new("GET", "/"))
+      response.status_code.should eq 500
+      response.body.should eq "handled"
+
+      logs.check(:error, "something broke")
+      logs.entry.exception.should be_a(CustomExceptionType)
+    end
   end
 
   it "renders custom error for a custom exception with a specific HTTP status code" do
