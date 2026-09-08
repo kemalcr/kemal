@@ -334,6 +334,30 @@ describe "Kemal::ExceptionHandler" do
     response.body.should eq "Payload Too Large"
   end
 
+  it "sends the default error body as text/plain through the full handler chain" do
+    # `Kemal::InitHandler` presets `text/html`; the bare status reason is not HTML.
+    get "/" do
+      raise Kemal::Exceptions::PayloadTooLarge.new
+    end
+
+    response = call_request_on_app(HTTP::Request.new("GET", "/"))
+    response.status_code.should eq 413
+    response.headers["Content-Type"].should eq "text/plain"
+    response.body.should eq "Payload Too Large"
+  end
+
+  it "sends the default error body as text/plain when the route had set another type" do
+    get "/" do |env|
+      env.response.content_type = "application/json"
+      raise Kemal::Exceptions::PayloadTooLarge.new
+    end
+
+    response = call_request_on_app(HTTP::Request.new("GET", "/"))
+    response.status_code.should eq 413
+    response.headers["Content-Type"].should eq "text/plain"
+    response.body.should eq "Payload Too Large"
+  end
+
   it "renders 400 for a malformed JSON body" do
     post "/j" do |env|
       env.params.json["x"]?
