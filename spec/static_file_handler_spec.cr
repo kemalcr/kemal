@@ -80,6 +80,30 @@ describe Kemal::StaticFileHandler do
     response.status_code.should eq(404)
   end
 
+  it "should not confirm a directory exists when nothing is served for it" do
+    # With neither a listing nor an index, `/dir` used to answer `302 /dir/`
+    # while `/nope` answered `404` - the redirect was the only difference.
+    serve_static({"gzip" => true, "dir_listing" => false, "dir_index" => false})
+    response = handle HTTP::Request.new("GET", "/dir")
+    response.status_code.should eq(404)
+    response.headers["Location"]?.should be_nil
+  end
+
+  it "should redirect a directory to its trailing slash when it has a listing" do
+    serve_static({"gzip" => true, "dir_listing" => true})
+    response = handle HTTP::Request.new("GET", "/dir")
+    response.status_code.should eq(302)
+    response.headers["Location"].should eq("/dir/")
+  end
+
+  it "should redirect a directory to its trailing slash when it has an index" do
+    # Relative links in the index resolve against `/dir/`, not `/`.
+    serve_static({"gzip" => true, "dir_listing" => false, "dir_index" => true})
+    response = handle HTTP::Request.new("GET", "/dir")
+    response.status_code.should eq(302)
+    response.headers["Location"].should eq("/dir/")
+  end
+
   it "should list directory's entries when config is set" do
     serve_static({"gzip" => true, "dir_listing" => true})
     response = handle HTTP::Request.new("GET", "/dir/")
