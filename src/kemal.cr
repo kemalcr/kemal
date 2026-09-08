@@ -42,11 +42,9 @@ module Kemal
     config.setup
     config.port = port if port
 
-    # Test environment doesn't need to have signal trap and logging.
-    if config.env != "test"
-      setup_404
-      setup_trap_signal if trap_signal
-    end
+    setup_404
+    # A test environment does not listen, so it has no signal to trap.
+    setup_trap_signal if trap_signal && config.env != "test"
 
     server = config.server ||= HTTP::Server.new(config.handlers)
 

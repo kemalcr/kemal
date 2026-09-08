@@ -251,4 +251,33 @@ describe "Kemal::FilterHandler" do
       client_response.body.should eq(body)
     end
   end
+
+  it "runs before_all for an unmatched path whether or not an error handler is registered" do
+    # `Kemal.run` registers an `error 404` outside the `test` environment and
+    # nothing does inside it; `before_all` used to run only when one existed, so
+    # an authentication guard ran in production and not under spec.
+    Kemal.config.error_handlers.has_key?(404).should be_false
+
+    filter_handler = Kemal::FilterHandler.new
+    filter_handler._add_route_filter("ALL", "*", :before) do |env|
+      env.response.headers["X-Seen"] = "1"
+    end
+    Kemal.config.add_filter_handler(filter_handler)
+
+    response = call_request_on_app(HTTP::Request.new("GET", "/nope"))
+    response.status_code.should eq(404)
+    response.headers["X-Seen"].should eq("1")
+  end
+
+  it "lets before_all answer an unmatched path itself" do
+    filter_handler = Kemal::FilterHandler.new
+    filter_handler._add_route_filter("ALL", "*", :before) do |env|
+      halt env, status_code: 401, response: "auth required"
+    end
+    Kemal.config.add_filter_handler(filter_handler)
+
+    response = call_request_on_app(HTTP::Request.new("GET", "/nope"))
+    response.status_code.should eq(401)
+    response.body.should eq("auth required")
+  end
 end

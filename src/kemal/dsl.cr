@@ -147,10 +147,28 @@ end
 #
 # NOTE: Response headers must be set before the response body is written,
 # so use `before_*` filters for header changes.
+#
+# `before_all` and `after_all` share their names with the `describe`-level hooks
+# of Crystal's `spec` library, and as top-level definitions they win. Called
+# directly inside a `describe` block they therefore register the spec hook, as
+# a spec author expects (see `Kemal::SpecHooks`); called anywhere else - the top
+# level of a file, a route, an example - they register Kemal's filter.
 {% for type in ["before", "after"] %}
   {% for method in FILTER_METHODS %}
     def {{ type.id }}_{{ method.id }}(path : String = "*", &block : HTTP::Server::Context -> _)
-     Kemal::FilterHandler::INSTANCE.{{ type.id }}({{ method }}.upcase, path, &block)
+      {% if method == "all" %}
+        filter = block
+        {% if @top_level.has_constant?("Spec") %}
+          unless Spec.cli.current_context.is_a?(Spec::RootContext)
+            # A spec hook takes no argument; the filter block was typed to take a
+            # context, so it gets a blank one it will never look at.
+            return Spec::KemalHooks.{{ type.id }}_all do
+              filter.call(HTTP::Server::Context.new(HTTP::Request.new("GET", "/"), HTTP::Server::Response.new(IO::Memory.new)))
+            end
+          end
+        {% end %}
+      {% end %}
+      Kemal::FilterHandler::INSTANCE.{{ type.id }}({{ method }}.upcase, path, &block)
     end
 
     def {{ type.id }}_{{ method.id }}(paths : Enumerable(String), &block : HTTP::Server::Context -> _)
