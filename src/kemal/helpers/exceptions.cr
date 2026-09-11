@@ -62,10 +62,12 @@ module Kemal::Exceptions
     end
   end
 
-  # Raised by `ParamParser` when the framework cannot parse the request body
-  # (broken JSON, unparseable multipart). Rendered as 400. Only wraps failures
-  # from Kemal's own body parsing, so a parse error inside handler code keeps
-  # its original class and 500 status.
+  # Raised when the framework itself cannot make sense of the request: a body it
+  # cannot parse (broken JSON, unparseable multipart, from `ParamParser`), or a
+  # request line it will not route (a method that is not an RFC 9110 token, from
+  # `Kemal::MethodValidationHandler`). Rendered as 400. Only Kemal's own reading
+  # of the request raises this, so a parse error inside handler code keeps its
+  # original class and 500 status.
   class BadRequest < Exception
     def initialize(message : String? = nil, cause : Exception? = nil)
       super(message || "Bad Request", cause)

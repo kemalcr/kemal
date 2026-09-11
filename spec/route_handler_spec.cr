@@ -862,4 +862,56 @@ describe "Kemal::RouteHandler" do
       end
     end
   end
+
+  # The route key is the method concatenated with the path, so a method carrying
+  # a `/` decides for itself where the one ends and the other begins: `GET/admin`
+  # + `/secret` resolved to `get "/admin/secret"` while `request.path` - the only
+  # thing a path-scoped guard reads - stayed `/secret` (#820).
+  describe "a request method that is not an RFC 9110 token" do
+    it "is refused instead of routed" do
+      get "/admin/secret" do
+        "TOP-SECRET-DATA"
+      end
+
+      response = call_request_on_app(crafted_method_request("GET/admin", "/secret"))
+      response.status_code.should eq(400)
+      response.body.should_not contain("TOP-SECRET-DATA")
+    end
+
+    # Pushing the whole path into the method leaves `request.path` as `/`, which
+    # not even an exact-path guard recognizes as the path it stands in front of.
+    it "is refused when it absorbs the entire path" do
+      get "/account" do
+        "ACCOUNT-DATA"
+      end
+
+      response = call_request_on_app(crafted_method_request("GET/account", "/"))
+      response.status_code.should eq(400)
+      response.body.should_not contain("ACCOUNT-DATA")
+    end
+
+    it "is refused before a state-changing route runs" do
+      deleted = false
+
+      delete "/api/users/:id" do
+        deleted = true
+        "deleted"
+      end
+
+      call_request_on_app(crafted_method_request("DELETE/api", "/users/42")).status_code.should eq(400)
+      deleted.should be_false
+    end
+
+    # A verb Kemal does not know is still a token, so it keeps reaching the
+    # router and getting the router's answer.
+    it "leaves an unfamiliar but well-formed method to the router" do
+      get "/thing" do
+        "get"
+      end
+
+      response = call_request_on_app(HTTP::Request.new("PROPFIND", "/thing"))
+      response.status_code.should eq(405)
+      response.headers["Allow"].should eq("GET, HEAD")
+    end
+  end
 end

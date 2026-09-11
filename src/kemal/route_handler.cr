@@ -270,6 +270,18 @@ module Kemal
       # spares it the per-verb probe.
       return if context.response.closed?
 
+      # `Kemal::MethodValidationHandler` has already refused a method that is not
+      # an RFC 9110 token, several handlers back, which is where the refusal
+      # belongs: ahead of the guards that would otherwise run against a request
+      # whose method and path cannot both be believed (#820). This is the same
+      # check at the point where the ambiguity would actually be spent - the route
+      # key below is the method concatenated with the path - so that a chain
+      # assembled by hand through `Kemal.config.handlers=`, without that handler
+      # in it, still cannot reach a route handler with a method carrying a `/`.
+      unless Utils.valid_method?(context.request.method)
+        raise Kemal::Exceptions::BadRequest.new
+      end
+
       unless context.route_found?
         # RFC 9110 §15.5.6: an existing resource that does not support the
         # request method is a 405, not a 404.
