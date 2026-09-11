@@ -24,7 +24,17 @@ module Kemal
     INSTANCE = new
 
     def call(context : HTTP::Server::Context)
-      raise Kemal::Exceptions::BadRequest.new unless Utils.valid_method?(context.request.method)
+      unless Utils.valid_method?(context.request.method)
+        # The connection does not get to carry another request. A request line
+        # Kemal reads one way and an intermediary in front of it reads another is
+        # exactly the parsing disagreement request smuggling is built on
+        # (RFC 9112 §11.2), so the stream ends here rather than staying open for
+        # whatever the peer believes it already sent. `close` is the signal for
+        # that (RFC 9112 §9.6), and it survives a custom `error 400`, which
+        # `Kemal::ExceptionHandler` dispatches without touching response headers.
+        context.response.headers["Connection"] = "close"
+        raise Kemal::Exceptions::BadRequest.new
+      end
 
       call_next context
     end

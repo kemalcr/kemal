@@ -1,3 +1,4 @@
+require "log/spec"
 require "./spec_helper"
 
 # Guards the path prefix Kemal's `use "/prefix", handler` form scopes on.
@@ -68,6 +69,41 @@ describe "Kemal::MethodValidationHandler" do
     response.status_code.should eq(400)
     response.headers["Content-Type"].should eq("application/json")
     response.body.should eq(%({"error":"malformed request"}))
+    # The custom handler owns the body; it cannot drop the connection teardown.
+    response.headers["Connection"].should eq("close")
+  end
+
+  # A request line Kemal reads one way and an intermediary reads another is the
+  # disagreement request smuggling is built on, so the refusal ends the
+  # connection instead of leaving it open for a second request.
+  it "closes the connection" do
+    get "/" do
+      "hello"
+    end
+
+    response = call_request_on_app(crafted_method_request("GET/", "/"))
+    response.status_code.should eq(400)
+    response.headers["Connection"].should eq("close")
+  end
+
+  # The other half of the placement argument: the handler stands behind the log
+  # handler as well, so a refused request is written to the access log. Moving
+  # the check to the head of the chain would drop the one request class this
+  # exists to stop out of the log, and the suite should say so.
+  it "is logged, like every other answered request" do
+    Log.setup(:none)
+    Kemal.config.logging = true
+
+    get "/admin/secret" do
+      "TOP-SECRET-DATA"
+    end
+
+    request = crafted_method_request("GET/admin", "/secret")
+
+    Log.capture do |logs|
+      call_request_on_app(request).status_code.should eq(400)
+      logs.check(:info, /400 GET\/admin \/secret/)
+    end
   end
 
   # `Kemal.config.handlers=` hands the whole chain over, so an application can
