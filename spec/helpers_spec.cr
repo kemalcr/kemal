@@ -29,7 +29,7 @@ describe "Macros" do
     it "adds a custom handler" do
       use CustomTestHandler.new
       Kemal.config.setup
-      Kemal.config.handlers.size.should eq 8
+      Kemal.config.handlers.size.should eq 7
     end
   end
 
@@ -900,7 +900,7 @@ describe "Macros" do
     it "adds HTTP::CompressHandler to handlers" do
       gzip true
       Kemal.config.setup
-      Kemal.config.handlers[5].should be_a(HTTP::CompressHandler)
+      Kemal.config.handlers[4].should be_a(HTTP::CompressHandler)
     end
   end
 

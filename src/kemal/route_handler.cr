@@ -270,15 +270,23 @@ module Kemal
       # spares it the per-verb probe.
       return if context.response.closed?
 
-      # `Kemal::MethodValidationHandler` has already refused a method that is not
-      # an RFC 9110 token, several handlers back, which is where the refusal
-      # belongs: ahead of the guards that would otherwise run against a request
-      # whose method and path cannot both be believed (#820). This is the same
-      # check at the point where the ambiguity would actually be spent - the route
-      # key below is the method concatenated with the path - so that a chain
-      # assembled by hand through `Kemal.config.handlers=`, without that handler
-      # in it, still cannot reach a route handler with a method carrying a `/`.
+      # The route key below is the method concatenated with the path, so a method
+      # that is not an RFC 9110 token - one carrying a `/` - decides for itself
+      # where the one ends and the other begins: `GET/admin` + `/secret` builds the
+      # same key as `GET` + `/admin/secret` and resolves to that route, while the
+      # guards in front of it - `use "/prefix"`, `only`/`exclude`,
+      # `before_*`/`after_*` - all match on `request.path` and see only `/secret`
+      # (#820). Refused where that ambiguity would be spent, so nothing routes on a
+      # method and a path that cannot both be believed.
+      #
+      # The connection does not get to carry another request either: a request line
+      # Kemal reads one way and an intermediary in front of it reads another is the
+      # parsing disagreement request smuggling is built on (RFC 9112 §11.2), and
+      # `close` is the signal for ending it (§9.6). The header survives a custom
+      # `error 400`, which `Kemal::ExceptionHandler` dispatches without touching
+      # response headers.
       unless Utils.valid_method?(context.request.method)
+        context.response.headers["Connection"] = "close"
         raise Kemal::Exceptions::BadRequest.new
       end
 

@@ -215,7 +215,6 @@ module Kemal
         setup_log_handler
         setup_head_request_handler
         setup_error_handler
-        setup_method_validation_handler
         setup_static_file_handler
         setup_custom_handlers
         setup_filter_handlers
@@ -251,15 +250,6 @@ module Kemal
         HANDLERS.insert(@handler_position, handler)
         @handler_position += 1
       end
-    end
-
-    # Behind the log handler and the exception handler, so a malformed request
-    # method reaches the access log and a registered `error 400` like every other
-    # client error - and ahead of the static file handler, the custom handlers and
-    # the filters, none of which should ever see a method that means two things.
-    private def setup_method_validation_handler
-      HANDLERS.insert(@handler_position, Kemal::MethodValidationHandler::INSTANCE)
-      @handler_position += 1
     end
 
     private def setup_static_file_handler

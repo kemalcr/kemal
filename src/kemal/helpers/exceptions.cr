@@ -65,7 +65,7 @@ module Kemal::Exceptions
   # Raised when the framework itself cannot make sense of the request: a body it
   # cannot parse (broken JSON, unparseable multipart, from `ParamParser`), or a
   # request line it will not route (a method that is not an RFC 9110 token, from
-  # `Kemal::MethodValidationHandler`). Rendered as 400. Only Kemal's own reading
+  # `Kemal::RouteHandler`). Rendered as 400. Only Kemal's own reading
   # of the request raises this, so a parse error inside handler code keeps its
   # original class and 500 status.
   class BadRequest < Exception

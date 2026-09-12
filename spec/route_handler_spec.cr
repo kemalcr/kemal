@@ -1,4 +1,24 @@
+require "log/spec"
 require "./spec_helper"
+
+# Guards the path prefix Kemal's `use "/prefix", handler` form scopes on.
+class PrefixAuthHandler < Kemal::Handler
+  def call(env)
+    env.response.status_code = 401
+    env.response.print "auth required"
+  end
+end
+
+# Guards a path subtree through `only`, on every method.
+class OnlyAuthHandler < Kemal::Handler
+  only ["/api/*"], "*"
+
+  def call(env)
+    return call_next(env) unless only_match?(env)
+    env.response.status_code = 401
+    env.response.print "auth required"
+  end
+end
 
 describe "Kemal::RouteHandler" do
   it "routes" do
@@ -875,7 +895,16 @@ describe "Kemal::RouteHandler" do
 
       response = call_request_on_app(crafted_method_request("GET/admin", "/secret"))
       response.status_code.should eq(400)
-      response.body.should_not contain("TOP-SECRET-DATA")
+      response.body.should eq("Bad Request")
+      response.headers["Content-Type"].should eq("text/plain")
+    end
+
+    it "is refused when the method is empty" do
+      get "/" do
+        "hello"
+      end
+
+      call_request_on_app(crafted_method_request("", "/")).status_code.should eq(400)
     end
 
     # Pushing the whole path into the method leaves `request.path` as `/`, which
@@ -912,6 +941,112 @@ describe "Kemal::RouteHandler" do
       response = call_request_on_app(HTTP::Request.new("PROPFIND", "/thing"))
       response.status_code.should eq(405)
       response.headers["Allow"].should eq("GET, HEAD")
+    end
+
+    # The refusal is raised, so it leaves by the same road as every other client
+    # error Kemal produces, a registered `error 400` handler included.
+    it "is rendered by a registered error 400 handler" do
+      error 400 do |env|
+        env.response.content_type = "application/json"
+        {error: "malformed request"}.to_json
+      end
+
+      get "/" do
+        "hello"
+      end
+
+      response = call_request_on_app(crafted_method_request("GET/", "/"))
+      response.status_code.should eq(400)
+      response.headers["Content-Type"].should eq("application/json")
+      response.body.should eq(%({"error":"malformed request"}))
+      # The custom handler owns the body; it cannot drop the connection teardown.
+      response.headers["Connection"].should eq("close")
+    end
+
+    # A request line Kemal reads one way and an intermediary reads another is the
+    # disagreement request smuggling is built on, so the refusal ends the
+    # connection instead of leaving it open for a second request.
+    it "closes the connection" do
+      get "/" do
+        "hello"
+      end
+
+      response = call_request_on_app(crafted_method_request("GET/", "/"))
+      response.status_code.should eq(400)
+      response.headers["Connection"].should eq("close")
+    end
+
+    # The router stands behind the log handler, so the one request class Kemal
+    # refuses here is not the one class missing from the access log.
+    it "is logged, like every other answered request" do
+      Log.setup(:none)
+      Kemal.config.logging = true
+
+      get "/admin/secret" do
+        "TOP-SECRET-DATA"
+      end
+
+      request = crafted_method_request("GET/admin", "/secret")
+
+      Log.capture do |logs|
+        call_request_on_app(request).status_code.should eq(400)
+        logs.check(:info, /400 GET\/admin \/secret/)
+      end
+    end
+
+    # `Kemal::PathHandler` matches on `request.path`, so `GET/dash` + `/home` used
+    # to resolve to `get "/dash/home"` with the handler behind `use "/dash"` never
+    # seeing the request as one of its own.
+    it "cannot be used to step around a path-scoped use" do
+      use "/dash", PrefixAuthHandler.new
+
+      get "/dash/home" do
+        "DASHBOARD-DATA"
+      end
+
+      call_request_on_app(HTTP::Request.new("GET", "/dash/home")).status_code.should eq(401)
+
+      response = call_request_on_app(crafted_method_request("GET/dash", "/home"))
+      response.status_code.should eq(400)
+      response.body.should_not contain("DASHBOARD-DATA")
+    end
+
+    # `Kemal::Handler#only_match?` matches on `request.path` too, and a rule on
+    # `"*"` covers the method the desynced request arrived with.
+    it "cannot be used to step around an only rule" do
+      use OnlyAuthHandler.new
+
+      delete "/api/users/:id" do
+        "DELETED"
+      end
+
+      call_request_on_app(HTTP::Request.new("DELETE", "/api/users/42")).status_code.should eq(401)
+
+      response = call_request_on_app(crafted_method_request("DELETE/api", "/users/42"))
+      response.status_code.should eq(400)
+      response.body.should_not contain("DELETED")
+    end
+
+    # The check belongs to the router, so it holds for a chain assembled by hand
+    # through `Kemal.config.handlers=` as well - there is no separate handler to
+    # leave out of one.
+    it "holds in a chain assembled by hand" do
+      get "/admin/secret" do
+        "TOP-SECRET-DATA"
+      end
+
+      exception_handler = Kemal::ExceptionHandler.new
+      exception_handler.next = Kemal::RouteHandler::INSTANCE
+
+      io = IO::Memory.new
+      response = HTTP::Server::Response.new(io)
+      exception_handler.call(HTTP::Server::Context.new(crafted_method_request("GET/admin", "/secret"), response))
+      response.close
+      io.rewind
+
+      client_response = HTTP::Client::Response.from_io(io, decompress: false)
+      client_response.status_code.should eq(400)
+      client_response.body.should_not contain("TOP-SECRET-DATA")
     end
   end
 end
