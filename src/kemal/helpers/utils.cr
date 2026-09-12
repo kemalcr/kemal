@@ -12,6 +12,35 @@ module Kemal
     # https://webmasters.stackexchange.com/questions/31750/what-is-recommended-minimum-object-size-for-gzip-performance-benefits
     COMPRESS_MIN_SIZE = 860
 
+    # The non-alphanumeric characters [RFC 9110 §5.6.2](https://www.rfc-editor.org/rfc/rfc9110#section-5.6.2)
+    # allows in a token. `/` is deliberately not among them.
+    private TOKEN_SPECIALS = "!#$%&'*+-.^_`|~"
+
+    # Whether *method* is a well-formed HTTP method, that is a non-empty RFC 9110
+    # token (§9.1).
+    #
+    # Crystal's request parser takes whatever bytes stand before the first space of
+    # the request line as the method, without validating them, so a method can
+    # arrive carrying any character - `/` included. Kemal keys its routing tree on
+    # `"/#{method}#{path}"`, so a method holding a `/` moves the boundary between
+    # the two: `GET/admin` + `/secret` produces the same key as `GET` +
+    # `/admin/secret` and reaches the same route, while every path-scoped guard -
+    # `use "/prefix"`, `only`/`exclude`, `before_*`/`after_*` - matches on
+    # `request.path` and sees only `/secret` (#820).
+    #
+    # Unknown but well-formed methods stay valid: a `PROPFIND` or a custom verb is
+    # a token, and answering it is the router's business, not this check's.
+    def self.valid_method?(method : String) : Bool
+      return false if method.empty?
+
+      method.each_byte do |byte|
+        char = byte.unsafe_chr
+        return false unless char.ascii_alphanumeric? || TOKEN_SPECIALS.includes?(char)
+      end
+
+      true
+    end
+
     def self.path_starts_with_slash?(path : String)
       path.starts_with? '/'
     end

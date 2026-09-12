@@ -280,4 +280,45 @@ describe "Kemal::FilterHandler" do
     response.status_code.should eq(401)
     response.body.should eq("auth required")
   end
+
+  # A method holding a `/` used to pick the route it resolved to while leaving
+  # `request.path` pointing somewhere else, so a path-scoped filter never
+  # recognized the request as one of its own (#820).
+  context "a request method that is not an RFC 9110 token" do
+    it "cannot step around a prefix-scoped before filter" do
+      filter_handler = Kemal::FilterHandler.new
+      filter_handler._add_route_filter("ALL", "/admin/*", :before) do |env|
+        halt env, status_code: 401, response: "auth required"
+      end
+      Kemal.config.add_filter_handler(filter_handler)
+
+      get "/admin/secret" do
+        "TOP-SECRET-DATA"
+      end
+
+      call_request_on_app(HTTP::Request.new("GET", "/admin/secret")).status_code.should eq(401)
+
+      response = call_request_on_app(crafted_method_request("GET/admin", "/secret"))
+      response.status_code.should eq(400)
+      response.body.should_not contain("TOP-SECRET-DATA")
+    end
+
+    it "cannot step around an exact-path before filter" do
+      filter_handler = Kemal::FilterHandler.new
+      filter_handler._add_route_filter("GET", "/account", :before) do |env|
+        halt env, status_code: 401, response: "auth required"
+      end
+      Kemal.config.add_filter_handler(filter_handler)
+
+      get "/account" do
+        "ACCOUNT-DATA"
+      end
+
+      call_request_on_app(HTTP::Request.new("GET", "/account")).status_code.should eq(401)
+
+      response = call_request_on_app(crafted_method_request("GET/account", "/"))
+      response.status_code.should eq(400)
+      response.body.should_not contain("ACCOUNT-DATA")
+    end
+  end
 end

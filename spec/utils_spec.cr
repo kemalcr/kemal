@@ -218,4 +218,34 @@ describe Kemal::Utils do
         .should eq(%(attachment; filename="line__X: 1.txt"; filename*=UTF-8''line%0D%0AX%3A%201.txt))
     end
   end
+
+  describe ".valid_method?" do
+    it "accepts the standard methods" do
+      %w[GET HEAD POST PUT PATCH DELETE OPTIONS TRACE CONNECT QUERY].each do |method|
+        Kemal::Utils.valid_method?(method).should be_true
+      end
+    end
+
+    it "accepts an unfamiliar method that is still a token" do
+      Kemal::Utils.valid_method?("PROPFIND").should be_true
+      Kemal::Utils.valid_method?("X-CUSTOM_1.0!").should be_true
+    end
+
+    it "rejects an empty method" do
+      Kemal::Utils.valid_method?("").should be_false
+    end
+
+    # The one that closes the route key desync: `/` is not a token character,
+    # so a method can no longer absorb a segment of the path (#820).
+    it "rejects a method carrying the router's separator" do
+      Kemal::Utils.valid_method?("GET/admin").should be_false
+      Kemal::Utils.valid_method?("/GET").should be_false
+    end
+
+    it "rejects separators, whitespace and control characters" do
+      ["GET POST", "GET\t", "GET\r\n", "GET;x", "GET(x)", "GET\u0000", "GÉT"].each do |method|
+        Kemal::Utils.valid_method?(method).should be_false
+      end
+    end
+  end
 end

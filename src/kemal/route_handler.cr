@@ -270,6 +270,26 @@ module Kemal
       # spares it the per-verb probe.
       return if context.response.closed?
 
+      # The route key below is the method concatenated with the path, so a method
+      # that is not an RFC 9110 token - one carrying a `/` - decides for itself
+      # where the one ends and the other begins: `GET/admin` + `/secret` builds the
+      # same key as `GET` + `/admin/secret` and resolves to that route, while the
+      # guards in front of it - `use "/prefix"`, `only`/`exclude`,
+      # `before_*`/`after_*` - all match on `request.path` and see only `/secret`
+      # (#820). Refused where that ambiguity would be spent, so nothing routes on a
+      # method and a path that cannot both be believed.
+      #
+      # The connection does not get to carry another request either: a request line
+      # Kemal reads one way and an intermediary in front of it reads another is the
+      # parsing disagreement request smuggling is built on (RFC 9112 §11.2), and
+      # `close` is the signal for ending it (§9.6). The header survives a custom
+      # `error 400`, which `Kemal::ExceptionHandler` dispatches without touching
+      # response headers.
+      unless Utils.valid_method?(context.request.method)
+        context.response.headers["Connection"] = "close"
+        raise Kemal::Exceptions::BadRequest.new
+      end
+
       unless context.route_found?
         # RFC 9110 §15.5.6: an existing resource that does not support the
         # request method is a 405, not a 404.

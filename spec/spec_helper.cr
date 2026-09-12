@@ -44,6 +44,21 @@ end
 add_context_storage_type(TestContextStorageType)
 add_context_storage_type(AnotherContextStorageType)
 
+# Builds a request whose method is not an RFC 9110 token, for the examples
+# covering the method/path desync in the route key (#820).
+#
+# Crystal validates the method itself in `HTTP::Request` as of 1.22.0-dev, so on
+# those versions such a request cannot be constructed at all - and never reaches
+# Kemal, since `HTTP::Request.from_io` builds the request the same way. The
+# examples are skipped there rather than written around it: there is nothing left
+# for them to prove. Detected by asking rather than by version, so the release
+# that lands the change needs no edit here.
+def crafted_method_request(method : String, resource : String, headers : HTTP::Headers? = nil) : HTTP::Request
+  HTTP::Request.new(method, resource, headers)
+rescue ArgumentError
+  pending!("Crystal's HTTP::Request rejects a method that is not a token")
+end
+
 def create_request_and_return_io_and_context(handler, request)
   io = IO::Memory.new
   response = HTTP::Server::Response.new(io)

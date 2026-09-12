@@ -17,9 +17,11 @@ module Kemal
     rescue ex : Kemal::Exceptions::InvalidQueryRequest
       call_fixed_status(context, ex, 400)
     rescue ex : Kemal::Exceptions::BadRequest
-      # A request body the framework could not parse (broken JSON, unparseable
-      # multipart) is a client error, so respond 400 instead of 500. Only body
-      # parsing raises this; a parse error in handler code keeps its 500.
+      # A request the framework could not make sense of - a body it cannot parse
+      # (broken JSON, unparseable multipart) or a request line it will not route
+      # (a method that is not an RFC 9110 token) - is a client error, so respond
+      # 400 instead of 500. Only Kemal's own reading of the request raises this;
+      # a parse error in handler code keeps its 500.
       call_fixed_status(context, ex, 400)
     rescue ex : Exception
       # Logged before any handler sees it, so an `error MyException` handler - a
