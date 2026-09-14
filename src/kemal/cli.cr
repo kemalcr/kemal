@@ -3,6 +3,9 @@ require "option_parser"
 module Kemal
   # Handles all the initialization from the command line.
   class CLI
+    # Ports `HTTP::Server#bind_tcp` accepts; 0 asks the operating system for a free port.
+    private VALID_PORTS = 0..65535
+
     def initialize(args)
       @ssl_enabled = false
       @key_file = ""
@@ -16,11 +19,18 @@ module Kemal
 
     private def parse(args : Array(String))
       OptionParser.parse args do |opts|
+        # Registered first so an application's `extra_options` can replace them.
+        opts.invalid_option do |flag|
+          abort "Invalid option: #{flag}\n\n#{opts}"
+        end
+        opts.missing_option do |flag|
+          abort "Missing argument for option: #{flag}\n\n#{opts}"
+        end
         opts.on("-b HOST", "--bind HOST", "Host to bind (defaults to #{@config.host_binding})") do |host_binding|
           @config.host_binding = host_binding
         end
         opts.on("-p PORT", "--port PORT", "Port to listen for connections (defaults to #{@config.port})") do |opt_port|
-          @config.port = opt_port.to_i
+          @config.port = parse_port(opt_port)
         end
         opts.on("-s", "--ssl", "Enables SSL") do
           @ssl_enabled = true
@@ -37,6 +47,16 @@ module Kemal
         end
         @config.extra_options.try &.call(opts)
       end
+    end
+
+    # `HTTP::Server#bind_tcp` reports a port outside `VALID_PORTS` as a hostname
+    # lookup failure, so the value is checked here while it can still be named.
+    # Surrounding whitespace is refused rather than trimmed: ` 8080` reaching the
+    # flag means the value arrived from somewhere the operator wants to know about.
+    private def parse_port(value : String) : Int32
+      port = value.to_i?(whitespace: false)
+      return port if port && VALID_PORTS.includes?(port)
+      abort "Invalid port #{value.inspect}: must be an integer between #{VALID_PORTS.begin} and #{VALID_PORTS.end}."
     end
 
     private def configure_ssl
