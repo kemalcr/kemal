@@ -301,6 +301,97 @@ describe "Macros" do
       response.body.should eq(File.read("#{__DIR__}/asset/hello.ecr"))
     end
 
+    # RFC 9110 §13.1.5: a `Range` whose `If-Range` does not name the current representation
+    # is ignored, so a resuming client never appends bytes of a changed file to its prefix.
+    describe "If-Range" do
+      path = "#{__DIR__}/asset/hello.ecr"
+      last_modified = HTTP.format_time(File.info(path).modification_time)
+
+      it "serves the full file when the entity tag is stale" do
+        get "/" do |env|
+          env.response.headers["Etag"] = %("current")
+          send_file env, path
+        end
+
+        headers = HTTP::Headers{"Range" => "bytes=0-4", "If-Range" => %("stale")}
+        response = call_request_on_app(HTTP::Request.new("GET", "/", headers))
+        response.status_code.should eq(200)
+        response.headers["Content-Range"]?.should be_nil
+        response.body.should eq(File.read(path))
+      end
+
+      it "serves the range when the entity tag matches strongly" do
+        get "/" do |env|
+          env.response.headers["Etag"] = %("current")
+          send_file env, path
+        end
+
+        headers = HTTP::Headers{"Range" => "bytes=0-4", "If-Range" => %("current")}
+        response = call_request_on_app(HTTP::Request.new("GET", "/", headers))
+        response.status_code.should eq(206)
+        response.body.should eq("Hello")
+      end
+
+      it "serves the full file for a weak entity tag, even an equal one" do
+        get "/" do |env|
+          env.response.headers["Etag"] = %(W/"current")
+          send_file env, path
+        end
+
+        headers = HTTP::Headers{"Range" => "bytes=0-4", "If-Range" => %(W/"current")}
+        response = call_request_on_app(HTTP::Request.new("GET", "/", headers))
+        response.status_code.should eq(200)
+        response.body.should eq(File.read(path))
+      end
+
+      it "serves the full file when the date differs from Last-Modified" do
+        get "/" do |env|
+          env.response.headers["Last-Modified"] = last_modified
+          send_file env, path
+        end
+
+        headers = HTTP::Headers{"Range" => "bytes=0-4", "If-Range" => "Mon, 01 Jan 2001 00:00:00 GMT"}
+        response = call_request_on_app(HTTP::Request.new("GET", "/", headers))
+        response.status_code.should eq(200)
+        response.body.should eq(File.read(path))
+      end
+
+      it "serves the range when the date equals Last-Modified" do
+        get "/" do |env|
+          env.response.headers["Last-Modified"] = last_modified
+          send_file env, path
+        end
+
+        headers = HTTP::Headers{"Range" => "bytes=0-4", "If-Range" => last_modified}
+        response = call_request_on_app(HTTP::Request.new("GET", "/", headers))
+        response.status_code.should eq(206)
+        response.headers["Content-Range"].should eq("bytes 0-4/18")
+        response.body.should eq("Hello")
+      end
+
+      it "serves the full file when the response has no validator to compare" do
+        get "/" do |env|
+          send_file env, path
+        end
+
+        headers = HTTP::Headers{"Range" => "bytes=0-4", "If-Range" => last_modified}
+        response = call_request_on_app(HTTP::Request.new("GET", "/", headers))
+        response.status_code.should eq(200)
+        response.body.should eq(File.read(path))
+      end
+
+      it "serves the range when there is no If-Range" do
+        get "/" do |env|
+          send_file env, path
+        end
+
+        headers = HTTP::Headers{"Range" => "bytes=0-4"}
+        response = call_request_on_app(HTTP::Request.new("GET", "/", headers))
+        response.status_code.should eq(206)
+        response.body.should eq("Hello")
+      end
+    end
+
     # The 18 byte fixture reads "Hello <%= name %>\n"; the cases below follow RFC 9110 §14.1.2.
     it "serves a single byte range" do
       get "/" do |env|

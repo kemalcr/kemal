@@ -98,10 +98,13 @@ module Kemal
       # on, nothing is ever served for a directory, so the redirect would only tell a
       # client that the directory is there - `/admin` answered `302` where `/nope`
       # answered `404`. Now it falls through to the same `404`.
+      #
+      # A non-canonical path is redirected only when it names a file here or has a
+      # dot segment; see `redirect_non_canonical?`.
       private def normalize_request_path(context : HTTP::Server::Context, request_path : Path, expanded_path : Path, file_info) : Path?
         if directory_paths_served? && file_info.try(&.directory?) && !request_path.ends_with_separator?
           expanded_path.join("")
-        elsif request_path != expanded_path
+        elsif request_path != expanded_path && redirect_non_canonical?(request_path, file_info)
           expanded_path
         end
       end
@@ -140,7 +143,7 @@ module Kemal
         is_dir = directory_paths_served? && file_info && file_info.directory?
         is_file = file_info && file_info.file?
 
-        if request_path != expanded_path || is_dir && !is_dir_path
+        if (request_path != expanded_path && redirect_non_canonical?(request_path, file_info)) || is_dir && !is_dir_path
           redirect_path = expanded_path
           if is_dir && !is_dir_path
             # Append / to path if missing
@@ -204,6 +207,21 @@ module Kemal
       send_file(context, path, mime_type)
     rescue File::Error
       context.response.respond_with_status(:not_found)
+    end
+
+    # Whether a request path that differs from its canonical form is redirected to
+    # it rather than passed on to the routes. This handler runs ahead of them, and
+    # the path it compares is the decoded one, so an encoded `/` or a byte that is
+    # not UTF-8 in a route param - `/u/a%2F%2Fb`, `/u/%FF` - made a difference too
+    # and the route never saw the request: it answered `302` to another URL.
+    #
+    # The redirect stays for a path that names a file here, which is what it
+    # canonicalizes, and for a dot segment anywhere in the path, so that no route
+    # receives `..` from a path the handler would have resolved away.
+    private def redirect_non_canonical?(request_path : Path, file_info) : Bool
+      return true if file_info
+
+      request_path.each_part.any?(&.in?(".", ".."))
     end
 
     # Whether a directory URL can answer with anything at all - a listing, or an

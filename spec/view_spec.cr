@@ -90,4 +90,31 @@ describe "Views" do
       page.should contain("Hello #{name}")
     end
   end
+
+  it "renders content_for from a partial in the layout" do
+    get "/view/:name" do |env|
+      name = env.params.url["name"]
+      render "#{__DIR__}/asset/hello_with_partial_content_for.ecr", "#{__DIR__}/asset/layout_with_yield.ecr"
+    end
+    request = HTTP::Request.new("GET", "/view/world")
+    client_response = call_request_on_app(request)
+    client_response.body.should contain("<title>From partial</title>")
+    client_response.body.should contain("Hello world")
+    client_response.body.should contain("Partial body")
+  end
+
+  it "leaves the string a partial returned intact once its content_for block is yielded" do
+    # The partial's block used to write into the buffer the partial had been
+    # rendered into, long after that buffer was turned into the returned
+    # string. Growing it freed the memory behind the string, so the layout,
+    # printing the view's `partial` after `yield_content`, read whatever the
+    # heap held there.
+    get "/view/:name" do |env|
+      name = env.params.url["name"]
+      render "#{__DIR__}/asset/hello_with_partial_content_for.ecr", "#{__DIR__}/asset/layout_with_yield_and_partial.ecr"
+    end
+    request = HTTP::Request.new("GET", "/view/world")
+    client_response = call_request_on_app(request)
+    client_response.body.should contain("<body>\nPartial body\n</body>")
+  end
 end
