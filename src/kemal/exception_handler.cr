@@ -29,6 +29,7 @@ module Kemal
       # also taking the failure out of the log. The `error 500` path already
       # behaved this way.
       Log.error(exception: ex) { ex.message }
+      return if end_connection_if_sent?(context)
 
       # Matches an error handler for the given exception
       #
@@ -55,7 +56,6 @@ module Kemal
       handler : Proc(HTTP::Server::Context, Exception, String),
       status_code : Int32 = 500,
     )
-      return if context.response.closed? || context.response.headers_sent?
       context.response.discard_unsent_body
 
       context.response.content_type = "text/html" unless context.response.headers.has_key?("Content-Type")
@@ -65,7 +65,7 @@ module Kemal
     end
 
     private def call_exception_with_status_code(context : HTTP::Server::Context, exception : Exception, status_code : Int32)
-      return if context.response.closed? || context.response.headers_sent?
+      return if end_connection_if_sent?(context)
       context.response.discard_unsent_body
       if !Kemal.config.error_handlers.empty? && Kemal.config.error_handlers.has_key?(status_code)
         context.response.content_type = "text/html" unless context.response.headers.has_key?("Content-Type")
@@ -105,7 +105,7 @@ module Kemal
     # Renders a plain-text response for exceptions with a fixed status code
     # when no custom error handler is registered for that code.
     private def call_default_exception(context : HTTP::Server::Context, exception : Exception, status_code : Int32)
-      return if context.response.closed? || context.response.headers_sent?
+      return if end_connection_if_sent?(context)
       context.response.discard_unsent_body
 
       # The body is Kemal's own, a bare status reason, so the content type is too.
@@ -116,6 +116,30 @@ module Kemal
       context.response.status_code = status_code
       context.response.print exception.message if exception.message
       context
+    end
+
+    # An exception that arrives once the headers are out has cut the response
+    # short: the status line and part of the body are on the wire, and no error
+    # page can take their place. Kept alive, the connection would carry the next
+    # response right after the cut, where a client still reading the promised
+    # `Content-Length` takes it for the rest of this body - and a proxy pooling
+    # the connection hands the mix to someone else. `Connection: close` can no
+    # longer reach the client, but `HTTP::Server` checks it before reading the
+    # next request, so the connection ends here, as it does when an exception
+    # escapes the handlers altogether.
+    #
+    # A closed response is a finished one - a `halt` closes it with its body
+    # complete - and the `CustomException` a status set by `halt` raises
+    # arrives after it, so it gives no reason to end the connection.
+    #
+    # Returns whether the response had already gone out.
+    private def end_connection_if_sent?(context : HTTP::Server::Context) : Bool
+      response = context.response
+      return true if response.closed?
+      return false unless response.headers_sent?
+
+      response.headers["Connection"] = "close"
+      true
     end
   end
 end

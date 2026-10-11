@@ -1,6 +1,24 @@
 require "./spec_helper"
 require "log/spec"
 
+# Writes *payload* to a fresh connection to *port* and reads until the server
+# closes it. Returns what came back and whether it was closed, rather than left
+# open waiting for another request.
+private def exchange_on_one_connection(port : Int32, payload : String) : {String, Bool}
+  TCPSocket.open("127.0.0.1", port) do |socket|
+    socket.read_timeout = 2.seconds
+    socket << payload
+    socket.flush
+    received = IO::Memory.new
+    begin
+      IO.copy(socket, received)
+      {received.to_s, true}
+    rescue IO::TimeoutError
+      {received.to_s, false}
+    end
+  end
+end
+
 describe "Kemal::ExceptionHandler" do
   it "renders 404 on route not found" do
     get "/" do
@@ -108,6 +126,72 @@ describe "Kemal::ExceptionHandler" do
       response = call_request_on_app(HTTP::Request.new("GET", "/"))
       response.status_code.should eq 200
       response.body.should eq big
+    end
+
+    it "ends the connection when an exception cuts it short" do
+      # The headers promised 100 bytes and the client got 7. Answering the next
+      # request on the same connection used to splice its response into the
+      # missing 93, so a client - or a proxy pooling the connection - read
+      # "partialHTTP/1.1 200 OK..." as one body.
+      get "/partial" do |env|
+        env.response.content_length = 100
+        env.response.print "partial"
+        env.response.flush
+        raise "boom"
+      end
+      get "/next" do
+        "next response"
+      end
+
+      Kemal.config.setup
+      server = HTTP::Server.new(Kemal.config.handlers)
+      address = server.bind_tcp("127.0.0.1", 0)
+      spawn { server.listen }
+
+      begin
+        received, closed = exchange_on_one_connection(address.port,
+          "GET /partial HTTP/1.1\r\nHost: localhost\r\n\r\n" \
+          "GET /next HTTP/1.1\r\nHost: localhost\r\n\r\n")
+      ensure
+        server.close
+      end
+
+      received.should start_with "HTTP/1.1 200 OK\r\n"
+      received.should end_with "\r\n\r\npartial"
+      closed.should be_true
+    end
+
+    it "keeps the connection of a halted response with an error handler" do
+      # `halt` closes a complete response, and the status it sets raises the
+      # `CustomException` its `error` handler would answer. Nothing was cut
+      # short, so the next request on the connection is still answered.
+      error 401 { "nope" }
+      before_all "/guarded" do |env|
+        halt env, status_code: 401, response: "denied"
+      end
+      get "/guarded" do
+        "guarded"
+      end
+      get "/next" do
+        "next response"
+      end
+
+      Kemal.config.setup
+      server = HTTP::Server.new(Kemal.config.handlers)
+      address = server.bind_tcp("127.0.0.1", 0)
+      spawn { server.listen }
+
+      begin
+        # The second request asks for the close, so the read ends with it.
+        received, _ = exchange_on_one_connection(address.port,
+          "GET /guarded HTTP/1.1\r\nHost: localhost\r\n\r\n" \
+          "GET /next HTTP/1.1\r\nHost: localhost\r\nConnection: close\r\n\r\n")
+      ensure
+        server.close
+      end
+
+      received.should start_with "HTTP/1.1 401 Unauthorized\r\n"
+      received.should end_with "\r\n\r\nnext response"
     end
   end
 
