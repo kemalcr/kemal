@@ -29,6 +29,20 @@ module Kemal
         reject_websocket_forbidden!(context)
         return
       end
+      # The stdlib handler answers a bad version (426) or a missing key (400)
+      # itself, without `Connection: close` - and `respond_with_status` resets
+      # any header set beforehand - so the connection stayed open for a
+      # pipelined request. Refuse them here, after the Origin check so an
+      # unknown origin still learns nothing beyond 403.
+      unless context.request.headers["Sec-WebSocket-Version"]? == HTTP::WebSocket::Protocol::VERSION
+        context.response.headers["Sec-WebSocket-Version"] = HTTP::WebSocket::Protocol::VERSION
+        reject_websocket!(context, :upgrade_required)
+        return
+      end
+      unless context.request.headers.has_key?("Sec-WebSocket-Key")
+        reject_websocket!(context, :bad_request)
+        return
+      end
       context.websocket.call(context)
     end
 
