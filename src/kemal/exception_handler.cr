@@ -118,19 +118,24 @@ module Kemal
       context
     end
 
-    # An exception that arrives once the headers are out has cut the response
-    # short: the status line and part of the body are on the wire, and no error
-    # page can take their place. Kept alive, the connection would carry the next
-    # response right after the cut, where a client still reading the promised
-    # `Content-Length` takes it for the rest of this body - and a proxy pooling
-    # the connection hands the mix to someone else. `Connection: close` can no
-    # longer reach the client, but `HTTP::Server` checks it before reading the
-    # next request, so the connection ends here, as it does when an exception
-    # escapes the handlers altogether.
+    # An exception that arrives once the headers are out can have cut the
+    # response short: the status line and part of the body are on the wire, and
+    # no error page can take their place. When the headers promised a
+    # `Content-Length`, a kept-alive connection would carry the next response
+    # right after the cut, where a client still reading the promised bytes takes
+    # it for the rest of this body - and a proxy pooling the connection hands the
+    # mix to someone else. So the connection has to end, and
+    # `Connection: close` is how a handler asks `HTTP::Server` for that: it reads
+    # the header after the handlers return, before it reads another request
+    # (`HTTP::Server::RequestProcessor`), whether or not the header itself can
+    # still reach the client. Crystal offers no other way to end it.
     #
-    # A closed response is a finished one - a `halt` closes it with its body
-    # complete - and the `CustomException` a status set by `halt` raises
-    # arrives after it, so it gives no reason to end the connection.
+    # A chunked response needs none of this: the server ends it with the final
+    # chunk either way, so the next response cannot run into it, and the route
+    # may well have finished - an `after` filter touching a header of a large
+    # response raises here too (#759). A closed response is a finished one - a
+    # `halt` closes it with its body complete, and the `CustomException` a
+    # status set by `halt` raises arrives after it. Both keep their connection.
     #
     # Returns whether the response had already gone out.
     private def end_connection_if_sent?(context : HTTP::Server::Context) : Bool
@@ -138,7 +143,7 @@ module Kemal
       return true if response.closed?
       return false unless response.headers_sent?
 
-      response.headers["Connection"] = "close"
+      response.headers["Connection"] = "close" if response.headers.has_key?("Content-Length")
       true
     end
   end

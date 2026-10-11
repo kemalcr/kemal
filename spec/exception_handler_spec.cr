@@ -193,6 +193,38 @@ describe "Kemal::ExceptionHandler" do
       received.should start_with "HTTP/1.1 401 Unauthorized\r\n"
       received.should end_with "\r\n\r\nnext response"
     end
+
+    it "keeps the connection of a chunked response an after filter fails on" do
+      # Streamed past the output buffer, the body goes out chunked, and an
+      # `after` filter setting a header then raises (#759). The server still ends
+      # the body with the final chunk, so the next response cannot run into it.
+      after_get "/big" do |env|
+        env.response.content_type = "application/json"
+      end
+      get "/big" do |env|
+        env.response.print "x" * 100_000
+        ""
+      end
+      get "/next" do
+        "next response"
+      end
+
+      Kemal.config.setup
+      server = HTTP::Server.new(Kemal.config.handlers)
+      address = server.bind_tcp("127.0.0.1", 0)
+      spawn { server.listen }
+
+      begin
+        received, _ = exchange_on_one_connection(address.port,
+          "GET /big HTTP/1.1\r\nHost: localhost\r\n\r\n" \
+          "GET /next HTTP/1.1\r\nHost: localhost\r\nConnection: close\r\n\r\n")
+      ensure
+        server.close
+      end
+
+      received.should contain "Transfer-Encoding: chunked\r\n"
+      received.should end_with "\r\n\r\nnext response"
+    end
   end
 
   it "does not reflect the request in the message a 404 handler receives" do
