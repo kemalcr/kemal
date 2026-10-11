@@ -37,23 +37,23 @@
 # captured them: two requests rendering the same view concurrently cannot see
 # each other's blocks. Both macros are therefore only usable inside a
 # `render(view, layout)` call, directly in the view or in a partial it renders.
+#
+# The block's markup is compiled to write into `content_io`, the output of the
+# template holding it. That name is made the block's parameter, so the block
+# writes into whatever `yield_content` passes it rather than into the output
+# it was written in: a partial's output has been turned into the partial's
+# string by the time the layout asks for the block.
 macro content_for(key)
-  __content_for_blocks__[{{ key }}] = ->() { {{ yield }}; nil }
+  __content_for_blocks__[{{ key }}] = ->(content_io : IO) { {{ yield }}; nil }
   nil
 end
 
 # Yields content for the given key if a `content_for` block exists for that key.
-#
-# The captured block was compiled to write into `content_io`, the view's output,
-# so it is pointed at a fresh buffer for the duration of the call and put back
-# afterwards; the buffer is what the layout receives.
 macro yield_content(key)
   if %proc = __content_for_blocks__[{{ key }}]?
-    %old_content_io, content_io = content_io, IO::Memory.new
-    %proc.call
-    %result = content_io.to_s
-    content_io = %old_content_io
-    %result
+    %io = IO::Memory.new
+    %proc.call(%io)
+    %io.to_s
   end
 end
 
@@ -63,7 +63,7 @@ end
 # render "src/views/index.ecr", "src/views/layout.ecr"
 # ```
 macro render(filename, layout)
-  __content_for_blocks__ = {} of String => Proc(Nil)
+  __content_for_blocks__ = {} of String => Proc(IO, Nil)
   content_io = IO::Memory.new
   ECR.embed {{ filename }}, content_io
   content = content_io.to_s
@@ -73,8 +73,13 @@ macro render(filename, layout)
 end
 
 # Render view with the given filename.
+#
+# The output is named `content_io`, like the view's in `render(view, layout)`,
+# so a `content_for` in a partial compiles to the same block as one in the
+# view. The block parameter keeps it from replacing the view's output, which
+# the partial is rendered in the middle of.
 macro render(filename)
-  ECR.render({{ filename }})
+  IO::Memory.new.tap { |content_io| ECR.embed {{ filename }}, content_io }.to_s
 end
 
 # Halts execution by closing the response. Designed for use with chained response method calls.

@@ -164,7 +164,10 @@ def send_file(env : HTTP::Server::Context, path : String, mime_type : String? = 
   end
 
   # RFC 9110 §14.2 defines range handling for GET only, so a `Range` on HEAD is ignored.
-  if env.request.method == "GET" && (range_header = env.request.headers["Range"]?)
+  # So is one whose `If-Range` names a representation other than this one: the client is
+  # resuming a download, and bytes of a changed file appended to its old prefix would
+  # corrupt it silently, so it gets the whole file instead (RFC 9110 §13.1.5).
+  if env.request.method == "GET" && (range_header = env.request.headers["Range"]?) && if_range_matches?(env)
     ranges = parse_ranges(range_header, filesize)
 
     # A valid range set none of whose ranges can be satisfied is answered with 416 and the
@@ -293,6 +296,29 @@ private def multipart(file, env : HTTP::Server::Context, ranges : Array({Int64, 
       env.response.print "\r\n"
     end
     env.response.print "--#{boundary}--\r\n"
+  end
+end
+
+# Whether a `Range` may be honoured under the request's `If-Range` (RFC 9110 §13.1.5): true
+# when there is no `If-Range`, or when it names the validator this response carries.
+#
+# An entity tag matches only by strong comparison, so a weak tag on either side never does —
+# and the tags Kemal generates are weak, so only a strong one set by `static_headers` can.
+# A date matches only when it equals the response's `Last-Modified` exactly, the comparison
+# the RFC asks for. A response without the validator the client sent cannot confirm it, so
+# the range is ignored and the full representation sent; that is what happens for a route
+# calling `send_file` without setting `Last-Modified` or `ETag` itself.
+private def if_range_matches?(env : HTTP::Server::Context) : Bool
+  if_range = env.request.headers["If-Range"]?.try(&.strip)
+  return true unless if_range
+
+  if if_range.starts_with?('"') || if_range.starts_with?("W/")
+    etag = env.response.headers["Etag"]?
+    !!etag && etag.starts_with?('"') && etag == if_range
+  else
+    date = HTTP.parse_time(if_range)
+    last_modified = env.response.headers["Last-Modified"]?.try { |value| HTTP.parse_time(value) }
+    !!date && date == last_modified
   end
 end
 

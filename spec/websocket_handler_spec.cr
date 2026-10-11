@@ -439,6 +439,77 @@ describe "Kemal::WebSocketHandler" do
       raw.should match(/connection:\s*close/i)
       raw.includes?("INTERNAL SECRET").should be_false
     end
+
+    # Past the Origin and method checks the handshake can still fail on its own
+    # headers. Those answers must close the connection just the same, or the
+    # pipelined request behind them is served.
+    {
+      {"Sec-WebSocket-Version: 1337\r\nSec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==\r\n", "HTTP/1.1 426 Upgrade Required"},
+      {"Sec-WebSocket-Version: 13\r\n", "HTTP/1.1 400 Bad Request"},
+    }.each do |handshake_headers, status_line|
+      it "does not serve a pipelined HTTP request after a #{status_line[9..]} handshake rejection" do
+        Kemal.config.env = "test"
+        Kemal.config.logging = false
+
+        ws "/chat" { }
+        get "/secret" { "INTERNAL SECRET" }
+
+        Kemal.config.setup
+        server = HTTP::Server.new(Kemal.config.handlers)
+        address = server.bind_tcp("127.0.0.1", 0)
+        spawn { server.listen }
+
+        payload = String.build do |b|
+          b << "GET /chat HTTP/1.1\r\n"
+          b << "Host: 127.0.0.1\r\n"
+          b << "Upgrade: websocket\r\n"
+          b << "Connection: keep-alive, Upgrade\r\n"
+          b << handshake_headers
+          b << "Origin: http://127.0.0.1\r\n"
+          b << "\r\n"
+          b << "GET /secret HTTP/1.1\r\n"
+          b << "Host: 127.0.0.1\r\n"
+          b << "\r\n"
+        end
+
+        raw = raw_http_exchange("127.0.0.1", address.port, payload)
+        server.close
+
+        status_lines = raw.scan(/HTTP\/1\.1 \d{3}[^\r\n]*/).map(&.[0])
+        status_lines.should eq([status_line])
+        raw.should match(/connection:\s*close/i)
+        raw.includes?("INTERNAL SECRET").should be_false
+      end
+    end
+  end
+
+  describe "handshake headers (RFC 6455)" do
+    it "rejects an unsupported Sec-WebSocket-Version with 426 naming the supported one" do
+      ws "/chat" { }
+      headers = ws_upgrade_headers_for_origin("http://localhost")
+      headers["Sec-WebSocket-Version"] = "8"
+      response = call_ws_handler_response(build_main_handler, HTTP::Request.new("GET", "/chat", headers))
+      response.status_code.should eq(426)
+      response.headers["Sec-WebSocket-Version"]?.should eq("13")
+      response.headers["Connection"]?.try(&.downcase).should eq("close")
+    end
+
+    it "rejects a missing Sec-WebSocket-Key with 400" do
+      ws "/chat" { }
+      headers = ws_upgrade_headers_for_origin("http://localhost")
+      headers.delete("Sec-WebSocket-Key")
+      response = call_ws_handler_response(build_main_handler, HTTP::Request.new("GET", "/chat", headers))
+      response.status_code.should eq(400)
+      response.headers["Connection"]?.try(&.downcase).should eq("close")
+    end
+
+    it "checks the Origin before the handshake headers" do
+      ws "/chat" { }
+      headers = ws_upgrade_headers_for_origin("http://evil.example")
+      headers["Sec-WebSocket-Version"] = "8"
+      response = call_ws_handler_response(build_main_handler, HTTP::Request.new("GET", "/chat", headers))
+      assert_websocket_forbidden_closed(response)
+    end
   end
 
   it "does not attempt the upgrade when a before filter already answered" do
