@@ -506,6 +506,35 @@ describe Kemal::StaticFileHandler do
     response.status_code.should eq(302)
   end
 
+  it "should still redirect a non-canonical path to the file it names" do
+    response = handle HTTP::Request.new("GET", "/dir//test.txt")
+    response.status_code.should eq(302)
+    response.headers["Location"].should eq("/dir/test.txt")
+  end
+
+  # The static handler sits in front of the routes, so a redirect for a path
+  # that names no file took the request away from them: an encoded `/` or a
+  # byte that is not UTF-8 in a route param answered `302` to a different URL.
+  it "should leave a path that names no file to the routes" do
+    get "/u/:id" { |env| env.params.url["id"] }
+
+    response = call_request_on_app(HTTP::Request.new("GET", "/u/a%2F%2Fb"))
+    response.status_code.should eq(200)
+    response.body.should eq("a//b")
+
+    response = call_request_on_app(HTTP::Request.new("GET", "/u/%FF"))
+    response.status_code.should eq(200)
+    response.headers["Location"]?.should be_nil
+  end
+
+  it "should still redirect a dot segment that reaches a route param" do
+    get "/u/:id" { |env| env.params.url["id"] }
+
+    response = call_request_on_app(HTTP::Request.new("GET", "/u/..%2F..%2Fetc"))
+    response.status_code.should eq(302)
+    response.headers["Location"].should eq("/etc")
+  end
+
   it "should allow legitimate nested paths" do
     response = handle HTTP::Request.new("GET", "/dir/nested/path/test.txt")
     response.status_code.should eq(200)
