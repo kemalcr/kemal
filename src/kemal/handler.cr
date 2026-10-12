@@ -139,10 +139,18 @@ module Kemal
 
     private def matches_scoped_routes?(env : HTTP::Server::Context, tree : Radix::Tree(String), prefixes : Hash(String, Array({String, String}))) : Bool
       path = env.request.path
+      method = env.request.method
+
+      # The rules are keyed on the method and the path run together, so a request
+      # line whose two parts cannot both be believed - `GE T/metrics`,
+      # `GET/metrics /` - would match the rules of the request line it imitates:
+      # an `only ["/metrics"]` handler served it while a `use "/metrics"` guard
+      # in front saw another path and stood aside. It matches no rule instead;
+      # `Kemal::RouteHandler` refuses it with a 400 further down the chain.
+      return false unless Utils.routable?(method, path)
 
       return true if tree.find(radix_path(ALL_METHODS_KEY, path)).found?
 
-      method = env.request.method
       return true if matches_verb?(tree, prefixes, method, path)
 
       # A `HEAD` request with no `HEAD` route of its own runs the `GET` handler, so

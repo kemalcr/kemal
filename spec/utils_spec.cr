@@ -248,4 +248,36 @@ describe Kemal::Utils do
       end
     end
   end
+
+  describe ".malformed_request_target?" do
+    it "accepts an origin-form target" do
+      Kemal::Utils.malformed_request_target?("GET", "/").should be_false
+      Kemal::Utils.malformed_request_target?("GET", "/admin/secret").should be_false
+    end
+
+    it "accepts an absolute-form target" do
+      Kemal::Utils.malformed_request_target?("GET", "http://localhost/admin").should be_false
+      Kemal::Utils.malformed_request_target?("GET", "https://example.com:8443/x").should be_false
+    end
+
+    it "accepts an asterisk-form target on OPTIONS only" do
+      Kemal::Utils.malformed_request_target?("OPTIONS", "*").should be_false
+      Kemal::Utils.malformed_request_target?("GET", "*").should be_true
+    end
+
+    # Authority-form has no `/` and need not look like a scheme (`127.0.0.1:443`,
+    # `[::1]:443`); only `CONNECT` takes it.
+    it "accepts an authority-form target on CONNECT only" do
+      Kemal::Utils.malformed_request_target?("CONNECT", "127.0.0.1:443").should be_false
+      Kemal::Utils.malformed_request_target?("CONNECT", "[::1]:443").should be_false
+      Kemal::Utils.malformed_request_target?("GET", "127.0.0.1:443").should be_true
+    end
+
+    # The ones that move the boundary of the route key into the path.
+    it "rejects a relative target" do
+      ["T/admin/secret", "admin", "%2Fadmin", "\\admin", ":id", "1http://host/x"].each do |path|
+        Kemal::Utils.malformed_request_target?("GET", path).should be_true
+      end
+    end
+  end
 end

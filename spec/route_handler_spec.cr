@@ -20,6 +20,16 @@ class OnlyAuthHandler < Kemal::Handler
   end
 end
 
+# Serves a page itself through `only`, behind a path-scoped guard.
+class OnlyMetricsHandler < Kemal::Handler
+  only ["/metrics"]
+
+  def call(env)
+    return call_next(env) unless only_match?(env)
+    env.response.print "METRICS-DATA"
+  end
+end
+
 describe "Kemal::RouteHandler" do
   it "routes" do
     get "/" do
@@ -1047,6 +1057,142 @@ describe "Kemal::RouteHandler" do
       client_response = HTTP::Client::Response.from_io(io, decompress: false)
       client_response.status_code.should eq(400)
       client_response.body.should_not contain("TOP-SECRET-DATA")
+    end
+  end
+
+  # The same key moves the other way when the request-target does not start with
+  # `/`: `GE` + `T/admin/secret` resolved to `get "/admin/secret"` while every
+  # path-scoped guard read `T/admin/secret` (GHSA-x97g-6h7h-q9w6).
+  describe "a request-target that is not origin-form" do
+    it "is refused instead of routed" do
+      get "/admin/secret" do
+        "TOP-SECRET-DATA"
+      end
+
+      {"GE" => "T/admin/secret", "G" => "ET/admin/secret"}.each do |method, target|
+        response = call_request_on_app(HTTP::Request.new(method, target))
+        response.status_code.should eq(400)
+        response.body.should eq("Bad Request")
+        response.headers["Connection"].should eq("close")
+      end
+    end
+
+    it "is refused before a state-changing route runs" do
+      deleted = false
+
+      delete "/api/users/:id" do
+        deleted = true
+        "deleted"
+      end
+
+      call_request_on_app(HTTP::Request.new("DELET", "E/api/users/42")).status_code.should eq(400)
+      deleted.should be_false
+    end
+
+    it "cannot be used to step around a path-scoped use" do
+      use "/dash", PrefixAuthHandler.new
+
+      get "/dash/home" do
+        "DASHBOARD-DATA"
+      end
+
+      call_request_on_app(HTTP::Request.new("GET", "/dash/home")).status_code.should eq(401)
+
+      response = call_request_on_app(HTTP::Request.new("GE", "T/dash/home"))
+      response.status_code.should eq(400)
+      response.body.should_not contain("DASHBOARD-DATA")
+    end
+
+    it "cannot be used to step around a path-scoped before filter" do
+      before_all "/admin/*" do |env|
+        halt env, status_code: 401, response: "auth required"
+      end
+
+      get "/admin/secret" do
+        "TOP-SECRET-DATA"
+      end
+
+      call_request_on_app(HTTP::Request.new("GET", "/admin/secret")).status_code.should eq(401)
+
+      response = call_request_on_app(HTTP::Request.new("GE", "T/admin/secret"))
+      response.status_code.should eq(400)
+      response.body.should_not contain("TOP-SECRET-DATA")
+    end
+
+    it "cannot be used to step around a mounted router's filter" do
+      router = Kemal::Router.new
+      router.before do |env|
+        halt env, status_code: 401, response: "auth required"
+      end
+      router.get "/secret" do
+        "TOP-SECRET-DATA"
+      end
+      mount "/admin", router
+
+      call_request_on_app(HTTP::Request.new("GET", "/admin/secret")).status_code.should eq(401)
+
+      response = call_request_on_app(HTTP::Request.new("GE", "T/admin/secret"))
+      response.status_code.should eq(400)
+      response.body.should_not contain("TOP-SECRET-DATA")
+    end
+
+    # A handler that answers by itself never reaches the router's refusal, so
+    # its `only` rules must not match the request line the target imitates.
+    it "does not match the only rule of the path it imitates" do
+      use "/metrics", PrefixAuthHandler.new
+      use OnlyMetricsHandler.new
+
+      call_request_on_app(HTTP::Request.new("GET", "/metrics")).status_code.should eq(401)
+
+      response = call_request_on_app(HTTP::Request.new("GE", "T/metrics"))
+      response.status_code.should eq(400)
+      response.body.should_not contain("METRICS-DATA")
+    end
+
+    # The `only` rules were keyed like the routes, so the method-side desync of
+    # #820 reached a handler that answers by itself as well.
+    it "leaves no only rule matching a method that is not a token" do
+      use "/metrics", PrefixAuthHandler.new
+      use OnlyMetricsHandler.new
+
+      response = call_request_on_app(crafted_method_request("GET/metrics", "/"))
+      response.status_code.should eq(400)
+      response.body.should_not contain("METRICS-DATA")
+    end
+
+    # `context.route`, `effective_route_method` and the filters ask the router
+    # too, ahead of the refusal; none of them gets the imitated route either.
+    it "resolves to no route" do
+      get "/admin/secret" do
+        "TOP-SECRET-DATA"
+      end
+
+      Kemal::RouteHandler::INSTANCE.lookup_route("GE", "T/admin/secret").found?.should be_false
+      Kemal::RouteHandler::INSTANCE.lookup_route("GET", "/admin/secret").found?.should be_true
+    end
+
+    # Absolute-form, authority-form (`CONNECT`) and `OPTIONS *` are well formed
+    # (RFC 9112 §3.2), so they get the router's answer for a path nothing is
+    # routed on rather than a 400.
+    it "leaves a well-formed absolute-form, authority-form or asterisk-form target to the router" do
+      get "/admin/secret" do
+        "TOP-SECRET-DATA"
+      end
+
+      response = call_request_on_app(HTTP::Request.new("GET", "http://localhost/admin/secret"))
+      response.status_code.should eq(404)
+      response.body.should_not contain("TOP-SECRET-DATA")
+
+      call_request_on_app(HTTP::Request.new("CONNECT", "127.0.0.1:443")).status_code.should eq(404)
+      call_request_on_app(HTTP::Request.new("OPTIONS", "*")).status_code.should eq(404)
+    end
+
+    it "is refused for an asterisk on any method but OPTIONS" do
+      get "/" do
+        "hello"
+      end
+
+      call_request_on_app(HTTP::Request.new("GET", "*")).status_code.should eq(400)
     end
   end
 end

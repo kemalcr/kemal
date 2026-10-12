@@ -41,6 +41,40 @@ module Kemal
       true
     end
 
+    # Whether *method* and *path* can be looked up in a tree keyed on the two run
+    # together. Routes, and the `only`/`exclude` rules of a `Kemal::Handler`, are
+    # keyed on `"#{method}#{path}"` with nothing in between, so a key names one
+    # request line only while the method is a token - no `/` in it - and the path
+    # starts with `/`. A method holding a `/` moves the boundary one way (#820);
+    # a request-target that does not start with `/` moves it the other: `GE` +
+    # `T/admin/secret` builds the key of `GET` + `/admin/secret`, while every
+    # path-scoped guard - `use "/prefix"`, `before_*`/`after_*`, a
+    # `Kemal::Router`'s filters, prefix `only`/`exclude` rules - matches on
+    # `T/admin/secret` and lets the request through.
+    def self.routable?(method : String, path : String) : Bool
+      path_starts_with_slash?(path) && valid_method?(method)
+    end
+
+    # A URI scheme followed by its `:` (RFC 3986 §3.1), which opens an
+    # absolute-form request-target.
+    private ABSOLUTE_FORM = /\A[A-Za-z][A-Za-z0-9+\-.]*:/
+
+    # Whether *path* - `HTTP::Request#path`, the request-target as Crystal parses
+    # it, query left out - takes none of the forms RFC 9112 §3.2 allows a *method*
+    # request: origin-form (`/where`), absolute-form (`http://host/where`, which a
+    # server must accept), authority-form (`host:port`, for `CONNECT` only) and
+    # asterisk-form (`*`, for `OPTIONS` only). Kemal routes nothing on the last
+    # three; they are well formed all the same. Anything else - `T/admin`, `*` on
+    # a `GET` - is a request line no client sends, and no route or guard can be
+    # matched against it.
+    def self.malformed_request_target?(method : String, path : String) : Bool
+      return false if path_starts_with_slash?(path)
+      return false if method == "CONNECT"
+      return false if path == "*" && method == "OPTIONS"
+
+      !ABSOLUTE_FORM.matches?(path)
+    end
+
     def self.path_starts_with_slash?(path : String)
       path.starts_with? '/'
     end

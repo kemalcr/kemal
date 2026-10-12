@@ -175,7 +175,12 @@ module Kemal
 
     # Looks up the route from the Radix::Tree for the first time and caches to improve performance.
     # Cache access is synchronized so multiple fibers can call this concurrently.
+    #
+    # A method and path that cannot both be believed - see `Utils.routable?` - resolve
+    # to no route at all rather than to the one their run-together key happens to name.
     def lookup_route(verb : String, path : String)
+      return Radix::Result(Route).new unless Utils.routable?(verb, path)
+
       lookup_path = radix_path(verb, path)
 
       @cache_mutex.synchronize do
@@ -276,8 +281,12 @@ module Kemal
       # same key as `GET` + `/admin/secret` and resolves to that route, while the
       # guards in front of it - `use "/prefix"`, `only`/`exclude`,
       # `before_*`/`after_*` - all match on `request.path` and see only `/secret`
-      # (#820). Refused where that ambiguity would be spent, so nothing routes on a
-      # method and a path that cannot both be believed.
+      # (#820). A request-target that does not start with `/` moves the boundary
+      # the other way: `GE` + `T/admin/secret` builds the key of `GET` +
+      # `/admin/secret`. `lookup_route` resolves neither; they are refused here,
+      # so nothing routes on a method and a path that cannot both be believed.
+      # An absolute-form, authority-form (`CONNECT`) or `OPTIONS *` target is well
+      # formed, routed nowhere and answered below like any other path without a route.
       #
       # The connection does not get to carry another request either: a request line
       # Kemal reads one way and an intermediary in front of it reads another is the
@@ -285,7 +294,8 @@ module Kemal
       # `close` is the signal for ending it (§9.6). The header survives a custom
       # `error 400`, which `Kemal::ExceptionHandler` dispatches without touching
       # response headers.
-      unless Utils.valid_method?(context.request.method)
+      request = context.request
+      if !Utils.valid_method?(request.method) || Utils.malformed_request_target?(request.method, request.path)
         context.response.headers["Connection"] = "close"
         raise Kemal::Exceptions::BadRequest.new
       end
