@@ -281,6 +281,51 @@ describe "Kemal::FilterHandler" do
     response.body.should eq("auth required")
   end
 
+  context "a WebSocket handshake" do
+    it "runs before_get filters" do
+      reached = false
+      before_get "/chat" do |env|
+        halt env, status_code: 401, response: "auth required"
+      end
+      ws "/chat" { reached = true }
+
+      request = HTTP::Request.new("GET", "/chat", ws_upgrade_headers_for_origin("http://localhost"))
+      io = create_ws_request_and_return_io_and_context(build_main_handler, request)[0]
+      io.to_s.should start_with("HTTP/1.1 401 Unauthorized")
+      reached.should be_false
+    end
+
+    it "renders the error handler for a status a before filter set" do
+      error 401 { "nope" }
+      before_get("/chat", &.response.status_code=(401))
+      ws "/chat" { }
+
+      response = call_request_on_app(HTTP::Request.new("GET", "/chat", ws_upgrade_headers_for_origin("http://localhost")))
+      response.status_code.should eq(401)
+      response.body.should eq("nope")
+    end
+
+    it "leaves after filters out once the upgrade is on the wire" do
+      ran = false
+      after_get "/chat" { ran = true }
+      ws "/chat" { }
+
+      request = HTTP::Request.new("GET", "/chat", ws_upgrade_headers_for_origin("http://localhost"))
+      io = create_ws_request_and_return_io_and_context(build_main_handler, request)[0]
+      io.to_s.should contain("101 Switching Protocols")
+      ran.should be_false
+    end
+
+    it "is told apart from a plain GET to the same path" do
+      ran = false
+      before_get "/chat" { ran = true }
+      ws "/chat" { }
+
+      call_request_on_app(HTTP::Request.new("GET", "/chat")).status_code.should eq(404)
+      ran.should be_false
+    end
+  end
+
   # A method holding a `/` used to pick the route it resolved to while leaving
   # `request.path` pointing somewhere else, so a path-scoped filter never
   # recognized the request as one of its own (#820).

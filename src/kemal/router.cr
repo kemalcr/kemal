@@ -102,6 +102,10 @@ module Kemal
     #   end
     # end
     # ```
+    #
+    # NOTE: The router's `before` and `before_get` filters run for the handshake.
+    # To refuse it, a filter has to `halt` or set a status an `error` handler
+    # covers - a status alone still upgrades. `after` filters do not run for it.
     def ws(path : String, &block : HTTP::WebSocket, HTTP::Server::Context ->)
       @websockets << WSDefinition.new(path: path, handler: block)
     end
@@ -201,21 +205,28 @@ module Kemal
     # Registers all routes, filters, and websockets with Kemal's handlers.
     # This is called automatically when using `mount` from DSL.
     #
+    # Each route carries the filters of this router and of every router it is
+    # mounted under, so they run for exactly the requests the router's routes
+    # serve. They used to be registered by path in `Kemal::FilterHandler`'s
+    # radix tree, which runs only the best match for a request path: a router's
+    # `ws` routes were never collected there, and a more specific key from
+    # anywhere else hid a router's filters - a guard that silently did not run.
+    #
     # :nodoc:
-    def register_routes(base_prefix : String = "")
+    def register_routes(base_prefix : String = "", parent_filters = [] of {String, String, Kemal::FilterHandler::FilterBlock})
       full_prefix = join_paths(base_prefix, @prefix)
-
-      # Collect all route paths for filter registration
-      route_paths = collect_all_route_paths(full_prefix)
-
-      # Register filters for each route path
-      register_filters(full_prefix, route_paths)
+      filters = parent_filters + @filters.map do |filter|
+        {filter.method, Kemal::FilterHandler.filter_key(filter.method, filter.type), filter_block(full_prefix, filter)}
+      end
+      Kemal::FilterHandler::INSTANCE.register_router_filters unless filters.empty?
+      # Routes with the same method carry the same filters.
+      scoped = Hash(String, Kemal::FilterHandler::ScopedFilters?).new { |hash, method| hash[method] = scoped_filters(filters, method) }
 
       # Register routes
       @routes.each do |route|
         full_path = join_paths(full_prefix, route.path)
         validate_path!(route.method.downcase, full_path)
-        Kemal::RouteHandler::INSTANCE.add_route(route.method, full_path) do |env|
+        Kemal::RouteHandler::INSTANCE.add_route(route.method, full_path, scoped[route.method]) do |env|
           route.handler.call(env)
         end
       end
@@ -224,14 +235,14 @@ module Kemal
       @websockets.each do |ws_def|
         full_path = join_paths(full_prefix, ws_def.path)
         validate_path!("ws", full_path)
-        Kemal::WebSocketHandler::INSTANCE.add_route(full_path, &ws_def.handler)
+        Kemal::WebSocketHandler::INSTANCE.add_route(full_path, scoped["GET"], &ws_def.handler)
       end
 
       # Register SSE routes
       @sse_routes.each do |sse_def|
         full_path = join_paths(full_prefix, sse_def.path)
         validate_path!("sse", full_path)
-        Kemal::RouteHandler::INSTANCE.add_route("GET", full_path) do |env|
+        Kemal::RouteHandler::INSTANCE.add_route("GET", full_path, scoped["GET"]) do |env|
           Kemal::EventStream.serve(env, &sse_def.handler)
         end
       end
@@ -239,78 +250,48 @@ module Kemal
       # Register sub-routers recursively
       @sub_routers.each do |sub|
         sub_prefix = join_paths(full_prefix, sub.path)
-        sub.router.register_routes(sub_prefix)
+        sub.router.register_routes(sub_prefix, filters)
       end
     end
 
-    # Collect all route paths including sub-routers
-    protected def collect_all_route_paths(full_prefix : String) : Array(Tuple(String, String))
-      paths = [] of Tuple(String, String)
+    # The filters among *filters* - `{method, key, block}`, outer routers first,
+    # each in definition order - that a *method* route runs.
+    private def scoped_filters(filters : Array({String, String, Kemal::FilterHandler::FilterBlock}), method : String) : Kemal::FilterHandler::ScopedFilters?
+      scoped = nil
+      filters.each do |filter_method, key, block|
+        next unless filter_method.in?("ALL", method)
 
-      # This router's routes
-      @routes.each do |route|
-        full_path = join_paths(full_prefix, route.path)
-        paths << {route.method, full_path}
+        scoped ||= Kemal::FilterHandler::ScopedFilters.new
+        (scoped[key] ||= [] of Kemal::FilterHandler::FilterBlock) << block
       end
-
-      @sse_routes.each do |sse_def|
-        full_path = join_paths(full_prefix, sse_def.path)
-        paths << {"GET", full_path}
-      end
-
-      # Sub-router routes
-      @sub_routers.each do |sub|
-        sub_prefix = join_paths(full_prefix, sub.path)
-        paths.concat(sub.router.collect_all_route_paths(sub_prefix))
-      end
-
-      paths
+      scoped
     end
 
-    # Register filters for specific route paths
-    private def register_filters(full_prefix : String, route_paths : Array(Tuple(String, String)))
-      return if @filters.empty?
+    # A filter with a path runs for requests to that path and below it, matched
+    # against the request path when the request comes in. Comparing it with the
+    # router's route paths when the routes are registered missed every request
+    # whose path differs from the route's spelling: `before "/users/:id"` and a
+    # `get "/users/me"`, `before "/users/admin"` and a `get "/users/:id"`, a
+    # named glob, a trailing slash - each a guard that silently did not run.
+    private def filter_block(prefix : String, filter : FilterDefinition) : Kemal::FilterHandler::FilterBlock
+      return Kemal::FilterHandler::FilterBlock.new(&filter.handler) if WILDCARD_FILTER_PATHS.includes?(filter.path)
 
-      @filters.each do |filter|
-        # Determine which paths this filter applies to
-        applicable_paths = if WILDCARD_FILTER_PATHS.includes?(filter.path)
-                             # Apply to all routes in this router
-                             route_paths
-                           else
-                             # A trailing "/*" marks a subtree rather than a literal
-                             # path segment, so "/admin/*" scopes the filter to the
-                             # same routes as "/admin". Without the chop the "*" ends
-                             # up inside the prefix, no route path can ever match it,
-                             # and the filter is silently registered nowhere.
-                             filter_full_path = join_paths(full_prefix, filter.path.rchop("/*"))
-                             route_paths.select { |_, path| path == filter_full_path || path.starts_with?(filter_full_path + "/") }
-                           end
+      pattern = filter_pattern(join_paths(prefix, filter.path.rchop("/*")))
+      Kemal::FilterHandler::FilterBlock.new do |env|
+        filter.handler.call(env) if pattern.matches?(env.request.path)
+      end
+    end
 
-        registered = Set(String).new
-
-        applicable_paths.each do |route_method, route_path|
-          # Check if filter method matches route method
-          next unless filter.method.in?("ALL", route_method)
-          # One path can carry several methods. Registering per route entry adds
-          # the same block to the same filter key once per method, and the filter
-          # then runs that many times for a single request.
-          next unless registered.add?(route_path)
-
-          # Use filter's method (ALL or specific) when registering
-          register_method = filter.method
-
-          case filter.type
-          when :before
-            Kemal::FilterHandler::INSTANCE.before(register_method, route_path) do |env|
-              filter.handler.call(env)
-            end
-          when :after
-            Kemal::FilterHandler::INSTANCE.after(register_method, route_path) do |env|
-              filter.handler.call(env)
-            end
-          end
+    # `:param` matches one segment and `*glob` the rest, as in a route path.
+    private def filter_pattern(scope : String) : Regex
+      source = scope.chomp('/').split('/').join('/') do |segment|
+        case segment[0]?
+        when ':' then "[^/]+"
+        when '*' then ".*"
+        else          Regex.escape(segment)
         end
       end
+      Regex.new("\\A#{source}(?:/.*)?\\z")
     end
 
     private def add_route(method : String, path : String, &block : HTTP::Server::Context -> _)

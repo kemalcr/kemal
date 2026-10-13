@@ -1,5 +1,10 @@
 require "./spec_helper"
 
+private def handshake_response(path : String) : String
+  request = HTTP::Request.new("GET", path, ws_upgrade_headers_for_origin("http://localhost"))
+  create_ws_request_and_return_io_and_context(build_main_handler, request)[0].to_s
+end
+
 describe "Kemal::Router" do
   describe "basic routing" do
     it "routes GET request with prefix" do
@@ -552,6 +557,221 @@ describe "Kemal::Router" do
 
       io_with_context = create_ws_request_and_return_io_and_context(handler, request)[0]
       io_with_context.to_s.should contain("101 Switching Protocols")
+    end
+
+    {% for filter in %w[before before_get] %}
+      it "guards websocket routes with router.{{ filter.id }}" do
+        reached = false
+        router = Kemal::Router.new
+        router.{{ filter.id }} do |env|
+          env.response.status_code = 401
+          halt env
+        end
+        router.ws "/chat" { reached = true }
+        router.namespace "/admin" do
+          ws "/live" { reached = true }
+        end
+
+        mount "/api", router
+
+        {"/api/chat", "/api/admin/live"}.each do |path|
+          request = HTTP::Request.new("GET", path, ws_upgrade_headers_for_origin("http://localhost"))
+          io = create_ws_request_and_return_io_and_context(build_main_handler, request)[0]
+          io.to_s.should start_with("HTTP/1.1 401 Unauthorized")
+        end
+        reached.should be_false
+      end
+    {% end %}
+
+    it "leaves websocket routes alone for a filter on another method" do
+      router = Kemal::Router.new
+      router.before_post do |env|
+        env.response.status_code = 401
+        halt env
+      end
+      router.ws "/chat" { }
+
+      mount "/api", router
+
+      request = HTTP::Request.new("GET", "/api/chat", ws_upgrade_headers_for_origin("http://localhost"))
+      io = create_ws_request_and_return_io_and_context(build_main_handler, request)[0]
+      io.to_s.should contain("101 Switching Protocols")
+    end
+
+    it "runs a filter once for routes that name the same param differently" do
+      count = 0
+      router = Kemal::Router.new
+      router.before { count += 1 }
+      router.get "/rooms/:id" { "room" }
+      router.ws "/rooms/:key" { }
+
+      mount "/api", router
+
+      call_request_on_app(HTTP::Request.new("GET", "/api/rooms/42")).body.should eq("room")
+      count.should eq(1)
+    end
+
+    it "keeps guarding HTTP routes beside websocket routes with other param names" do
+      router = Kemal::Router.new
+      router.before do |env|
+        env.response.status_code = 401
+        halt env
+      end
+      router.get "/rooms/new" { "secret" }
+      router.get "/rooms/:id" { "secret" }
+      router.post "/rooms/:room_id" { "secret" }
+      router.ws "/rooms/:key" { }
+      router.ws "/rooms/:key/socket" { }
+
+      mount "/api", router
+
+      {"/api/rooms/new", "/api/rooms/42"}.each do |path|
+        call_request_on_app(HTTP::Request.new("GET", path)).status_code.should eq(401)
+      end
+      call_request_on_app(HTTP::Request.new("POST", "/api/rooms/42")).status_code.should eq(401)
+      {"/api/rooms/42", "/api/rooms/42/socket"}.each do |path|
+        request = HTTP::Request.new("GET", path, ws_upgrade_headers_for_origin("http://localhost"))
+        io = create_ws_request_and_return_io_and_context(build_main_handler, request)[0]
+        io.to_s.should start_with("HTTP/1.1 401 Unauthorized")
+      end
+    end
+  end
+
+  # Router filters used to be keys in `Kemal::FilterHandler`'s radix tree, which
+  # runs only the best match for a request path, so a more specific key from
+  # anywhere else hid them.
+  describe "filters beside other filters on the same paths" do
+    it "leaves a top-level glob guard in force over a router with filters of its own" do
+      before_all "/api/*" { |env| halt env, status_code: 401 }
+      router = Kemal::Router.new
+      router.before { }
+      router.get "/http" { "secret" }
+      router.ws "/live" { }
+
+      mount "/api", router
+
+      call_request_on_app(HTTP::Request.new("GET", "/api/http")).status_code.should eq(401)
+      handshake_response("/api/live").should start_with("HTTP/1.1 401 Unauthorized")
+    end
+
+    it "keeps a router guard in force beside a more specific top-level filter" do
+      before_all "/api/rooms/lobby" { }
+      router = Kemal::Router.new
+      router.before { |env| halt env, status_code: 401 }
+      router.get "/rooms/:id" { "secret" }
+      router.ws "/rooms/:id" { }
+
+      mount "/api", router
+
+      call_request_on_app(HTTP::Request.new("GET", "/api/rooms/lobby")).status_code.should eq(401)
+      handshake_response("/api/rooms/lobby").should start_with("HTTP/1.1 401 Unauthorized")
+    end
+
+    it "guards a handshake with the filters of the router serving it" do
+      chat = Kemal::Router.new
+      chat.before { |env| halt env, status_code: 401 }
+      chat.ws "/chat/:room" { }
+      pages = Kemal::Router.new
+      pages.before { }
+      pages.get "/chat/public" { "page" }
+
+      mount "/api", chat
+      mount "/api", pages
+
+      call_request_on_app(HTTP::Request.new("GET", "/api/chat/public")).body.should eq("page")
+      handshake_response("/api/chat/public").should start_with("HTTP/1.1 401 Unauthorized")
+    end
+
+    it "keeps guarding a trailing-slash route beside a longer sibling" do
+      router = Kemal::Router.new
+      router.before { |env| halt env, status_code: 401 }
+      router.get "/chat/" { "secret" }
+      router.post "/chatroom" { "secret" }
+      router.ws "/chat/" { }
+
+      mount "/api", router
+
+      call_request_on_app(HTTP::Request.new("GET", "/api/chat/")).status_code.should eq(401)
+      handshake_response("/api/chat/").should start_with("HTTP/1.1 401 Unauthorized")
+    end
+
+    it "scopes a filter path to routes that name its param differently" do
+      router = Kemal::Router.new
+      router.before "/rooms/:id" { |env| halt env, status_code: 401 }
+      router.get "/rooms/:room_id" { "secret" }
+      router.ws "/rooms/:key" { }
+
+      mount "/api", router
+
+      call_request_on_app(HTTP::Request.new("GET", "/api/rooms/42")).status_code.should eq(401)
+      handshake_response("/api/rooms/42").should start_with("HTTP/1.1 401 Unauthorized")
+    end
+
+    it "matches a filter path against the request path, not the route's spelling" do
+      router = Kemal::Router.new
+      router.before "/users/:id" { |env| halt env, status_code: 401 }
+      router.before "/teams/admin" { |env| halt env, status_code: 403 }
+      router.before "/files/*rest" { |env| halt env, status_code: 401 }
+      router.before "/admin/" { |env| halt env, status_code: 401 }
+      router.get "/users/me" { "secret" }
+      router.get "/teams/:id" { "team" }
+      router.get "/files/:name" { "secret" }
+      router.get "/admin/users" { "secret" }
+
+      mount "/api", router
+
+      {"/api/users/me", "/api/files/a", "/api/admin/users"}.each do |path|
+        call_request_on_app(HTTP::Request.new("GET", path)).status_code.should eq(401)
+      end
+      call_request_on_app(HTTP::Request.new("GET", "/api/teams/admin")).status_code.should eq(403)
+      call_request_on_app(HTTP::Request.new("GET", "/api/teams/42")).body.should eq("team")
+    end
+
+    it "runs router before filters for a method the router does not serve on the path" do
+      router = Kemal::Router.new
+      router.before do |env|
+        env.response.headers["Access-Control-Allow-Origin"] = "*"
+        halt env, status_code: 204 if env.request.method == "OPTIONS"
+      end
+      router.before "/admin" { |env| halt env, status_code: 401 }
+      router.get "/users" { "users" }
+      router.get "/admin/:id" { "secret" }
+
+      mount "/api", router
+
+      preflight = call_request_on_app(HTTP::Request.new("OPTIONS", "/api/users"))
+      preflight.status_code.should eq(204)
+      preflight.headers["Access-Control-Allow-Origin"].should eq("*")
+      call_request_on_app(HTTP::Request.new("DELETE", "/api/admin/1")).status_code.should eq(401)
+    end
+
+    it "closes the connection of a handshake a filter refuses" do
+      router = Kemal::Router.new
+      router.before "/private" { |env| halt env, status_code: 401 }
+      router.ws "/private" { }
+      router.ws "/public" { }
+
+      mount "/api", router
+
+      headers = ws_upgrade_headers_for_origin("http://localhost")
+      headers["Connection"] = "keep-alive, Upgrade"
+      refused = create_ws_request_and_return_io_and_context(build_main_handler, HTTP::Request.new("GET", "/api/private", headers))[0].to_s
+      refused.should start_with("HTTP/1.1 401 Unauthorized")
+      refused.should contain("Connection: close")
+      upgraded = create_ws_request_and_return_io_and_context(build_main_handler, HTTP::Request.new("GET", "/api/public", headers))[0].to_s
+      upgraded.should start_with("HTTP/1.1 101 Switching Protocols")
+      upgraded.should_not contain("Connection: close")
+    end
+
+    it "leaves a top-level route on a router's path to the top-level filters" do
+      router = Kemal::Router.new
+      router.before { |env| halt env, status_code: 401 }
+      router.get "/x" { "secret" }
+
+      mount "/api", router
+      post "/api/x" { "public" }
+
+      call_request_on_app(HTTP::Request.new("POST", "/api/x")).body.should eq("public")
     end
   end
 

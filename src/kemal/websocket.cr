@@ -3,8 +3,10 @@ module Kemal
   # what action to be done if the route is matched.
   class WebSocket < HTTP::WebSocketHandler
     getter proc
+    # :nodoc:
+    getter filters : FilterHandler::ScopedFilters?
 
-    def initialize(@path : String, &@proc : HTTP::WebSocket, HTTP::Server::Context ->)
+    def initialize(@path : String, @filters : FilterHandler::ScopedFilters? = nil, &@proc : HTTP::WebSocket, HTTP::Server::Context ->)
     end
 
     def call(context : HTTP::Server::Context)

@@ -2,22 +2,6 @@ require "./spec_helper"
 require "log/spec"
 require "socket"
 
-# `Host` is part of a well formed HTTP/1.1 request and Crystal's
-# `HTTP::WebSocketHandler` rejects an upgrade without it, so it belongs in the
-# baseline headers. Specs that care about a particular host - or about its
-# absence - override or delete it.
-def ws_upgrade_headers_for_origin(origin : String? = nil)
-  h = HTTP::Headers{
-    "Upgrade"               => "websocket",
-    "Connection"            => "Upgrade",
-    "Sec-WebSocket-Key"     => "dGhlIHNhbXBsZSBub25jZQ==",
-    "Sec-WebSocket-Version" => "13",
-    "Host"                  => "localhost",
-  }
-  h["Origin"] = origin if origin
-  h
-end
-
 def call_ws_handler_response(handler, request) : HTTP::Client::Response
   io = IO::Memory.new
   response = HTTP::Server::Response.new(io)

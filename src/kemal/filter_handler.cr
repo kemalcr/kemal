@@ -10,6 +10,15 @@ module Kemal
     # tree, so a path lookup can never match them a second time (#757).
     private WILDCARD_PATHS = {"*", "/*"}
 
+    # :nodoc:
+    # The filters a `Kemal::Router` attached to one of its routes, keyed by
+    # `filter_key` like the global ones. They travel with the `Route` or
+    # `Kemal::WebSocket` they guard instead of entering the radix tree below:
+    # that tree runs the single best match for the request path, so a router's
+    # key was hidden by any more specific key - a top-level filter or another
+    # router's - and the guard silently did not run.
+    alias ScopedFilters = Hash(String, Array(FilterBlock))
+
     @tree : Radix::Tree(Array(FilterBlock))
 
     # Hash cache for exact path filters to avoid repeated tree lookups
@@ -27,6 +36,7 @@ module Kemal
       @tree = tree
       @exact_filters = Hash(String, Array(FilterBlock)).new
       @global_filters = Hash(String, Array(FilterBlock)).new
+      @router_filters = false
     end
 
     # This middleware is lazily instantiated and added to the handlers as soon as a call to `after_X` or `before_X` is made.
@@ -34,20 +44,26 @@ module Kemal
       @tree = Radix::Tree(Array(FilterBlock)).new
       @exact_filters = Hash(String, Array(FilterBlock)).new
       @global_filters = Hash(String, Array(FilterBlock)).new
+      @router_filters = false
       Kemal.config.add_filter_handler(self)
     end
 
     # The call order of the filters is `before_all -> before_x -> X -> after_x -> after_all`.
     def call(context : HTTP::Server::Context)
-      if !context.route_found?
+      # The handshake test is `Kemal::WebSocketHandler`'s own, so the two cannot
+      # disagree on whether this request is the one that gets upgraded.
+      handshake = Kemal::WebSocketHandler.handshake?(context)
+
+      if !handshake && !context.route_found?
         # A request that matched no route still gets the `before_all` filters: it
-        # ends in a 404 or 405 page, or in a WebSocket upgrade, and the setup those
-        # expect - an authentication check above all - is the same a route gets.
-        # This used to depend on whether a custom `error 404`/`405` handler was
-        # registered, which `Kemal.run` does outside the `test` environment and
-        # nothing does inside it, so a `before_all` guard ran in production and
-        # not under spec.
-        call_block_for_path_type("ALL", context.request.path, :before, context)
+        # ends in a 404 or 405 page, and the setup those expect - an
+        # authentication check above all - is the same a route gets. This used
+        # to depend on whether a custom `error 404`/`405` handler was registered,
+        # which `Kemal.run` does outside the `test` environment and nothing does
+        # inside it, so a `before_all` guard ran in production and not under spec.
+        # The router `before` filters of a route on the path run too, so a router
+        # guard or CORS preflight answer covers the methods it does not serve.
+        call_block_for_path_type("ALL", context.request.path, :before, context, unrouted_filters(context))
         return call_next(context)
       end
 
@@ -59,17 +75,34 @@ module Kemal
       method = context.request.method
       route_method = context.effective_route_method
 
-      call_block_for_path_type("ALL", context.request.path, :before, context)
-      call_block_for_path_type(method, context.request.path, :before, context)
-      call_block_for_path_type(route_method, context.request.path, :before, context) unless route_method == method
+      # A WebSocket handshake is a `GET` for its `ws` route, so the `GET` filters
+      # guard it - top-level and the router's - even where an HTTP route shares
+      # the path: the upgrade is what serves the request. Without them a
+      # `before_get` guard let the upgrade through. A handshake a filter refuses
+      # closes the connection like any other refused upgrade; on a 101 the
+      # stdlib replaces the header with `Upgrade`.
+      if handshake
+        scoped = context.websocket.filters
+        context.response.headers["Connection"] = "close"
+      else
+        scoped = context.route.filters
+      end
+
+      call_block_for_path_type("ALL", context.request.path, :before, context, scoped)
+      call_block_for_path_type(method, context.request.path, :before, context, scoped)
+      call_block_for_path_type(route_method, context.request.path, :before, context, scoped) unless route_method == method
       if Kemal.config.error_handlers.has_key?(context.response.status_code)
         raise Kemal::Exceptions::CustomException.new(context)
       end
 
+      # `after` filters would run once the 101 is on the wire, where writing to
+      # the response breaks the connection.
+      return call_next(context) if handshake
+
       call_next(context)
-      call_block_for_path_type(route_method, context.request.path, :after, context) unless route_method == method
-      call_block_for_path_type(method, context.request.path, :after, context)
-      call_block_for_path_type("ALL", context.request.path, :after, context)
+      call_block_for_path_type(route_method, context.request.path, :after, context, scoped) unless route_method == method
+      call_block_for_path_type(method, context.request.path, :after, context, scoped)
+      call_block_for_path_type("ALL", context.request.path, :after, context, scoped)
       context
     end
 
@@ -81,13 +114,10 @@ module Kemal
     # else goes into the radix tree with an @exact_filters hash cache for
     # O(1) lookup when adding multiple filters to the same path.
     def _add_route_filter(verb : String, path, type, &block : HTTP::Server::Context -> _)
-      # Ensure this handler is registered with Kemal (may have been cleared between tests)
-      unless Kemal::Config::FILTER_HANDLERS.includes?(self)
-        Kemal.config.add_filter_handler(self)
-      end
+      register
 
       if WILDCARD_PATHS.includes?(path)
-        key = global_key(verb, type)
+        key = FilterHandler.filter_key(verb, type)
 
         if filters = @global_filters[key]?
           filters << FilterBlock.new(&block)
@@ -124,27 +154,60 @@ module Kemal
       _add_route_filter verb, path, :after, &block
     end
 
+    # :nodoc:
+    # Puts this handler in the handler chain, unless it is there already (specs
+    # clear the chain between examples).
+    def register : Nil
+      Kemal.config.add_filter_handler(self) unless Kemal::Config::FILTER_HANDLERS.includes?(self)
+    end
+
+    # :nodoc:
+    # Called by `Kemal::Router` once it attaches filters to its routes.
+    def register_router_filters : Nil
+      @router_filters = true
+      register
+    end
+
+    # The router filters of a route on the request path, for a request no route
+    # serves. Only looked up once a router has filters: it probes every
+    # registered method, on every miss.
+    private def unrouted_filters(context : HTTP::Server::Context) : ScopedFilters?
+      return unless @router_filters
+
+      if route = Kemal::RouteHandler::INSTANCE.route_on_path(context.request.path)
+        route.filters
+      elsif context.ws_route_found?
+        context.websocket.filters
+      end
+    end
+
     # Executes filters for a given path.
     #
     # Execution order:
     # 1. Global filters (`before_all` / `after_all`) - always run, exactly once
     # 2. Path-specific filters - matched via radix lookup for the request path
+    # 3. The matched route's own router filters (*scoped*)
     #
     # Global filters never enter the radix tree, so the path lookup below
     # cannot match them again - duplicate execution is structurally impossible.
-    private def call_block_for_path_type(verb : String?, path : String, type, context : HTTP::Server::Context)
-      if global_filters = @global_filters[global_key(verb, type)]?
+    private def call_block_for_path_type(verb : String?, path : String, type, context : HTTP::Server::Context, scoped : ScopedFilters? = nil)
+      key = FilterHandler.filter_key(verb, type)
+      if global_filters = @global_filters[key]?
         global_filters.each &.call(context)
       end
 
       # With only global filters registered (`before_all` and friends) the tree
       # is empty, yet every request would still pay a radix key allocation and
       # a lookup per verb/type combination - four to six times per request.
-      return if path_filters_empty?
+      unless path_filters_empty?
+        lookup = lookup_filters_for_path_type(verb, path, type)
+        if lookup.found? && lookup.payload.is_a? Array(FilterBlock)
+          blocks = lookup.payload
+          blocks.each &.call(context)
+        end
+      end
 
-      lookup = lookup_filters_for_path_type(verb, path, type)
-      if lookup.found? && lookup.payload.is_a? Array(FilterBlock)
-        blocks = lookup.payload
+      if scoped && (blocks = scoped[key]?)
         blocks.each &.call(context)
       end
     end
@@ -172,7 +235,8 @@ module Kemal
       "/#{type}/#{verb}/#{path}"
     end
 
-    private def global_key(verb : String?, type : Symbol)
+    # :nodoc:
+    def self.filter_key(verb : String?, type : Symbol) : String
       "#{type}/#{verb}"
     end
 

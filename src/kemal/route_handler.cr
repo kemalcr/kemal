@@ -161,8 +161,8 @@ module Kemal
     end
 
     # Adds a given route to routing tree.
-    def add_route(method : String, path : String, &handler : HTTP::Server::Context -> _)
-      add_to_radix_tree method, path, Route.new(method, path, &handler)
+    def add_route(method : String, path : String, filters : FilterHandler::ScopedFilters? = nil, &handler : HTTP::Server::Context -> _)
+      add_to_radix_tree method, path, Route.new(method, path, filters, &handler)
       # A HEAD request served through the GET fallback is cached under the HEAD
       # key. A HEAD route registered for that path afterwards has to drop that
       # entry or the stale fallback keeps winning - and it now also decides which
@@ -265,6 +265,17 @@ module Kemal
       end
 
       methods
+    end
+
+    # :nodoc:
+    # Any route at *path*, whatever its method. `Kemal::FilterHandler` runs its
+    # router filters for a request no route serves.
+    def route_on_path(path : String) : Route?
+      @registered_methods.each do |method|
+        lookup = @routes.find(radix_path(method, path))
+        return lookup.payload if lookup.found?
+      end
+      nil
     end
 
     # Processes the route if it's a match. Otherwise renders 405 when the path

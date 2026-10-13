@@ -10,7 +10,7 @@ module Kemal
     end
 
     def call(context : HTTP::Server::Context)
-      return call_next(context) unless context.ws_route_found? && websocket_upgrade_request?(context)
+      return call_next(context) unless context.ws_route_found? && WebSocketHandler.upgrade_request?(context.request)
       # A `before_all` filter that already answered - a `halt` with 401 - leaves
       # nothing to upgrade. The stdlib handler would try anyway, hit the closed
       # response and raise; the client had its answer, the log got a spurious error.
@@ -50,8 +50,16 @@ module Kemal
       @routes.find "/ws" + path
     end
 
-    def add_route(path : String, &handler : HTTP::WebSocket, HTTP::Server::Context ->)
-      add_to_radix_tree path, WebSocket.new(path, &handler)
+    def add_route(path : String, filters : FilterHandler::ScopedFilters? = nil, &handler : HTTP::WebSocket, HTTP::Server::Context ->)
+      add_to_radix_tree path, WebSocket.new(path, filters, &handler)
+    end
+
+    # :nodoc:
+    # Whether this request is a handshake this handler upgrades: a `GET` with
+    # upgrade headers to a `ws` route. `Kemal::FilterHandler` asks too, to run
+    # the route's `GET` filters before the upgrade.
+    def self.handshake?(context : HTTP::Server::Context) : Bool
+      context.request.method == "GET" && context.ws_route_found? && upgrade_request?(context.request)
     end
 
     private def add_to_radix_tree(path, websocket)
@@ -63,11 +71,12 @@ module Kemal
       '/' + method.downcase + path
     end
 
-    private def websocket_upgrade_request?(context)
-      return unless upgrade = context.request.headers["Upgrade"]?
-      return unless upgrade.compare("websocket", case_insensitive: true) == 0
+    # :nodoc:
+    def self.upgrade_request?(request : HTTP::Request) : Bool
+      return false unless upgrade = request.headers["Upgrade"]?
+      return false unless upgrade.compare("websocket", case_insensitive: true) == 0
 
-      context.request.headers.includes_word?("Connection", "Upgrade")
+      request.headers.includes_word?("Connection", "Upgrade")
     end
 
     private def websocket_origin_allowed?(request : HTTP::Request) : Bool
