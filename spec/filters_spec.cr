@@ -369,58 +369,67 @@ describe "Kemal::FilterHandler" do
 
   # Path filters used to share one radix tree, which runs the single best
   # match for the request path: a more specific filter path hid a broader
-  # guard on the same request.
+  # guard on the same request. The specific filter is registered first below,
+  # so it runs before the guard halts and both are seen to run.
   context "overlapping top-level path filters" do
     it "runs a glob guard next to a more specific static filter" do
-      before_all "/api/*" do |env|
-        halt env, status_code: 401, response: "auth required"
-      end
       before_all "/api/public" do |env|
         env.response.headers["X-Public"] = "1"
+      end
+      before_all "/api/*" do |env|
+        halt env, status_code: 401, response: "auth required"
       end
       get "/api/public" { "PUBLIC" }
       get "/api/secret" { "SECRET" }
 
-      call_request_on_app(HTTP::Request.new("GET", "/api/public")).status_code.should eq(401)
+      response = call_request_on_app(HTTP::Request.new("GET", "/api/public"))
+      response.status_code.should eq(401)
+      response.headers["X-Public"].should eq("1")
       call_request_on_app(HTTP::Request.new("GET", "/api/secret")).status_code.should eq(401)
     end
 
     it "runs a param guard next to a static filter on one of its paths" do
-      before_get "/users/:id" do |env|
-        halt env, status_code: 401, response: "auth required"
-      end
       before_get "/users/me" do |env|
         env.response.headers["X-Me"] = "1"
+      end
+      before_get "/users/:id" do |env|
+        halt env, status_code: 401, response: "auth required"
       end
       get "/users/:id" { "USER" }
 
       response = call_request_on_app(HTTP::Request.new("GET", "/users/me"))
       response.status_code.should eq(401)
+      response.headers["X-Me"].should eq("1")
     end
 
     it "runs both filters on paths that differ by a trailing slash" do
+      before_all "/admin" do |env|
+        env.response.headers["X-Admin"] = "1"
+      end
       before_all "/admin/" do |env|
         halt env, status_code: 401, response: "auth required"
       end
-      before_all "/admin" do |env|
+      get "/admin" { "ADMIN" }
+
+      {"/admin", "/admin/"}.each do |path|
+        response = call_request_on_app(HTTP::Request.new("GET", path))
+        response.status_code.should eq(401)
+        response.headers["X-Admin"].should eq("1")
+      end
+    end
+
+    it "runs a glob guard next to a filter on its own prefix" do
+      before_all "/admin/" do |env|
         env.response.headers["X-Admin"] = "1"
+      end
+      before_all "/admin/*" do |env|
+        halt env, status_code: 401, response: "auth required"
       end
       get "/admin" { "ADMIN" }
 
       response = call_request_on_app(HTTP::Request.new("GET", "/admin"))
       response.status_code.should eq(401)
-    end
-
-    it "runs a glob guard next to a filter on its own prefix" do
-      before_all "/admin/*" do |env|
-        halt env, status_code: 401, response: "auth required"
-      end
-      before_all "/admin/" do |env|
-        env.response.headers["X-Admin"] = "1"
-      end
-      get "/admin" { "ADMIN" }
-
-      call_request_on_app(HTTP::Request.new("GET", "/admin")).status_code.should eq(401)
+      response.headers["X-Admin"].should eq("1")
     end
 
     it "runs a filter path whose key the shared tree split" do
@@ -435,24 +444,28 @@ describe "Kemal::FilterHandler" do
       calls.should eq(["user", "posts"])
     end
 
-    it "stops at a path filter that halts" do
-      later_ran = false
-      after_all_ran = false
-      before_all "/api/*" do |env|
-        halt env, status_code: 401, response: "auth required"
-      end
-      before_all "/api/public" do |env|
-        later_ran = true
-        env.response.content_type = "application/json"
-      end
-      after_all { after_all_ran = true }
-      get "/api/public" { "PUBLIC" }
+    it "takes filter paths the shared tree refused" do
+      calls = [] of String
+      before_get "/users/me" { calls << "me" }
+      before_get "/users/:id" { calls << "user" }
+      before_get "/users/:uid/posts" { calls << "posts" }
+      get "/users/:id/posts" { "POSTS" }
 
-      response = call_request_on_app(HTTP::Request.new("GET", "/api/public"))
-      response.status_code.should eq(401)
-      response.body.should eq("auth required")
-      later_ran.should be_false
-      after_all_ran.should be_true
+      call_request_on_app(HTTP::Request.new("GET", "/users/5/posts")).status_code.should eq(200)
+      calls.should eq(["posts"])
+    end
+
+    it "runs a block registered for several matching paths once" do
+      calls = 0
+      before_all ["/admin", "/admin/*"] { calls += 1 }
+      before_all ["/admin", "/admin"] { calls += 10 }
+      get "/admin" { "ADMIN" }
+      get "/admin/users" { "USERS" }
+
+      call_request_on_app(HTTP::Request.new("GET", "/admin"))
+      calls.should eq(11)
+      call_request_on_app(HTTP::Request.new("GET", "/admin/users"))
+      calls.should eq(12)
     end
 
     it "runs no before filter after one that halts, in any step" do
@@ -462,6 +475,7 @@ describe "Kemal::FilterHandler" do
         halt env, status_code: 401, response: "auth required"
       end
       before_all "/api/*" { calls << "same path" }
+      before_all "/api/public" { |env| calls << "all"; env.response.content_type = "application/json" }
       before_get "*" { calls << "global get" }
       before_get "/api/public" { |env| calls << "get"; env.response.content_type = "application/json" }
       after_get "/api/public" { calls << "after get" }
@@ -500,30 +514,32 @@ describe "Kemal::FilterHandler" do
     end
 
     it "runs every matching GET filter for a HEAD served by the GET route" do
-      before_get "/admin/*" do |env|
-        halt env, status_code: 401, response: "auth required"
-      end
       before_get "/admin/users" do |env|
         env.response.headers["X-Users"] = "1"
+      end
+      before_get "/admin/*" do |env|
+        halt env, status_code: 401, response: "auth required"
       end
       handler_ran = false
       get "/admin/users" { handler_ran = true; "users" }
 
       response = call_request_on_app(HTTP::Request.new("HEAD", "/admin/users"))
       response.status_code.should eq(401)
+      response.headers["X-Users"].should eq("1")
       handler_ran.should be_false
     end
 
     it "runs every matching before_all filter for an unrouted request" do
-      before_all "/api/*" do |env|
-        halt env, status_code: 401, response: "auth required"
-      end
       before_all "/api/nope" do |env|
         env.response.headers["X-Nope"] = "1"
+      end
+      before_all "/api/*" do |env|
+        halt env, status_code: 401, response: "auth required"
       end
 
       response = call_request_on_app(HTTP::Request.new("GET", "/api/nope"))
       response.status_code.should eq(401)
+      response.headers["X-Nope"].should eq("1")
     end
 
     it "runs global filters first, then path filters in the order their paths were registered" do

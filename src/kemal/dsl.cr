@@ -172,8 +172,10 @@ end
     end
 
     def {{ type.id }}_{{ method.id }}(paths : Enumerable(String), &block : HTTP::Server::Context -> _)
+      # One block for every path, so it runs once where several of them match.
+      filter = Kemal::FilterHandler::FilterBlock.new(shared: true, &block)
       paths.each do |path|
-        Kemal::FilterHandler::INSTANCE.{{ type.id }}({{ method }}.upcase, path, &block)
+        Kemal::FilterHandler::INSTANCE._add_route_filter({{ method }}.upcase, path, :{{ type.id }}, filter)
       end
     end
   {% end %}
