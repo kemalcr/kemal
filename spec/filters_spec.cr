@@ -455,6 +455,39 @@ describe "Kemal::FilterHandler" do
       after_all_ran.should be_true
     end
 
+    it "runs no before filter after one that halts, in any step" do
+      calls = [] of String
+      before_all "/api/*" do |env|
+        calls << "guard"
+        halt env, status_code: 401, response: "auth required"
+      end
+      before_all "/api/*" { calls << "same path" }
+      before_get "*" { calls << "global get" }
+      before_get "/api/public" { |env| calls << "get"; env.response.content_type = "application/json" }
+      after_get "/api/public" { calls << "after get" }
+      after_all { calls << "after all" }
+
+      router = Kemal::Router.new
+      router.before { calls << "router" }
+      router.get "/public" { calls << "handler"; "PUBLIC" }
+      mount "/api", router
+
+      response = call_request_on_app(HTTP::Request.new("GET", "/api/public"))
+      response.status_code.should eq(401)
+      response.body.should eq("auth required")
+      calls.should eq(["guard", "after get", "after all"])
+    end
+
+    it "runs no path filter after a global filter that halts" do
+      ran = false
+      before_all { |env| halt env, status_code: 401, response: "auth required" }
+      before_all "/api/public" { ran = true }
+      get "/api/public" { "PUBLIC" }
+
+      call_request_on_app(HTTP::Request.new("GET", "/api/public")).status_code.should eq(401)
+      ran.should be_false
+    end
+
     it "runs every matching after filter" do
       calls = [] of String
       after_get "/reports/*" { calls << "glob" }

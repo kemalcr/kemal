@@ -205,12 +205,18 @@ module Kemal
     #    in the order the paths were first registered
     # 3. The matched route's own router filters (*scoped*)
     #
+    # A `before` filter that closed the response - `halt`, `redirect` - answered
+    # the request, like the route handler it keeps from running, so no `before`
+    # filter after it runs, in this call or the next: they would only write to a
+    # closed response, and do work for a request a guard refused. `after`
+    # filters all run, so a refused request still reaches `after_all` logging.
+    #
     # Global filters never enter the radix tree, so the path lookup below
     # cannot match them again - duplicate execution is structurally impossible.
     private def call_block_for_path_type(verb : String?, path : String, type, context : HTTP::Server::Context, scoped : ScopedFilters? = nil)
       key = FilterHandler.filter_key(verb, type)
       if global_filters = @global_filters[key]?
-        global_filters.each &.call(context)
+        run_filters(global_filters, type, context)
       end
 
       # Without path filters for this verb/type - only `before_all` and friends,
@@ -219,20 +225,21 @@ module Kemal
       # request; group the trees by literal prefix if apps register hundreds.
       if path_trees = @path_filters[key]?
         radix_key = radix_path(verb, path, type)
-        open = !context.response.closed?
         path_trees.each do |path_tree|
           lookup = path_tree.find(radix_key)
-          next unless lookup.found?
-          lookup.payload.each &.call(context)
-          # A filter that halted answered the request, like the route handler
-          # it keeps from running: the filters of the paths after it would only
-          # write to a closed response.
-          break if open && context.response.closed?
+          run_filters(lookup.payload, type, context) if lookup.found?
         end
       end
 
       if scoped && (blocks = scoped[key]?)
-        blocks.each &.call(context)
+        run_filters(blocks, type, context)
+      end
+    end
+
+    private def run_filters(blocks : Array(FilterBlock), type : Symbol, context : HTTP::Server::Context) : Nil
+      blocks.each do |block|
+        return if type == :before && context.response.closed?
+        block.call(context)
       end
     end
 
