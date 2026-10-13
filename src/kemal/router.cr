@@ -208,7 +208,7 @@ module Kemal
     # Each route carries the filters of this router and of every router it is
     # mounted under, so they run for exactly the requests the router's routes
     # serve. They used to be registered by path in `Kemal::FilterHandler`'s
-    # radix tree, which runs only the best match for a request path: a router's
+    # radix tree, which ran only the best match for a request path: a router's
     # `ws` routes were never collected there, and a more specific key from
     # anywhere else hid a router's filters - a guard that silently did not run.
     #
