@@ -35,7 +35,13 @@ module Kemal
     # skipped wherever a more specific filter path like "/api/public" matched
     # too. Asking each path's own tree keeps what one filter path matches as
     # radix defines it, and runs every match.
-    @path_filters : Hash(String, Array(Radix::Tree(Array(FilterBlock))))
+    #
+    # Each tree comes with the literal start of its key: everything before the
+    # first `:` or `*`, less a trailing `/` so the trailing-slash tolerance of
+    # radix still matches. A request path that does not start with it cannot
+    # match, and is turned away without `Radix::Tree#find`, which allocates a
+    # result and a params hash on every call.
+    @path_filters : Hash(String, Array({String, Radix::Tree(Array(FilterBlock))}))
 
     # Path filters no longer enter this tree - it would refuse some
     # combinations of them (`Radix::Tree::SharedKeyError`) that the per-path
@@ -48,7 +54,7 @@ module Kemal
       @tree = tree
       @exact_filters = Hash(String, Array(FilterBlock)).new
       @global_filters = Hash(String, Array(FilterBlock)).new
-      @path_filters = Hash(String, Array(Radix::Tree(Array(FilterBlock)))).new
+      @path_filters = Hash(String, Array({String, Radix::Tree(Array(FilterBlock))})).new
       @router_filters = false
     end
 
@@ -57,7 +63,7 @@ module Kemal
       @tree = Radix::Tree(Array(FilterBlock)).new
       @exact_filters = Hash(String, Array(FilterBlock)).new
       @global_filters = Hash(String, Array(FilterBlock)).new
-      @path_filters = Hash(String, Array(Radix::Tree(Array(FilterBlock)))).new
+      @path_filters = Hash(String, Array({String, Radix::Tree(Array(FilterBlock))})).new
       @router_filters = false
       Kemal.config.add_filter_handler(self)
     end
@@ -156,7 +162,8 @@ module Kemal
         filters = [filter]
         path_tree = Radix::Tree(Array(FilterBlock)).new
         path_tree.add key, filters
-        (@path_filters[FilterHandler.filter_key(verb, type)] ||= [] of Radix::Tree(Array(FilterBlock))) << path_tree
+        prefix = key[0, key.index(/[:*]/) || key.size].rchop('/')
+        (@path_filters[FilterHandler.filter_key(verb, type)] ||= [] of {String, Radix::Tree(Array(FilterBlock))}) << {prefix, path_tree}
         @exact_filters[key] = filters
       end
     end
@@ -228,12 +235,12 @@ module Kemal
 
       # Without path filters for this verb/type - only `before_all` and friends,
       # say - skip the radix key allocation and the lookups altogether.
-      # ponytail: one radix lookup per filter path of this verb/type on every
-      # request; group the trees by literal prefix if apps register hundreds.
       if path_trees = @path_filters[key]?
         radix_key = radix_path(verb, path, type)
         ran = nil
-        path_trees.each do |path_tree|
+        path_trees.each do |prefix, path_tree|
+          next unless radix_key.starts_with?(prefix)
+
           lookup = path_tree.find(radix_key)
           next unless lookup.found?
 

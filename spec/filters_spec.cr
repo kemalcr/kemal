@@ -432,6 +432,26 @@ describe "Kemal::FilterHandler" do
       response.headers["X-Admin"].should eq("1")
     end
 
+    it "matches each filter path exactly where radix does on its own" do
+      filter_paths = ["/", "/admin", "/admin/", "/admin/*", "/users/:id", "/users/:id/posts", "/a//b", "/files/*path"]
+      request_paths = ["/", "/admin", "/admin/", "/admin/x", "/adminx", "/users", "/users/", "/users/5",
+                       "/users/5/", "/users/5/posts", "/a//b", "/a/b", "/files", "/files/x/y"]
+
+      filter_paths.each do |filter_path|
+        radix = Radix::Tree(Bool).new
+        radix.add "/before/ALL/#{filter_path}", true
+        ran = false
+        handler = Kemal::FilterHandler.new
+        handler._add_route_filter("ALL", filter_path, :before) { ran = true }
+
+        request_paths.each do |request_path|
+          ran = false
+          handler.call(HTTP::Server::Context.new(HTTP::Request.new("GET", request_path), HTTP::Server::Response.new(IO::Memory.new)))
+          {filter_path, request_path, ran}.should eq({filter_path, request_path, radix.find("/before/ALL/#{request_path}").found?})
+        end
+      end
+    end
+
     it "runs a filter path whose key the shared tree split" do
       calls = [] of String
       before_get "/users/:id" { calls << "user" }
