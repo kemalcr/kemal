@@ -366,4 +366,145 @@ describe "Kemal::FilterHandler" do
       response.body.should_not contain("ACCOUNT-DATA")
     end
   end
+
+  # Path filters used to share one radix tree, which runs the single best
+  # match for the request path: a more specific filter path hid a broader
+  # guard on the same request.
+  context "overlapping top-level path filters" do
+    it "runs a glob guard next to a more specific static filter" do
+      before_all "/api/*" do |env|
+        halt env, status_code: 401, response: "auth required"
+      end
+      before_all "/api/public" do |env|
+        env.response.headers["X-Public"] = "1"
+      end
+      get "/api/public" { "PUBLIC" }
+      get "/api/secret" { "SECRET" }
+
+      call_request_on_app(HTTP::Request.new("GET", "/api/public")).status_code.should eq(401)
+      call_request_on_app(HTTP::Request.new("GET", "/api/secret")).status_code.should eq(401)
+    end
+
+    it "runs a param guard next to a static filter on one of its paths" do
+      before_get "/users/:id" do |env|
+        halt env, status_code: 401, response: "auth required"
+      end
+      before_get "/users/me" do |env|
+        env.response.headers["X-Me"] = "1"
+      end
+      get "/users/:id" { "USER" }
+
+      response = call_request_on_app(HTTP::Request.new("GET", "/users/me"))
+      response.status_code.should eq(401)
+    end
+
+    it "runs both filters on paths that differ by a trailing slash" do
+      before_all "/admin/" do |env|
+        halt env, status_code: 401, response: "auth required"
+      end
+      before_all "/admin" do |env|
+        env.response.headers["X-Admin"] = "1"
+      end
+      get "/admin" { "ADMIN" }
+
+      response = call_request_on_app(HTTP::Request.new("GET", "/admin"))
+      response.status_code.should eq(401)
+    end
+
+    it "runs a glob guard next to a filter on its own prefix" do
+      before_all "/admin/*" do |env|
+        halt env, status_code: 401, response: "auth required"
+      end
+      before_all "/admin/" do |env|
+        env.response.headers["X-Admin"] = "1"
+      end
+      get "/admin" { "ADMIN" }
+
+      call_request_on_app(HTTP::Request.new("GET", "/admin")).status_code.should eq(401)
+    end
+
+    it "runs a filter path whose key the shared tree split" do
+      calls = [] of String
+      before_get "/users/:id" { calls << "user" }
+      before_get "/users/:uid/posts" { calls << "posts" }
+      get "/users/:id" { "USER" }
+      get "/users/:id/posts" { "POSTS" }
+
+      call_request_on_app(HTTP::Request.new("GET", "/users/5"))
+      call_request_on_app(HTTP::Request.new("GET", "/users/5/posts"))
+      calls.should eq(["user", "posts"])
+    end
+
+    it "stops at a path filter that halts" do
+      later_ran = false
+      after_all_ran = false
+      before_all "/api/*" do |env|
+        halt env, status_code: 401, response: "auth required"
+      end
+      before_all "/api/public" do |env|
+        later_ran = true
+        env.response.content_type = "application/json"
+      end
+      after_all { after_all_ran = true }
+      get "/api/public" { "PUBLIC" }
+
+      response = call_request_on_app(HTTP::Request.new("GET", "/api/public"))
+      response.status_code.should eq(401)
+      response.body.should eq("auth required")
+      later_ran.should be_false
+      after_all_ran.should be_true
+    end
+
+    it "runs every matching after filter" do
+      calls = [] of String
+      after_get "/reports/*" { calls << "glob" }
+      after_get "/reports/:id" { calls << "param" }
+      after_get "/reports/daily" { calls << "static" }
+      get "/reports/:id" { calls << "handler"; "REPORT" }
+
+      call_request_on_app(HTTP::Request.new("GET", "/reports/daily"))
+      calls.should eq(["handler", "glob", "param", "static"])
+    end
+
+    it "runs every matching GET filter for a HEAD served by the GET route" do
+      before_get "/admin/*" do |env|
+        halt env, status_code: 401, response: "auth required"
+      end
+      before_get "/admin/users" do |env|
+        env.response.headers["X-Users"] = "1"
+      end
+      handler_ran = false
+      get "/admin/users" { handler_ran = true; "users" }
+
+      response = call_request_on_app(HTTP::Request.new("HEAD", "/admin/users"))
+      response.status_code.should eq(401)
+      handler_ran.should be_false
+    end
+
+    it "runs every matching before_all filter for an unrouted request" do
+      before_all "/api/*" do |env|
+        halt env, status_code: 401, response: "auth required"
+      end
+      before_all "/api/nope" do |env|
+        env.response.headers["X-Nope"] = "1"
+      end
+
+      response = call_request_on_app(HTTP::Request.new("GET", "/api/nope"))
+      response.status_code.should eq(401)
+    end
+
+    it "runs global filters first, then path filters in the order their paths were registered" do
+      calls = [] of String
+      before_get "/orders/me" { calls << "static 1" }
+      before_get "/orders/*" { calls << "glob" }
+      before_get "*" { calls << "global" }
+      before_get "/orders/:id" { calls << "param" }
+      before_get "/orders/me" { calls << "static 2" }
+      before_get "/orders/other" { calls << "unmatched" }
+      get "/orders/:id" { calls << "handler"; "ORDER" }
+
+      call_request_on_app(HTTP::Request.new("GET", "/orders/me"))
+      calls.should eq(["global", "static 1", "static 2", "glob", "param", "handler"])
+    end
+  end
 end

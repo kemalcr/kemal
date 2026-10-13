@@ -14,7 +14,7 @@ module Kemal
     # The filters a `Kemal::Router` attached to one of its routes, keyed by
     # `filter_key` like the global ones. They travel with the `Route` or
     # `Kemal::WebSocket` they guard instead of entering the radix tree below:
-    # that tree runs the single best match for the request path, so a router's
+    # that tree ran the single best match for the request path, so a router's
     # key was hidden by any more specific key - a top-level filter or another
     # router's - and the guard silently did not run.
     alias ScopedFilters = Hash(String, Array(FilterBlock))
@@ -28,6 +28,14 @@ module Kemal
     # Global filters (`before_all` / `after_all`), keyed by "#{type}/#{verb}"
     @global_filters : Hash(String, Array(FilterBlock))
 
+    # Path filters, keyed by "#{type}/#{verb}" like the global ones: one
+    # single-key radix tree per filter path, in registration order. @tree runs
+    # only the best match for a request path, so a broader guard such as
+    # `before_all "/api/*"` was skipped wherever a more specific filter path
+    # like "/api/public" matched too. Asking each path's own tree keeps what
+    # one filter path matches as radix defines it, and runs every match.
+    @path_filters : Hash(String, Array(Radix::Tree(Array(FilterBlock))))
+
     def tree
       @tree
     end
@@ -36,6 +44,7 @@ module Kemal
       @tree = tree
       @exact_filters = Hash(String, Array(FilterBlock)).new
       @global_filters = Hash(String, Array(FilterBlock)).new
+      @path_filters = Hash(String, Array(Radix::Tree(Array(FilterBlock)))).new
       @router_filters = false
     end
 
@@ -44,6 +53,7 @@ module Kemal
       @tree = Radix::Tree(Array(FilterBlock)).new
       @exact_filters = Hash(String, Array(FilterBlock)).new
       @global_filters = Hash(String, Array(FilterBlock)).new
+      @path_filters = Hash(String, Array(Radix::Tree(Array(FilterBlock)))).new
       @router_filters = false
       Kemal.config.add_filter_handler(self)
     end
@@ -111,8 +121,9 @@ module Kemal
     #
     # Registers a filter block for the given verb/path/type combination.
     # Global paths ("*" and "/*") are stored in @global_filters, everything
-    # else goes into the radix tree with an @exact_filters hash cache for
-    # O(1) lookup when adding multiple filters to the same path.
+    # else gets its own single-key radix tree in @path_filters (and enters
+    # @tree), with an @exact_filters hash cache for O(1) lookup when adding
+    # multiple filters to the same path.
     def _add_route_filter(verb : String, path, type, &block : HTTP::Server::Context -> _)
       register
 
@@ -134,9 +145,14 @@ module Kemal
         filters << FilterBlock.new(&block)
       else
         filters = [FilterBlock.new(&block)]
-        @exact_filters[key] = filters
-
         @tree.add key, filters
+
+        path_tree = Radix::Tree(Array(FilterBlock)).new
+        path_tree.add key, filters
+        (@path_filters[FilterHandler.filter_key(verb, type)] ||= [] of Radix::Tree(Array(FilterBlock))) << path_tree
+        # Only once the trees took the key: a refused one leaves no entry for
+        # later blocks on the path to join where nothing runs them.
+        @exact_filters[key] = filters
       end
     end
 
@@ -185,7 +201,8 @@ module Kemal
     #
     # Execution order:
     # 1. Global filters (`before_all` / `after_all`) - always run, exactly once
-    # 2. Path-specific filters - matched via radix lookup for the request path
+    # 2. Path-specific filters - every filter path matching the request path,
+    #    in the order the paths were first registered
     # 3. The matched route's own router filters (*scoped*)
     #
     # Global filters never enter the radix tree, so the path lookup below
@@ -196,39 +213,27 @@ module Kemal
         global_filters.each &.call(context)
       end
 
-      # With only global filters registered (`before_all` and friends) the tree
-      # is empty, yet every request would still pay a radix key allocation and
-      # a lookup per verb/type combination - four to six times per request.
-      unless path_filters_empty?
-        lookup = lookup_filters_for_path_type(verb, path, type)
-        if lookup.found? && lookup.payload.is_a? Array(FilterBlock)
-          blocks = lookup.payload
-          blocks.each &.call(context)
+      # Without path filters for this verb/type - only `before_all` and friends,
+      # say - skip the radix key allocation and the lookups altogether.
+      # ponytail: one radix lookup per filter path of this verb/type on every
+      # request; group the trees by literal prefix if apps register hundreds.
+      if path_trees = @path_filters[key]?
+        radix_key = radix_path(verb, path, type)
+        open = !context.response.closed?
+        path_trees.each do |path_tree|
+          lookup = path_tree.find(radix_key)
+          next unless lookup.found?
+          lookup.payload.each &.call(context)
+          # A filter that halted answered the request, like the route handler
+          # it keeps from running: the filters of the paths after it would only
+          # write to a closed response.
+          break if open && context.response.closed?
         end
       end
 
       if scoped && (blocks = scoped[key]?)
         blocks.each &.call(context)
       end
-    end
-
-    # This checks is filter is already defined for the verb/path/type combination
-    private def filter_for_path_type_defined?(verb : String, path : String, type)
-      lookup = @tree.find radix_path(verb, path, type)
-      lookup.found? && lookup.payload.is_a? FilterBlock
-    end
-
-    # This returns a lookup for verb/path/type
-    private def lookup_filters_for_path_type(verb : String?, path : String, type)
-      @tree.find radix_path(verb, path, type)
-    end
-
-    # `tree` is a public getter, so filters can enter the radix tree without
-    # going through `_add_route_filter` - ask the tree itself rather than
-    # tracking a flag that such additions would bypass.
-    private def path_filters_empty? : Bool
-      root = @tree.root
-      root.children.empty? && root.payload?.nil?
     end
 
     private def radix_path(verb : String?, path : String, type : Symbol)
