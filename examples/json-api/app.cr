@@ -9,6 +9,13 @@ end
 # In-memory storage for users
 USERS = [] of Hash(String, JSON::Any)
 
+# Returns the id only when it names an existing user. A bare `to_i` would let
+# "-1" reach the last user and crash on anything that is not a number.
+def user_id(env) : Int32?
+  id = env.params.url["id"].to_i?
+  id if id && 0 <= id < USERS.size
+end
+
 # GET - List all users
 get "/users" do |_|
   USERS.to_json
@@ -16,9 +23,7 @@ end
 
 # GET - Get a specific user by index
 get "/users/:id" do |env|
-  id = env.params.url["id"].to_i
-
-  if id < USERS.size
+  if id = user_id(env)
     USERS[id].to_json
   else
     env.response.status_code = 404
@@ -40,9 +45,7 @@ end
 
 # PUT - Update a user
 put "/users/:id" do |env|
-  id = env.params.url["id"].to_i
-
-  if id < USERS.size
+  if id = user_id(env)
     # Parse request body as JSON
     # ameba:disable Lint/NotNil
     updated_user = JSON.parse(env.request.body.not_nil!.gets_to_end)
@@ -57,9 +60,7 @@ end
 
 # DELETE - Remove a user
 delete "/users/:id" do |env|
-  id = env.params.url["id"].to_i
-
-  if id < USERS.size
+  if id = user_id(env)
     deleted_user = USERS.delete_at(id)
     deleted_user.to_json
   else
