@@ -19,8 +19,9 @@ end
 # Parses the body as a JSON object, or returns nil when it is missing,
 # malformed, or not an object
 def user_body(env) : Hash(String, JSON::Any)?
-  body = env.request.body
-  JSON.parse(body.gets_to_end).as_h? if body
+  if body = env.request.body
+    JSON.parse(body).as_h?
+  end
 rescue JSON::ParseException
   nil
 end
