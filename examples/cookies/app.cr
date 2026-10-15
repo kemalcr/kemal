@@ -26,7 +26,7 @@ get "/set-cookies" do |env|
     name: "SessionCookie",
     value: "Temporary",
     http_only: true,
-    samesite: HTTP::Cookie::SameSite::Lax # Cross-site, sent only on top-level navigation
+    samesite: HTTP::Cookie::SameSite::Lax # Cross-site, sent only on top-level GET navigation
   )
 
   # Add all cookies to response
@@ -57,14 +57,16 @@ end
 delete "/cookies/:name" do |env|
   cookie_name = env.params.url["name"]
 
-  # Set cookie with immediate expiration to delete it
-  delete_cookie = HTTP::Cookie.new(
-    name: cookie_name,
-    value: "",
-    path: "/", # Must match the cookie's path, or the browser keeps it
-    expires: Time.local - 1.day
-  )
+  begin
+    # The path must match the cookie's path, or the browser keeps it
+    delete_cookie = HTTP::Cookie.new(cookie_name, "", path: "/")
+  rescue IO::Error # HTTP::Cookie rejects names that are not valid cookie tokens
+    env.response.status_code = 400
+    next "Invalid cookie name"
+  end
 
+  # `expire` sets Max-Age=0, which deletes the cookie whatever the client's clock says
+  delete_cookie.expire
   env.response.cookies << delete_cookie
   "Cookie '#{HTML.escape(cookie_name)}' has been deleted!"
 end
