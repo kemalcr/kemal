@@ -42,7 +42,8 @@ get "/show-cookies" do |env|
     str << "<h1>Current Cookies:</h1>"
     str << "<ul>"
     cookies.each do |cookie|
-      str << "<li>#{cookie.name}: #{cookie.value}</li>"
+      # Cookies are client-controlled: escape them before writing HTML
+      str << "<li>#{HTML.escape(cookie.name)}: #{HTML.escape(cookie.value)}</li>"
     end
     str << "</ul>"
   end
@@ -61,7 +62,7 @@ get "/delete-cookie/:name" do |env|
   )
 
   env.response.cookies << delete_cookie
-  "Cookie '#{cookie_name}' has been deleted!"
+  "Cookie '#{HTML.escape(cookie_name)}' has been deleted!"
 end
 
 Kemal.run
