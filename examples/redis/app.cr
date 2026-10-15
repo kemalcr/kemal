@@ -4,12 +4,18 @@ require "redis"
 # Initialize Redis client
 REDIS = Redis.new(host: "localhost", port: 6379)
 
+# Prefix every key so clients can only reach this example's keys,
+# not sessions or other data that share the same Redis
+def redis_key(key : String) : String
+  "kemal-example:#{key}"
+end
+
 # Store a value
 post "/store/:key" do |env|
   key = env.params.url["key"]
   value = env.params.json["value"].as(String)
 
-  REDIS.set(key, value)
+  REDIS.set(redis_key(key), value)
   {message: "Value stored successfully"}.to_json
 end
 
@@ -17,7 +23,7 @@ end
 get "/get/:key" do |env|
   key = env.params.url["key"]
 
-  if value = REDIS.get(key)
+  if value = REDIS.get(redis_key(key))
     {key: key, value: value}.to_json
   else
     env.response.status_code = 404
@@ -26,10 +32,10 @@ get "/get/:key" do |env|
 end
 
 # Delete a value
-delete "/:key" do |env|
+delete "/store/:key" do |env|
   key = env.params.url["key"]
 
-  if REDIS.del(key) > 0
+  if REDIS.del(redis_key(key)) > 0
     {message: "Key deleted successfully"}.to_json
   else
     env.response.status_code = 404
@@ -40,7 +46,7 @@ end
 # Increment a counter
 post "/incr/:key" do |env|
   key = env.params.url["key"]
-  new_value = REDIS.incr(key)
+  new_value = REDIS.incr(redis_key(key))
 
   {key: key, value: new_value}.to_json
 end
@@ -51,7 +57,7 @@ post "/store_temp/:key" do |env|
   value = env.params.json["value"].as(String)
   ttl = env.params.json["ttl"].as(Int64)
 
-  REDIS.setex(key, ttl, value)
+  REDIS.setex(redis_key(key), ttl, value)
   {message: "Value stored with expiration"}.to_json
 end
 
