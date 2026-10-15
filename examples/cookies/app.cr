@@ -60,7 +60,7 @@ delete "/cookies/:name" do |env|
   begin
     # The path must match the cookie's path, or the browser keeps it
     delete_cookie = HTTP::Cookie.new(cookie_name, "", path: "/")
-  rescue IO::Error # HTTP::Cookie rejects names that are not valid cookie tokens
+  rescue IO::Error | ArgumentError # HTTP::Cookie rejects names that are not valid cookie tokens
     env.response.status_code = 400
     next "Invalid cookie name"
   end
