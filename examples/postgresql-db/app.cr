@@ -2,8 +2,9 @@ require "kemal"
 require "db"
 require "pg"
 
-# Initialize a single DB connection
-DB_URL = "postgres://postgres:postgres@localhost:5432/mydb"
+# Initialize a connection pool
+# Credentials stay out of source: set DATABASE_URL, e.g. postgres://user:pass@localhost:5432/mydb
+DB_URL = ENV["DATABASE_URL"]
 DBC    = DB.open(DB_URL)
 
 # Example User model
@@ -30,8 +31,12 @@ end
 
 # Create a new user
 post "/users" do |env|
-  name = env.params.json["name"].as(String)
-  email = env.params.json["email"].as(String)
+  name = env.params.json["name"]?.as?(String)
+  email = env.params.json["email"]?.as?(String)
+  unless name && email
+    env.response.status_code = 400
+    next {message: "Name and email must be strings"}.to_json
+  end
 
   user = User.from_rs(DBC.query("INSERT INTO users (name, email) VALUES ($1, $2) RETURNING id, name, email", name, email)).first
 
@@ -40,12 +45,11 @@ end
 
 # Delete a user
 delete "/users/:id" do |env|
-  id = env.params.url["id"].to_i
+  # to_i? returns nil for a non-numeric id instead of raising
+  id = env.params.url["id"].to_i?
 
   # Delete user and check if any rows were affected
-  result = DBC.exec "DELETE FROM users WHERE id = $1", id
-
-  if result.rows_affected > 0
+  if id && DBC.exec("DELETE FROM users WHERE id = $1", id).rows_affected > 0
     {message: "User deleted successfully"}.to_json
   else
     env.response.status_code = 404

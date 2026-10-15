@@ -10,7 +10,9 @@ class User
   # Define properties that will be mapped from JSON
   # These properties must match the keys in the incoming JSON
   property username : String # User's username as a string
-  property password : String # User's password as a string
+  # Read from JSON but never written back, so no `to_json` can leak it
+  @[JSON::Field(ignore_serialize: true)]
+  property password : String
 end
 
 # Handle POST requests to the root path "/"
@@ -23,9 +25,8 @@ post "/" do |env|
   user = User.from_json env.request.body.not_nil!
   # ameba:enable Lint/NotNil
 
-  # Convert the user object back to JSON and return it
-  # This creates a JSON object with username and password fields
-  {username: user.username, password: user.password}.to_json
+  # Convert the user object back to JSON; the password is left out
+  user.to_json
 end
 
 # Start the Kemal web server

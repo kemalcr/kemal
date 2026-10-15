@@ -9,6 +9,28 @@ end
 # In-memory storage for users
 USERS = [] of Hash(String, JSON::Any)
 
+# Returns the id only when it names an existing user. A bare `to_i` would let
+# "-1" reach the last user and crash on anything that is not a number.
+def user_id(env) : Int32?
+  id = env.params.url["id"].to_i?
+  id if id && 0 < id < USERS.size
+end
+
+# Parses the body as a JSON object, or returns nil when it is missing,
+# malformed, or not an object
+def user_body(env) : Hash(String, JSON::Any)?
+  if body = env.request.body
+    JSON.parse(body).as_h?
+  end
+rescue JSON::ParseException
+  nil
+end
+
+def bad_body(env) : String
+  env.response.status_code = 400
+  {error: "Body must be a JSON object"}.to_json
+end
+
 # GET - List all users
 get "/users" do |_|
   USERS.to_json
@@ -16,9 +38,7 @@ end
 
 # GET - Get a specific user by index
 get "/users/:id" do |env|
-  id = env.params.url["id"].to_i
-
-  if id < USERS.size
+  if id = user_id(env)
     USERS[id].to_json
   else
     env.response.status_code = 404
@@ -28,11 +48,8 @@ end
 
 # POST - Create a new user
 post "/users" do |env|
-  # Parse request body as JSON
-  # ameba:disable Lint/NotNil
-  user = JSON.parse(env.request.body.not_nil!.gets_to_end)
-  # ameba:enable Lint/NotNil
-  USERS << user.as_h
+  next bad_body(env) unless user = user_body(env)
+  USERS << user
 
   env.response.status_code = 201
   user.to_json
@@ -40,14 +57,12 @@ end
 
 # PUT - Update a user
 put "/users/:id" do |env|
-  id = env.params.url["id"].to_i
+  # Read the body before looking up the id: reading can yield to another
+  # request, and a DELETE in between would shift the indexes
+  next bad_body(env) unless updated_user = user_body(env)
 
-  if id < USERS.size
-    # Parse request body as JSON
-    # ameba:disable Lint/NotNil
-    updated_user = JSON.parse(env.request.body.not_nil!.gets_to_end)
-    # ameba:enable Lint/NotNil
-    USERS[id] = updated_user.as_h
+  if id = user_id(env)
+    USERS[id] = updated_user
     updated_user.to_json
   else
     env.response.status_code = 404
@@ -57,9 +72,7 @@ end
 
 # DELETE - Remove a user
 delete "/users/:id" do |env|
-  id = env.params.url["id"].to_i
-
-  if id < USERS.size
+  if id = user_id(env)
     deleted_user = USERS.delete_at(id)
     deleted_user.to_json
   else
