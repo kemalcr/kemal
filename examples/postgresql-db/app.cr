@@ -35,7 +35,7 @@ post "/users" do |env|
   email = env.params.json["email"]?.as?(String)
   unless name && email
     env.response.status_code = 400
-    next {message: "name and email must be strings"}.to_json
+    next {message: "Name and email must be strings"}.to_json
   end
 
   user = User.from_rs(DBC.query("INSERT INTO users (name, email) VALUES ($1, $2) RETURNING id, name, email", name, email)).first
