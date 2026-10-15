@@ -16,6 +16,20 @@ def user_id(env) : Int32?
   id if id && 0 <= id < USERS.size
 end
 
+# Parses the body as a JSON object, or returns nil when it is missing,
+# malformed, or not an object
+def user_body(env) : Hash(String, JSON::Any)?
+  body = env.request.body
+  JSON.parse(body.gets_to_end).as_h? if body
+rescue JSON::ParseException
+  nil
+end
+
+def bad_body(env) : String
+  env.response.status_code = 400
+  {error: "Body must be a JSON object"}.to_json
+end
+
 # GET - List all users
 get "/users" do |_|
   USERS.to_json
@@ -33,11 +47,8 @@ end
 
 # POST - Create a new user
 post "/users" do |env|
-  # Parse request body as JSON
-  # ameba:disable Lint/NotNil
-  user = JSON.parse(env.request.body.not_nil!.gets_to_end)
-  # ameba:enable Lint/NotNil
-  USERS << user.as_h
+  next bad_body(env) unless user = user_body(env)
+  USERS << user
 
   env.response.status_code = 201
   user.to_json
@@ -45,12 +56,12 @@ end
 
 # PUT - Update a user
 put "/users/:id" do |env|
+  # Read the body before looking up the id: reading can yield to another
+  # request, and a DELETE in between would shift the indexes
+  next bad_body(env) unless updated_user = user_body(env)
+
   if id = user_id(env)
-    # Parse request body as JSON
-    # ameba:disable Lint/NotNil
-    updated_user = JSON.parse(env.request.body.not_nil!.gets_to_end)
-    # ameba:enable Lint/NotNil
-    USERS[id] = updated_user.as_h
+    USERS[id] = updated_user
     updated_user.to_json
   else
     env.response.status_code = 404
