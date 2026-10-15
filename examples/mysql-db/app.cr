@@ -3,9 +3,8 @@ require "db"
 require "mysql"
 
 # Initialize a connection pool
-# Keep credentials out of source: set DATABASE_URL in production.
-# The fallback is only for local development.
-DB_URL = ENV.fetch("DATABASE_URL", "mysql://root:password@localhost:3306/mydb")
+# Credentials stay out of source: set DATABASE_URL, e.g. mysql://user:pass@localhost:3306/mydb
+DB_URL = ENV["DATABASE_URL"]
 DBC    = DB.open(DB_URL)
 
 # Example User model
@@ -32,8 +31,12 @@ end
 
 # Create a new user
 post "/users" do |env|
-  name = env.params.json["name"].as(String)
-  email = env.params.json["email"].as(String)
+  name = env.params.json["name"]?.as?(String)
+  email = env.params.json["email"]?.as?(String)
+  unless name && email
+    env.response.status_code = 400
+    next {message: "name and email must be strings"}.to_json
+  end
 
   user = User.from_rs(DBC.query("INSERT INTO users (name, email) VALUES (?, ?) RETURNING id, name, email", name, email)).first
 
@@ -42,12 +45,11 @@ end
 
 # Delete a user
 delete "/users/:id" do |env|
-  id = env.params.url["id"].to_i
+  # to_i? returns nil for a non-numeric id instead of raising
+  id = env.params.url["id"].to_i?
 
   # Delete user and check if any rows were affected
-  result = DBC.exec "DELETE FROM users WHERE id = ?", id
-
-  if result.rows_affected > 0
+  if id && DBC.exec("DELETE FROM users WHERE id = ?", id).rows_affected > 0
     {message: "User deleted successfully"}.to_json
   else
     env.response.status_code = 404
