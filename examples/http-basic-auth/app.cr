@@ -1,12 +1,13 @@
 require "kemal"
 require "kemal-basic-auth"
 
-# Enable HTTP Basic Authentication
-# This will protect all routes with username/password authentication.
-# Credentials come from the environment so they never live in source;
-# startup fails if they are missing instead of falling back to a default.
-# Basic auth sends credentials in plain text: serve it over HTTPS only.
-basic_auth ENV["BASIC_AUTH_USER"], ENV["BASIC_AUTH_PASSWORD"]
+# Enable HTTP Basic Authentication for all routes
+# Credentials come from ENV, never source; refuse to start if unset or empty.
+# Basic auth sends them in plain text: serve it over HTTPS only.
+username = ENV["BASIC_AUTH_USER"]?.presence
+password = ENV["BASIC_AUTH_PASSWORD"]?.presence
+abort "Set BASIC_AUTH_USER and BASIC_AUTH_PASSWORD" unless username && password
+basic_auth username, password
 
 # Define a route for the root path "/"
 get "/" do |_|
