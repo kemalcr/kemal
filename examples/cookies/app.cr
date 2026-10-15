@@ -14,17 +14,19 @@ get "/set-cookies" do |env|
   secure_cookie = HTTP::Cookie.new(
     name: "SecureCookie",
     value: "Sensitive Data",
-    http_only: true,                              # Cookie cannot be accessed via JavaScript
-    secure: true,                                 # Cookie only sent over HTTPS
-    path: "/",                                    # Cookie available for all paths
-    expires: Time.local + Time::Span.new(days: 7) # Cookie expires in 7 days
+    http_only: true,                               # Cookie cannot be accessed via JavaScript
+    secure: true,                                  # Cookie only sent over HTTPS
+    path: "/",                                     # Cookie available for all paths
+    expires: Time.local + Time::Span.new(days: 7), # Cookie expires in 7 days
+    samesite: HTTP::Cookie::SameSite::Strict       # Never sent on cross-site requests (CSRF)
   )
 
   # Session cookie that expires when browser closes
   session_cookie = HTTP::Cookie.new(
     name: "SessionCookie",
     value: "Temporary",
-    http_only: true
+    http_only: true,
+    samesite: HTTP::Cookie::SameSite::Lax # Cross-site, sent only on top-level navigation
   )
 
   # Add all cookies to response
@@ -51,13 +53,15 @@ get "/show-cookies" do |env|
 end
 
 # Route to delete a specific cookie
-get "/delete-cookie/:name" do |env|
+# Use a non-GET method for state changes so links and prefetches cannot trigger it
+delete "/cookies/:name" do |env|
   cookie_name = env.params.url["name"]
 
   # Set cookie with immediate expiration to delete it
   delete_cookie = HTTP::Cookie.new(
     name: cookie_name,
     value: "",
+    path: "/", # Must match the cookie's path, or the browser keeps it
     expires: Time.local - 1.day
   )
 
