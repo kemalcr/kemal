@@ -23,9 +23,8 @@ post "/" do |env|
   user = User.from_json env.request.body.not_nil!
   # ameba:enable Lint/NotNil
 
-  # Convert the user object back to JSON and return it
-  # This creates a JSON object with username and password fields
-  {username: user.username, password: user.password}.to_json
+  # Respond with the username only: never send a password back to the client
+  {username: user.username}.to_json
 end
 
 # Start the Kemal web server
