@@ -2,8 +2,10 @@ require "kemal"
 require "db"
 require "mysql"
 
-# Initialize a single DB connection
-DB_URL = "mysql://root:password@localhost:3306/mydb"
+# Initialize a connection pool
+# Keep credentials out of source: set DATABASE_URL in production.
+# The fallback is only for local development.
+DB_URL = ENV.fetch("DATABASE_URL", "mysql://root:password@localhost:3306/mydb")
 DBC    = DB.open(DB_URL)
 
 # Example User model
