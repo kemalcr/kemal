@@ -13,7 +13,7 @@ USERS = [] of Hash(String, JSON::Any)
 # "-1" reach the last user and crash on anything that is not a number.
 def user_id(env) : Int32?
   id = env.params.url["id"].to_i?
-  id if id && 0 <= id < USERS.size
+  id if id && 0 < id < USERS.size
 end
 
 # Parses the body as a JSON object, or returns nil when it is missing,
