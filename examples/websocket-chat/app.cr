@@ -6,8 +6,8 @@ MAX_MESSAGES = 100
 # message by the time on_message runs, so this does not cap memory per read.
 MAX_MESSAGE_BYTES = 1024
 
-# Array to store chat message history
-messages = [] of String
+# Deque to store chat message history (cheap to drop the oldest)
+messages = Deque(String).new
 # Array to keep track of connected WebSocket clients
 sockets = [] of HTTP::WebSocket
 
