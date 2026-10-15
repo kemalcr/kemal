@@ -9,7 +9,7 @@ REDIS = Redis::PooledClient.new(host: "localhost", port: 6379)
 # Prefix every key so clients can only reach this example's keys,
 # not sessions or other data that share the same Redis
 def redis_key(key : String) : String
-  "kemal-example:#{key}"
+  "kemal-example-app:#{key}"
 end
 
 def bad_request(env, message : String) : String
@@ -21,7 +21,7 @@ end
 post "/store/:key" do |env|
   key = env.params.url["key"]
   value = env.params.json["value"]?.as?(String)
-  next bad_request(env, "value must be a string") unless value
+  next bad_request(env, "Value must be a string") unless value
 
   REDIS.set(redis_key(key), value)
   {message: "Value stored successfully"}.to_json
@@ -65,7 +65,9 @@ post "/store_temp/:key" do |env|
   value = env.params.json["value"]?.as?(String)
   ttl = env.params.json["ttl"]?.as?(Int64)
   # Redis rejects a TTL of zero or less
-  next bad_request(env, "value must be a string and ttl a positive integer") unless value && ttl && ttl > 0
+  unless value && ttl && ttl > 0
+    next bad_request(env, "Value must be a string and ttl a positive integer")
+  end
 
   REDIS.setex(redis_key(key), ttl, value)
   {message: "Value stored with expiration"}.to_json
