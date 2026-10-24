@@ -1,6 +1,6 @@
 # Unreleased
 
-- Answer a multipart body with a part header the stdlib cannot parse with `400 Bad Request` instead of `500`. `HTTP::FormData` raises more than `HTTP::FormData::Error` on a malformed part: an empty parameter (`name=`), a quoted one ending in `\`, a `size=abc`, a bad `creation-date`, a control character or a line without `:` in the part headers. Any client could trigger the `500` and the error log entry that went with it, on every route reading `params.body` or `params.files` and on every `POST` behind `Kemal::OverrideMethodHandler`. An error raised by Kemal itself while reading a part still answers `500`.
+- Answer a multipart body with a part header the stdlib cannot parse with `400 Bad Request` instead of `500`. `HTTP::FormData` raises more than `HTTP::FormData::Error` on a malformed part: an empty parameter (`name=`), a quoted one ending in `\`, a `size=abc`, a bad `creation-date`, a control character in the part headers or, from Crystal 1.22, a part header line without `:`. Any client could trigger the `500` and the error log entry that went with it, on every route reading `params.body` or `params.files` and on every `POST` behind `Kemal::OverrideMethodHandler`. An error raised by Kemal itself while reading a part still answers `500`.
 
 # 1.15.0 (17-10-2026)
 

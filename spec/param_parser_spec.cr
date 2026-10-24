@@ -578,7 +578,6 @@ describe "ParamParser" do
         cd + %(name="a"; read-date="Mon, 01 Jan 12345 00:00:00 GMT"),
         cd + %(name="a"; creation-date="Mon, 01 Jan 2016 00:00:00 -9999"),
         "X-Custom: \u0001\r\n#{cd}name=\"a\"",
-        "no-colon\r\n#{cd}name=\"a\"",
       ].each do |part_headers|
         request = multipart_request("--AaB03x\r\n#{part_headers}\r\n\r\nx\r\n--AaB03x--\r\n")
 
