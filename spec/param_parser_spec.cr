@@ -568,6 +568,34 @@ describe "ParamParser" do
         Kemal::ParamParser.new(request).files
       end
     end
+
+    it "raises BadRequest for any part header the stdlib cannot parse" do
+      cd = "Content-Disposition: form-data; "
+      [
+        cd + %(name=),
+        cd + %(name="a\\"),
+        cd + %(name="a"; size=abc),
+        cd + %(name="a"; read-date="Mon, 01 Jan 12345 00:00:00 GMT"),
+        cd + %(name="a"; creation-date="Mon, 01 Jan 2016 00:00:00 -9999"),
+        "X-Custom: \u0001\r\n#{cd}name=\"a\"",
+        "no-colon\r\n#{cd}name=\"a\"",
+      ].each do |part_headers|
+        request = multipart_request("--AaB03x\r\n#{part_headers}\r\n\r\nx\r\n--AaB03x--\r\n")
+
+        expect_raises(Kemal::Exceptions::BadRequest) do
+          Kemal::ParamParser.new(request).body
+        end
+      end
+    end
+
+    it "does not take an error of its own while reading a part for a bad request" do
+      Kemal.config.max_multipart_form_field_size = -2
+      request = multipart_request("--AaB03x\r\nContent-Disposition: form-data; name=\"a\"\r\n\r\nx\r\n--AaB03x--\r\n")
+
+      expect_raises(ArgumentError) do
+        Kemal::ParamParser.new(request).body
+      end
+    end
   end
 
   context "all_files" do

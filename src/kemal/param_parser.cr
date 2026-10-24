@@ -181,8 +181,10 @@ module Kemal
       validate_content_length!
 
       uploads = 0
+      in_part = false
       HTTP::FormData.parse(multipart_body_with_limit, multipart_boundary) do |upload|
         next unless upload
+        in_part = true
 
         filename = upload.filename
         name = upload.name
@@ -209,10 +211,17 @@ module Kemal
         else
           @body.add(name, read_body_with_limit(upload.body, multipart_form_field_limit))
         end
+        in_part = false
       end
 
       @files_parsed = true
-    rescue ex : HTTP::FormData::Error | MIME::Multipart::Error
+    rescue ex : Exceptions::PayloadTooLarge | IO::Error
+      raise ex
+    rescue ex
+      # Outside a part, only the stdlib is reading the body, and it does not keep its parse
+      # errors to `FormData::Error`: a malformed part header raises `ArgumentError`,
+      # `IndexError`, `Time::Error` or a bare `Exception`. Inside one, the error is Kemal's own.
+      raise ex if in_part
       raise Kemal::Exceptions::BadRequest.new(cause: ex)
     end
 

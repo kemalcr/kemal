@@ -592,6 +592,18 @@ describe "Kemal::ExceptionHandler" do
     response.status_code.should eq 400
   end
 
+  it "renders 400 for a multipart part header the stdlib cannot parse" do
+    post "/m" do |env|
+      env.params.body
+      "ok"
+    end
+
+    headers = HTTP::Headers{"Content-Type" => "multipart/form-data; boundary=AaB03x"}
+    body = "--AaB03x\r\nContent-Disposition: form-data; name=\r\n\r\nx\r\n--AaB03x--\r\n"
+    response = call_request_on_app(HTTP::Request.new("POST", "/m", headers, body: body))
+    response.status_code.should eq 400
+  end
+
   it "renders 400 for a multipart body without a boundary" do
     post "/m2" do |env|
       env.params.files
