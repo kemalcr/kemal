@@ -587,7 +587,20 @@ describe "ParamParser" do
       end
     end
 
-    it "does not take an error of its own while reading a part for a bad request" do
+    it "raises BadRequest when a part over a limit ends a truncated body" do
+      cd = "Content-Disposition: form-data; "
+      Kemal.config.max_multipart_form_field_size = 10
+      expect_raises(Kemal::Exceptions::BadRequest) do
+        Kemal::ParamParser.new(multipart_request("--AaB03x\r\n#{cd}name=\"a\"\r\n\r\n#{"x" * 20}")).body
+      end
+
+      Kemal.config.max_file_uploads = 0
+      expect_raises(Kemal::Exceptions::BadRequest) do
+        Kemal::ParamParser.new(multipart_request("--AaB03x\r\n#{cd}name=\"f\"; filename=\"f\"\r\n\r\nx")).files
+      end
+    end
+
+    it "lets an error raised by Kemal while reading a part propagate" do
       Kemal.config.max_multipart_form_field_size = -2
       request = multipart_request("--AaB03x\r\nContent-Disposition: form-data; name=\"a\"\r\n\r\nx\r\n--AaB03x--\r\n")
 

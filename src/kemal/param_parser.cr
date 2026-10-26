@@ -217,6 +217,11 @@ module Kemal
       @files_parsed = true
     rescue ex : Exceptions::PayloadTooLarge | IO::Error
       raise ex
+    rescue ex : HTTP::FormData::Error | MIME::Multipart::Error
+      # Only the stdlib raises these, even while `in_part` is set: when a part's block raises,
+      # the parser drains the part in an `ensure`, and on a truncated body that `ensure`
+      # raises a `Multipart::Error` that replaces the block's exception.
+      raise Kemal::Exceptions::BadRequest.new(cause: ex)
     rescue ex
       # Outside a part, only the stdlib is reading the body, and it does not keep its parse
       # errors to `FormData::Error`: a malformed part header raises `ArgumentError`,
