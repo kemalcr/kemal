@@ -7,9 +7,8 @@ end
 describe "Views" do
   it "renders file" do
     get "/view/:name" do |env|
-      env.params.url["name"].try do |name|
-        render "#{__DIR__}/asset/hello.ecr"
-      end
+      _who = env.params.url["name"]
+      render "#{__DIR__}/asset/hello.ecr"
     end
     request = HTTP::Request.new("GET", "/view/world")
     client_response = call_request_on_app(request)
@@ -18,9 +17,8 @@ describe "Views" do
 
   it "renders file with dynamic variables" do
     get "/view/:name" do |env|
-      env.params.url["name"].try do |name|
-        render_with_base_and_layout "hello.ecr"
-      end
+      _who = env.params.url["name"]
+      render_with_base_and_layout "hello.ecr"
     end
     request = HTTP::Request.new("GET", "/view/world")
     client_response = call_request_on_app(request)
@@ -29,9 +27,8 @@ describe "Views" do
 
   it "renders layout" do
     get "/view/:name" do |env|
-      env.params.url["name"].try do |name|
-        render "#{__DIR__}/asset/hello.ecr", "#{__DIR__}/asset/layout.ecr"
-      end
+      _who = env.params.url["name"]
+      render "#{__DIR__}/asset/hello.ecr", "#{__DIR__}/asset/layout.ecr"
     end
     request = HTTP::Request.new("GET", "/view/world")
     client_response = call_request_on_app(request)
@@ -40,11 +37,10 @@ describe "Views" do
 
   it "renders layout with variables" do
     get "/view/:name" do |env|
-      env.params.url["name"].try do |name|
-        var1 = "serdar" # ameba:disable Lint/UselessAssign
-        var2 = "kemal"  # ameba:disable Lint/UselessAssign
-        render "#{__DIR__}/asset/hello_with_content_for.ecr", "#{__DIR__}/asset/layout_with_yield_and_vars.ecr"
-      end
+      _who = env.params.url["name"]
+      var1 = "serdar" # ameba:disable Lint/UselessAssign
+      var2 = "kemal"  # ameba:disable Lint/UselessAssign
+      render "#{__DIR__}/asset/hello_with_content_for.ecr", "#{__DIR__}/asset/layout_with_yield_and_vars.ecr"
     end
     request = HTTP::Request.new("GET", "/view/world")
     client_response = call_request_on_app(request)
@@ -55,9 +51,8 @@ describe "Views" do
 
   it "renders layout with content_for" do
     get "/view/:name" do |env|
-      env.params.url["name"].try do |name|
-        render "#{__DIR__}/asset/hello_with_content_for.ecr", "#{__DIR__}/asset/layout_with_yield.ecr"
-      end
+      _who = env.params.url["name"]
+      render "#{__DIR__}/asset/hello_with_content_for.ecr", "#{__DIR__}/asset/layout_with_yield.ecr"
     end
     request = HTTP::Request.new("GET", "/view/world")
     client_response = call_request_on_app(request)
@@ -67,9 +62,8 @@ describe "Views" do
 
   it "does not render content_for that was not yielded" do
     get "/view/:name" do |env|
-      env.params.url["name"].try do |name|
-        render "#{__DIR__}/asset/hello_with_content_for.ecr", "#{__DIR__}/asset/layout.ecr"
-      end
+      _who = env.params.url["name"]
+      render "#{__DIR__}/asset/hello_with_content_for.ecr", "#{__DIR__}/asset/layout.ecr"
     end
     request = HTTP::Request.new("GET", "/view/world")
     client_response = call_request_on_app(request)
@@ -99,9 +93,8 @@ describe "Views" do
 
   it "renders content_for from a partial in the layout" do
     get "/view/:name" do |env|
-      env.params.url["name"].try do |name|
-        render "#{__DIR__}/asset/hello_with_partial_content_for.ecr", "#{__DIR__}/asset/layout_with_yield.ecr"
-      end
+      _who = env.params.url["name"]
+      render "#{__DIR__}/asset/hello_with_partial_content_for.ecr", "#{__DIR__}/asset/layout_with_yield.ecr"
     end
     request = HTTP::Request.new("GET", "/view/world")
     client_response = call_request_on_app(request)
@@ -117,9 +110,8 @@ describe "Views" do
     # printing the view's `partial` after `yield_content`, read whatever the
     # heap held there.
     get "/view/:name" do |env|
-      env.params.url["name"].try do |name|
-        render "#{__DIR__}/asset/hello_with_partial_content_for.ecr", "#{__DIR__}/asset/layout_with_yield_and_partial.ecr"
-      end
+      _who = env.params.url["name"]
+      render "#{__DIR__}/asset/hello_with_partial_content_for.ecr", "#{__DIR__}/asset/layout_with_yield_and_partial.ecr"
     end
     request = HTTP::Request.new("GET", "/view/world")
     client_response = call_request_on_app(request)
