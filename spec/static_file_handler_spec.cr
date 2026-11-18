@@ -506,6 +506,95 @@ describe Kemal::StaticFileHandler do
     response.status_code.should eq(302)
   end
 
+  it "does not serve a symlink that escapes the public directory" do
+    public_dir = File.tempname("kemal-public")
+    secret = File.tempname("kemal-secret")
+    Dir.mkdir_p(public_dir)
+    File.write(secret, "private content")
+    File.symlink(secret, File.join(public_dir, "leak.txt"))
+
+    begin
+      response = handle HTTP::Request.new("GET", "/leak.txt"), public_dir: public_dir
+      response.status_code.should eq(404)
+      response.body.should_not contain("private content")
+    ensure
+      FileUtils.rm_rf(public_dir)
+      File.delete(secret)
+    end
+  end
+
+  it "does not follow a directory symlink outside the public directory" do
+    public_dir = File.tempname("kemal-public")
+    private_dir = File.tempname("kemal-private")
+    Dir.mkdir_p(public_dir)
+    Dir.mkdir_p(private_dir)
+    File.write(File.join(private_dir, "secret.txt"), "private content")
+    File.symlink(private_dir, File.join(public_dir, "outside"))
+
+    begin
+      response = handle HTTP::Request.new("GET", "/outside/secret.txt"), public_dir: public_dir
+      response.status_code.should eq(404)
+    ensure
+      FileUtils.rm_rf(public_dir)
+      FileUtils.rm_rf(private_dir)
+    end
+  end
+
+  it "does not serve an index symlink outside the public directory" do
+    public_dir = File.tempname("kemal-public")
+    secret = File.tempname("kemal-secret")
+    Dir.mkdir_p(File.join(public_dir, "dir"))
+    File.write(secret, "private content")
+    File.symlink(secret, File.join(public_dir, "dir", "index.html"))
+    serve_static({"dir_index" => true})
+
+    begin
+      response = handle HTTP::Request.new("GET", "/dir/"), public_dir: public_dir
+      response.status_code.should eq(404)
+    ensure
+      FileUtils.rm_rf(public_dir)
+      File.delete(secret)
+    end
+  end
+
+  {% if compare_versions(Crystal::VERSION, "1.17.0") >= 0 %}
+    it "does not serve a precompressed symlink outside the public directory" do
+      public_dir = File.tempname("kemal-public")
+      secret = File.tempname("kemal-secret")
+      Dir.mkdir_p(public_dir)
+      File.write(File.join(public_dir, "app.js"), "public content")
+      File.write(secret, "private content")
+      File.touch(secret, Time.utc + 1.second)
+      File.symlink(secret, File.join(public_dir, "app.js.gz"))
+
+      begin
+        headers = HTTP::Headers{"Accept-Encoding" => "gzip"}
+        response = handle HTTP::Request.new("GET", "/app.js", headers), decompress: false, public_dir: public_dir
+        response.status_code.should eq(200)
+        response.headers["Content-Encoding"]?.should be_nil
+        response.body.should eq("public content")
+      ensure
+        FileUtils.rm_rf(public_dir)
+        File.delete(secret)
+      end
+    end
+  {% end %}
+
+  it "serves a symlink whose target stays inside the public directory" do
+    public_dir = File.tempname("kemal-public")
+    Dir.mkdir_p(public_dir)
+    File.write(File.join(public_dir, "asset.txt"), "public content")
+    File.symlink(File.join(public_dir, "asset.txt"), File.join(public_dir, "alias.txt"))
+
+    begin
+      response = handle HTTP::Request.new("GET", "/alias.txt"), public_dir: public_dir
+      response.status_code.should eq(200)
+      response.body.should eq("public content")
+    ensure
+      FileUtils.rm_rf(public_dir)
+    end
+  end
+
   it "should still redirect a non-canonical path to the file it names" do
     response = handle HTTP::Request.new("GET", "/dir//test.txt")
     response.status_code.should eq(302)

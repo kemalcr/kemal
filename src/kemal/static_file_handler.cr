@@ -1,6 +1,19 @@
+{% if flag?(:win32) %}
+  lib LibC
+    fun GetFinalPathNameByHandleW(handle : HANDLE, path : LPWSTR, size : DWORD, flags : DWORD) : DWORD
+  end
+{% end %}
+
 module Kemal
   class StaticFileHandler < HTTP::StaticFileHandler
     {% if compare_versions(Crystal::VERSION, "1.17.0") >= 0 %}
+      private def file_info(expanded_path : Path)
+        info, path = super
+        return {nil, path} if info && !inside_public_dir?(path)
+
+        {info, path}
+      end
+
       private def directory_index(context : HTTP::Server::Context, request_path : Path, file_path : Path)
         config = Kemal.config.serve_static
         unless config.is_a?(Hash)
@@ -8,7 +21,7 @@ module Kemal
         end
 
         index_path = file_path / "index.html"
-        if config.fetch("dir_index", false) && (index_info = File.info?(index_path))
+        if config.fetch("dir_index", false) && (index_info = File.info?(index_path)) && index_info.file? && inside_public_dir?(index_path)
           # The index is a static file like any other, so it gets the same negotiation,
           # cache handling and pre-compressed neighbour support.
           serve_file_with_cache(context, index_info, index_path)
@@ -68,7 +81,8 @@ module Kemal
       private def precompressed_variant(file_path : Path, last_modified : Time)
         gz_file_path = Path["#{file_path}.gz"]
         gz_file_info = File.info?(gz_file_path)
-        return unless gz_file_info && last_modified - gz_file_info.modification_time < TIME_DRIFT
+        return unless gz_file_info && gz_file_info.file? && last_modified - gz_file_info.modification_time < TIME_DRIFT
+        return unless inside_public_dir?(gz_file_path)
 
         {gz_file_info, gz_file_path}
       end
@@ -140,6 +154,7 @@ module Kemal
 
         file_path = @public_dir.join(expanded_path.to_kind(Path::Kind.native))
         file_info = File.info? file_path
+        file_info = nil if file_info && !inside_public_dir?(file_path)
         is_dir = directory_paths_served? && file_info && file_info.directory?
         is_file = file_info && file_info.file?
 
@@ -158,11 +173,12 @@ module Kemal
         if is_dir
           config = Kemal.config.serve_static
 
-          if config.is_a?(Hash) && config.fetch("dir_index", false) && File.exists?(File.join(file_path, "index.html"))
-            file_path = File.join(@public_dir, expanded_path, "index.html")
+          index_path = file_path / "index.html"
+          if config.is_a?(Hash) && config.fetch("dir_index", false) && (index_info = File.info?(index_path)) && index_info.file? && inside_public_dir?(index_path)
+            file_path = index_path.to_s
 
-            index_size = File.size(file_path)
-            last_modified = modification_time(file_path)
+            index_size = index_info.size
+            last_modified = index_info.modification_time
             add_cache_headers(context.response.headers, last_modified)
             add_negotiation_headers(context, file_path, index_size)
 
@@ -197,6 +213,37 @@ module Kemal
         File.info(file_path).modification_time
       end
     {% end %}
+
+    # Resolve symlinks before serving a path: lexical normalization alone does not
+    # keep a link in public/ from pointing to a private file elsewhere.
+    private def inside_public_dir?(path : Path) : Bool
+      return false unless (root = resolved_path(@public_dir)) && (target = resolved_path(path))
+
+      target == root || target.starts_with?(Path.new(root).join("").to_s)
+    end
+
+    private def resolved_path(path : Path) : String?
+      {% if flag?(:win32) %}
+        # Crystal's Windows realpath only resolves a link in the last component.
+        handle = LibC.CreateFileW(Crystal::System.to_wstr(path.to_s), 0, LibC::FILE_SHARE_READ | LibC::FILE_SHARE_WRITE | LibC::FILE_SHARE_DELETE, nil, LibC::OPEN_EXISTING, LibC::FILE_FLAG_BACKUP_SEMANTICS, LibC::HANDLE.null)
+        return if handle == LibC::INVALID_HANDLE_VALUE
+
+        begin
+          size = LibC.GetFinalPathNameByHandleW(handle, nil, 0, 0)
+          return if size.zero?
+
+          buffer = Slice(UInt16).new(size)
+          length = LibC.GetFinalPathNameByHandleW(handle, buffer, size, 0)
+          String.from_utf16(buffer[0, length]) if 0 < length < size
+        ensure
+          LibC.CloseHandle(handle)
+        end
+      {% else %}
+        File.realpath(path)
+      {% end %}
+    rescue File::Error
+      nil
+    end
 
     # Serves the file through `send_file`. A file that exists but cannot be opened -
     # permissions, a race with its removal - is reported as not found, as the stdlib
