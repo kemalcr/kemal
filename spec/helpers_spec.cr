@@ -263,7 +263,7 @@ describe "Macros" do
       second_part = parts[2]
       second_part.should contain("Content-Type: application/octet-stream")
       second_part.should contain("Content-Range: bytes 7-11/18")
-      second_part.split("\r\n\r\n")[1].strip.should eq("%= _w")
+      second_part.split("\r\n\r\n")[1].strip.should eq("%= na")
     end
 
     it "handles invalid range requests" do
@@ -392,7 +392,7 @@ describe "Macros" do
       end
     end
 
-    # The 18 byte fixture reads "Hello <%= _who %>\n"; the cases below follow RFC 9110 §14.1.2.
+    # The 18 byte fixture reads "Hello <%= name %>\n"; the cases below follow RFC 9110 §14.1.2.
     it "serves a single byte range" do
       get "/" do |env|
         send_file env, "#{__DIR__}/asset/hello.ecr"
@@ -450,7 +450,7 @@ describe "Macros" do
 
       response.status_code.should eq(206)
       response.headers["Content-Range"].should eq("bytes 13-17/18")
-      response.body.should eq("o %>\n")
+      response.body.should eq("e %>\n")
 
       # A suffix longer than the file selects the whole file
       headers = HTTP::Headers{"Range" => "bytes=-100"}
